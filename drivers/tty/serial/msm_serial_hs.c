@@ -67,6 +67,10 @@
 #include <linux/platform_data/msm_serial_hs.h>
 #include <linux/msm-bus.h>
 
+#ifdef CONFIG_BT_MSM_SLEEP
+#include <net/bluetooth/bluesleep.h>
+#endif
+
 #include "msm_serial_hs_hwreg.h"
 #define UART_SPS_CONS_PERIPHERAL 0
 #define UART_SPS_PROD_PERIPHERAL 1
@@ -320,10 +324,16 @@ static int msm_hs_ioctl(struct uart_port *uport, unsigned int cmd,
 	switch (cmd) {
 	case MSM_ENABLE_UART_CLOCK: {
 		ret = msm_hs_request_clock_on(&msm_uport->uport);
+#ifdef CONFIG_BT_MSM_SLEEP
+		bluesleep_outgoing_data();
+#endif
 		break;
 	}
 	case MSM_DISABLE_UART_CLOCK: {
 		ret = msm_hs_request_clock_off(&msm_uport->uport);
+#ifdef CONFIG_BT_MSM_SLEEP
+		bluesleep_tx_allow_sleep();
+#endif
 		break;
 	}
 	case MSM_GET_UART_CLOCK_STATUS: {
@@ -1462,6 +1472,11 @@ static void msm_hs_submit_tx_locked(struct uart_port *uport)
 	ret = sps_transfer_one(sps_pipe_handle, src_addr, tx_count,
 				msm_uport, flags);
 
+	/* Notify the bluesleep driver of outgoing data, if available. */
+#if defined(CONFIG_BT_MSM_SLEEP) && !defined(CONFIG_LINE_DISCIPLINE_DRIVER)
+	bluesleep_outgoing_data();
+#endif
+
 	MSM_HS_DBG("%s:Enqueue Tx Cmd, ret %d\n", __func__, ret);
 }
 
@@ -2221,13 +2236,16 @@ struct uart_port *msm_hs_get_uart_port(int port_index)
 {
 	struct uart_state *state = msm_hs_driver.state + port_index;
 
+	if (!state || !state->uart_port)
+		goto err;
+
 	/* The uart_driver structure stores the states in an array.
 	 * Thus the corresponding offset from the drv->state returns
 	 * the state for the uart_port that is requested
 	 */
 	if (port_index == state->uart_port->line)
 		return state->uart_port;
-
+err:
 	return NULL;
 }
 EXPORT_SYMBOL(msm_hs_get_uart_port);
@@ -2304,8 +2322,10 @@ void msm_hs_resource_off(struct msm_hs_port *msm_uport)
 		msm_hs_write(uport, UART_DM_DMEN, data);
 		sps_tx_disconnect(msm_uport);
 	}
+#ifndef CONFIG_BT_MSM_SLEEP
 	if (!atomic_read(&msm_uport->client_req_state))
 		msm_hs_enable_flow_control(uport, false);
+#endif
 }
 
 void msm_hs_resource_on(struct msm_hs_port *msm_uport)
@@ -2743,8 +2763,10 @@ static int msm_hs_startup(struct uart_port *uport)
 
 
 	spin_lock_irqsave(&uport->lock, flags);
+#ifndef CONFIG_BT_MSM_SLEEP
 	atomic_set(&msm_uport->client_count, 0);
 	atomic_set(&msm_uport->client_req_state, 0);
+#endif
 	LOG_USR_MSG(msm_uport->ipc_msm_hs_pwr_ctxt,
 			"%s: Client_Count 0\n", __func__);
 	msm_hs_start_rx_locked(uport);
