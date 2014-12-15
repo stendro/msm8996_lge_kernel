@@ -11,6 +11,7 @@ obj-$(CONFIG_CPU_FREQ_GOV_USERSPACE)	+= cpufreq_userspace.o
 obj-$(CONFIG_CPU_FREQ_GOV_ONDEMAND)	+= cpufreq_ondemand.o
 obj-$(CONFIG_CPU_FREQ_GOV_CONSERVATIVE)	+= cpufreq_conservative.o
 obj-$(CONFIG_CPU_FREQ_GOV_INTERACTIVE)	+= cpufreq_interactive.o
+obj-$(CONFIG_CPU_FREQ_GOV_BLU_ACTIVE)	+= cpufreq_blu_active.o
 obj-$(CONFIG_CPU_FREQ_GOV_NIGHTMARE)	+= cpufreq_nightmare.o
 obj-$(CONFIG_CPU_FREQ_GOV_DARKNESS)	+= cpufreq_darkness.o
 obj-$(CONFIG_CPU_FREQ_GOV_ALUCARD)	+= cpufreq_alucard.o
