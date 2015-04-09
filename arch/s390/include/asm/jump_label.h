@@ -1,6 +1,8 @@
 #ifndef _ASM_S390_JUMP_LABEL_H
 #define _ASM_S390_JUMP_LABEL_H
 
+#ifndef __ASSEMBLY__
+
 #include <linux/types.h>
 
 #define JUMP_LABEL_NOP_SIZE 6
@@ -34,4 +36,5 @@ struct jump_entry {
 	jump_label_t key;
 };
 
+#endif  /* __ASSEMBLY__ */
 #endif
