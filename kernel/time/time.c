@@ -42,7 +42,7 @@
 #include <asm/uaccess.h>
 #include <asm/unistd.h>
 
-#include "timeconst.h"
+#include <generated/timeconst.h>
 #include "timekeeping.h"
 
 /*
