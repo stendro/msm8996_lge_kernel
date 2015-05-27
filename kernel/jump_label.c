@@ -407,7 +407,7 @@ static int jump_label_add_module(struct module *mod)
 			continue;
 
 		key = iterk;
-		if (__module_address(iter->key) == mod) {
+		if (within_module(iter->key, mod)) {
 			/*
 			 * Set key->entries to iter, but preserve JUMP_LABEL_TRUE_BRANCH.
 			 */
@@ -445,7 +445,7 @@ static void jump_label_del_module(struct module *mod)
 
 		key = jump_entry_key(iter);
 
-		if (__module_address(iter->key) == mod)
+		if (within_module(iter->key, mod))
 			continue;
 
 		prev = &key->next;
@@ -550,12 +550,15 @@ static void jump_label_update(struct static_key *key)
 	struct jump_entry *stop = __stop___jump_table;
 	struct jump_entry *entry = static_key_entries(key);
 #ifdef CONFIG_MODULES
-	struct module *mod = __module_address((unsigned long)key);
+	struct module *mod;
 
 	__jump_label_mod_update(key);
 
+	preempt_disable();
+	mod = __module_address((unsigned long)key);
 	if (mod)
 		stop = mod->jump_entries + mod->num_jump_entries;
+	preempt_enable();
 #endif
 	/* if there are no users, entry can be NULL */
 	if (entry)
