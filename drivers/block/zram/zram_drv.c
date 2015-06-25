@@ -1125,42 +1125,78 @@ static ssize_t reset_store(struct device *dev,
 	struct zram *zram;
 	struct block_device *bdev;
 
+	ret = kstrtou16(buf, 10, &do_reset);
+	if (ret)
+		return ret;
+
+	if (!do_reset)
+		return -EINVAL;
+
 	zram = dev_to_zram(dev);
 	bdev = bdget_disk(zram->disk, 0);
-
 	if (!bdev)
 		return -ENOMEM;
 
 	mutex_lock(&bdev->bd_mutex);
-	/* Do not reset an active device! */
-	if (bdev->bd_openers) {
-		ret = -EBUSY;
-		goto out;
+	/* Do not reset an active device or claimed device */
+	if (bdev->bd_openers || zram->claim) {
+		mutex_unlock(&bdev->bd_mutex);
+		bdput(bdev);
+		return -EBUSY;
 	}
 
-	ret = kstrtou16(buf, 10, &do_reset);
-	if (ret)
-		goto out;
+	/* From now on, anyone can't open /dev/zram[0-9] */
+	zram->claim = true;
+	mutex_unlock(&bdev->bd_mutex);
 
-	if (!do_reset) {
-		ret = -EINVAL;
-		goto out;
-	}
-
-	/* Make sure all pending I/O is finished */
+	/* Make sure all the pending I/O are finished */
 	fsync_bdev(bdev);
 	zram_reset_device(zram);
-
-	mutex_unlock(&bdev->bd_mutex);
 	revalidate_disk(zram->disk);
 	bdput(bdev);
 
-	return len;
-
-out:
+	mutex_lock(&bdev->bd_mutex);
+	zram->claim = false;
 	mutex_unlock(&bdev->bd_mutex);
-	bdput(bdev);
-	return ret;
+
+	return len;
+}
+
+static int zram_open(struct block_device *bdev, fmode_t mode)
+{
+	struct zram *zram;
+	int open_count;
+
+	WARN_ON(!mutex_is_locked(&bdev->bd_mutex));
+	zram = bdev->bd_disk->private_data;
+	/*
+	 * Chromium OS specific behavior:
+	 * sys_swapon opens the device once to populate its swapinfo->swap_file
+	 * and once when it claims the block device (blkdev_get).  By limiting
+	 * the maximum number of opens to 2, we ensure there are no prior open
+	 * references before swap is enabled.
+	 * (Note, kzalloc ensures nr_opens starts at 0.)
+	 */
+	open_count = atomic_inc_return(&zram->nr_opens);
+	if (open_count > 2)
+		goto busy;
+	/*
+	 * swapon(2) claims the block device after setup.  If a zram is claimed
+	 * then open attempts are rejected. This is belt-and-suspenders as the
+	 * the block device and swap_file will both hold open nr_opens until
+	 * swapoff(2) is called.
+	 */
+	if (bdev->bd_holder != NULL)
+		goto busy;
+
+	/* zram was claimed to reset so open request fails */
+	if (zram->claim)
+		goto busy;
+
+	return 0;
+busy:
+	atomic_dec(&zram->nr_opens);
+	return -EBUSY;
 }
 
 static const struct block_device_operations zram_devops = {
