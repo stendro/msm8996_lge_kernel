@@ -136,6 +136,27 @@ static const char *cgroup_subsys_name[] = {
 };
 #undef SUBSYS
 
+/* array of static_keys for cgroup_subsys_enabled() and cgroup_subsys_on_dfl() */
+#define SUBSYS(_x)								\
+	DEFINE_STATIC_KEY_TRUE(_x ## _cgrp_subsys_enabled_key);			\
+	DEFINE_STATIC_KEY_TRUE(_x ## _cgrp_subsys_on_dfl_key);			\
+	EXPORT_SYMBOL_GPL(_x ## _cgrp_subsys_enabled_key);			\
+	EXPORT_SYMBOL_GPL(_x ## _cgrp_subsys_on_dfl_key);
+#include <linux/cgroup_subsys.h>
+#undef SUBSYS
+
+#define SUBSYS(_x) [_x ## _cgrp_id] = &_x ## _cgrp_subsys_enabled_key,
+static struct static_key_true *cgroup_subsys_enabled_key[] = {
+#include <linux/cgroup_subsys.h>
+};
+#undef SUBSYS
+
+#define SUBSYS(_x) [_x ## _cgrp_id] = &_x ## _cgrp_subsys_on_dfl_key,
+static struct static_key_true *cgroup_subsys_on_dfl_key[] = {
+#include <linux/cgroup_subsys.h>
+};
+#undef SUBSYS
+
 /*
  * The default hierarchy, reserved for the subsystems that are otherwise
  * unattached - it never has more than a single cgroup, and all tasks are
@@ -1297,9 +1318,12 @@ static int rebind_subsystems(struct cgroup_root *dst_root, unsigned int ss_mask)
 
 		/* default hierarchy doesn't enable controllers by default */
 		dst_root->subsys_mask |= 1 << ssid;
-		if (dst_root != &cgrp_dfl_root) {
+		if (dst_root == &cgrp_dfl_root) {
+			static_branch_enable(cgroup_subsys_on_dfl_key[ssid]);
+		} else {
 			dst_root->cgrp.subtree_control |= 1 << ssid;
 			cgroup_refresh_child_subsys_mask(&dst_root->cgrp);
+			static_branch_disable(cgroup_subsys_on_dfl_key[ssid]);
 		}
 
 		if (ss->bind)
@@ -5451,6 +5475,7 @@ static int __init cgroup_disable(char *str)
 
 		for_each_subsys(ss, i) {
 			if (!strcmp(token, ss->name)) {
+				static_branch_disable(cgroup_subsys_enabled_key[i]);
 				ss->disabled = 1;
 				printk(KERN_INFO "Disabling %s control group"
 					" subsystem\n", ss->name);
