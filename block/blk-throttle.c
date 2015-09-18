@@ -426,7 +426,7 @@ static void throtl_pd_init(struct blkcg_gq *blkg)
 	 */
 	parent_sq = &td->service_queue;
 
-	if (cgroup_on_dfl(blkg->blkcg->css.cgroup) && blkg->parent)
+	if (cgroup_subsys_on_dfl(io_cgrp_subsys) && blkg->parent)
 		parent_sq = &blkg_to_tg(blkg->parent)->service_queue;
 
 	throtl_service_queue_init(&tg->service_queue, parent_sq);
