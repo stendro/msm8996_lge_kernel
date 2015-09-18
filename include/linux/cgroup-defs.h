@@ -411,7 +411,6 @@ struct cgroup_subsys {
 		     struct task_struct *task);
 	void (*bind)(struct cgroup_subsys_state *root_css);
 
-	int disabled;
 	int early_init;
 
 	/*
