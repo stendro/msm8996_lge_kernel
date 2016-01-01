@@ -296,11 +296,8 @@ do {								\
 	"4:	mov		%w0, %w5\n"			\
 	"	b		3b\n"				\
 	"	.popsection"					\
-	"	.pushsection	 __ex_table,\"a\"\n"		\
-	"	.align		3\n"				\
-	"	.quad		0b, 4b\n"			\
-	"	.quad		1b, 4b\n"			\
-	"	.popsection\n"					\
+	_ASM_EXTABLE(0b, 4b)					\
+	_ASM_EXTABLE(1b, 4b)					\
 	: "=&r" (res), "+r" (data), "=&r" (temp)		\
 	: "r" (addr), "i" (-EAGAIN), "i" (-EFAULT)		\
 	: "memory");						\
