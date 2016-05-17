@@ -121,17 +121,14 @@ int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_driver *drv,
 
 
 	trace_cpu_idle_rcuidle(index, dev->cpu);
-
 	time_start = ktime_get();
 
 	entered_state = target_state->enter(dev, drv, index);
 
 	time_end = ktime_get();
-
 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, dev->cpu);
 
-
-	if (!cpuidle_state_is_coupled(dev, drv, entered_state))
+	if (!cpuidle_state_is_coupled(dev, drv, index))
 		local_irq_enable();
 
 	diff = ktime_to_us(ktime_sub(time_end, time_start));
