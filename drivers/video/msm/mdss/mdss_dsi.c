@@ -468,11 +468,7 @@ static int mdss_dsi_panel_power_ulp(struct mdss_panel_data *pdata,
 int mdss_dsi_panel_power_ctrl(struct mdss_panel_data *pdata,
 	int power_state)
 {
-#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
 	int ret = 0;
-#else
-	int ret;
-#endif
 	struct mdss_panel_info *pinfo;
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 
