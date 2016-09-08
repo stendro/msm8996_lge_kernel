@@ -31,6 +31,8 @@
 #include <asm/cacheflush.h>
 #include <asm/cputype.h>
 #include <asm/debug-monitors.h>
+#include <asm/sysreg.h>
+
 #include <trace/events/kvm.h>
 
 #include "sys_regs.h"
@@ -59,11 +61,9 @@ static u32 get_ccsidr(u32 csselr)
 
 	/* Make sure noone else changes CSSELR during this! */
 	local_irq_disable();
-	/* Put value into CSSELR */
-	asm volatile("msr csselr_el1, %x0" : : "r" (csselr));
+	write_sysreg(csselr, csselr_el1);
 	isb();
-	/* Read result out of CCSIDR */
-	asm volatile("mrs %0, ccsidr_el1" : "=r" (ccsidr));
+	ccsidr = read_sysreg(ccsidr_el1);
 	local_irq_enable();
 
 	return ccsidr;
@@ -139,9 +139,7 @@ static bool trap_dbgauthstatus_el1(struct kvm_vcpu *vcpu,
 	if (p->is_write) {
 		return ignore_write(vcpu, p);
 	} else {
-		u32 val;
-		asm volatile("mrs %0, dbgauthstatus_el1" : "=r" (val));
-		*vcpu_reg(vcpu, p->Rt) = val;
+		*vcpu_reg(vcpu, p->Rt) = read_sysreg(dbgauthstatus_el1);
 		return true;
 	}
 }
@@ -189,10 +187,7 @@ static bool trap_debug_regs(struct kvm_vcpu *vcpu,
 
 static void reset_amair_el1(struct kvm_vcpu *vcpu, const struct sys_reg_desc *r)
 {
-	u64 amair;
-
-	asm volatile("mrs %0, amair_el1\n" : "=r" (amair));
-	vcpu_sys_reg(vcpu, AMAIR_EL1) = amair;
+	vcpu_sys_reg(vcpu, AMAIR_EL1) = read_sysreg(amair_el1);
 }
 
 static void reset_mpidr(struct kvm_vcpu *vcpu, const struct sys_reg_desc *r)
@@ -1045,11 +1040,7 @@ static const struct sys_reg_desc *index_to_sys_reg_desc(struct kvm_vcpu *vcpu,
 	static void get_##reg(struct kvm_vcpu *v,			\
 			      const struct sys_reg_desc *r)		\
 	{								\
-		u64 val;						\
-									\
-		asm volatile("mrs %0, " __stringify(reg) "\n"		\
-			     : "=r" (val));				\
-		((struct sys_reg_desc *)r)->val = val;			\
+		((struct sys_reg_desc *)r)->val = read_sysreg(reg);	\
 	}
 
 FUNCTION_INVARIANT(midr_el1)
