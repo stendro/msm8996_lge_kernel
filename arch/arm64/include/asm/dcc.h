@@ -11,22 +11,17 @@
  */
 
 #include <asm/barrier.h>
+#include <asm/sysreg.h>
 
 static inline u32 __dcc_getstatus(void)
 {
-	u32 __ret;
-	asm volatile("mrs %0, mdccsr_el0" : "=r" (__ret)
-			: : "cc");
-
-	return __ret;
+	return read_sysreg(mdccsr_el0);
 }
 
 
 static inline char __dcc_getchar(void)
 {
-	char __c;
-
-	asm volatile("mrs %0, dbgdtrrx_el0" : "=r" (__c));
+	char __c = read_sysreg(dbgdtrrx_el0);
 	isb();
 
 	return __c;
@@ -34,8 +29,6 @@ static inline char __dcc_getchar(void)
 
 static inline void __dcc_putchar(char c)
 {
-	asm volatile("msr dbgdtrtx_el0, %0"
-		: /* No output register */
-		: "r" (c));
+	write_sysreg(c, dbgdtrtx_el0);
 	isb();
 }
