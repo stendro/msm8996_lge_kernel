@@ -16,6 +16,8 @@
 #ifndef __ASM_HW_BREAKPOINT_H
 #define __ASM_HW_BREAKPOINT_H
 
+#include <asm/sysreg.h>
+
 #ifdef __KERNEL__
 
 struct arch_hw_breakpoint_ctrl {
@@ -91,18 +93,18 @@ static inline void decode_ctrl_reg(u32 reg,
 #define AARCH64_DBG_REG_WCR	(AARCH64_DBG_REG_WVR + ARM_MAX_WRP)
 
 /* Debug register names. */
-#define AARCH64_DBG_REG_NAME_BVR	"bvr"
-#define AARCH64_DBG_REG_NAME_BCR	"bcr"
-#define AARCH64_DBG_REG_NAME_WVR	"wvr"
-#define AARCH64_DBG_REG_NAME_WCR	"wcr"
+#define AARCH64_DBG_REG_NAME_BVR	bvr
+#define AARCH64_DBG_REG_NAME_BCR	bcr
+#define AARCH64_DBG_REG_NAME_WVR	wvr
+#define AARCH64_DBG_REG_NAME_WCR	wcr
 
 /* Accessor macros for the debug registers. */
 #define AARCH64_DBG_READ(N, REG, VAL) do {\
-	asm volatile("mrs %0, dbg" REG #N "_el1" : "=r" (VAL));\
+	VAL = read_sysreg(dbg##REG##N##_el1);\
 } while (0)
 
 #define AARCH64_DBG_WRITE(N, REG, VAL) do {\
-	asm volatile("msr dbg" REG #N "_el1, %0" :: "r" (VAL));\
+	write_sysreg(VAL, dbg##REG##N##_el1);\
 } while (0)
 
 struct task_struct;
