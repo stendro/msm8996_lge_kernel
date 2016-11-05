@@ -18,7 +18,7 @@
 #include "msm8996-elsa_dcm_jp.dtsi"
 #include "msm8996-elsa_dcm_jp-touch.dtsi"
 #include "msm8996-elsa_dcm_jp-camera_rev-a.dtsi"
-#include "../msm8996-elsa_storage_type/current_storage_type.dtsi"
+#include "../msm8996-elsa-ufs.dtsi"
 #include "msm8996-elsa_dcm_jp-sound_rev-a.dtsi"
 #include "msm8996-elsa_dcm_jp-nfc-rev-a.dtsi"
 #include "msm8996-elsa_dcm_jp_rev-a-isdbt_japan_i2c.dtsi"

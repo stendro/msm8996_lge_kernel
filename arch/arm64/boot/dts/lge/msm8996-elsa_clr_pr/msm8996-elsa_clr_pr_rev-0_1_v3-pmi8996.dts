@@ -18,7 +18,7 @@
 #include "msm8996-elsa_clr_pr.dtsi"
 #include "msm8996-elsa_clr_pr-touch.dtsi"
 #include "../msm8996-camera/msm8996-elsa-camera.dtsi"
-#include "../msm8996-elsa_storage_type/current_storage_type.dtsi"
+#include "../msm8996-elsa-ufs.dtsi"
 #include "../msm8996-sound/msm8996-elsa-sound_rev-0_1.dtsi"
 
 
