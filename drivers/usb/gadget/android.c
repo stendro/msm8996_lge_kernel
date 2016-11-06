@@ -343,9 +343,10 @@ enum android_device_state {
 	USB_SUSPENDED,
 	USB_RESUMED
 };
-
+#ifdef CONFIG_LGE_USB_FACTORY
 #if defined(CONFIG_MACH_MSM8996_H1) || defined(CONFIG_LGE_USB_EMBEDDED_BATTERY)
 static int firstboot_check = 1;
+#endif
 #endif
 
 // MAUSB
@@ -643,7 +644,7 @@ static void android_work(struct work_struct *data)
 		pr_info("%s: did not send uevent (%d %d %p)\n", __func__,
 			 dev->connected, dev->sw_connected, cdev->config);
 	}
-
+#ifdef CONFIG_LGE_USB_FACTORY
 #ifdef CONFIG_MACH_MSM8996_H1
 	/*
 	* H1 models  : Although external battery type, request for factory process
@@ -698,11 +699,13 @@ static void android_work(struct work_struct *data)
 			kernel_restart(NULL);
 		} else if (lge_power_get_cable_type() == CABLE_ADC_910K &&
 #ifdef CONFIG_LGE_USB_TYPE_C
-			   lge_get_cc_type_debug_accessory() &&
+					lge_get_cc_type_debug_accessory() &&
 #endif
-			   (lge_power_get_cable_type_boot() != LT_CABLE_910K ||
-			    !firstboot_check) &&
-			   !lge_get_laf_mode()) {
+					(lge_power_get_cable_type_boot() != LT_CABLE_910K || !firstboot_check)
+#ifdef CONFIG_LGE_USB_G_LAF
+					&& !lge_get_laf_mode()
+#endif
+					) {
 			usb_gadget_disconnect(cdev->gadget);
 			usb_ep_dequeue(cdev->gadget->ep0, cdev->req);
 			pr_info("[FACTORY] reset due to 910K cable, pm:%d, xbl:%d, firstboot_check:%d\n",
@@ -720,6 +723,7 @@ static void android_work(struct work_struct *data)
 					lge_get_boot_mode(), lge_get_android_dlcomplete());
 		firstboot_check = 0;
 	}
+#endif
 #endif
 }
 
@@ -4815,7 +4819,7 @@ static int android_bind(struct usb_composite_dev *cdev)
 	struct android_dev *dev;
 	struct usb_gadget	*gadget = cdev->gadget;
 	int			id, ret;
-#ifdef CONFIG_LGE_USB_G_ANDROID
+#ifdef CONFIG_LGE_USB_FACTORY
 	char lge_product[256];
 	char lge_manufacturer[256];
 #endif
@@ -4848,7 +4852,7 @@ static int android_bind(struct usb_composite_dev *cdev)
 	strings_dev[STRING_PRODUCT_IDX].id = id;
 	device_desc.iProduct = id;
 
-#ifdef CONFIG_LGE_USB_G_ANDROID
+#ifdef CONFIG_LGE_USB_FACTORY
 	/* Default string as LGE products */
 	ret = lgeusb_get_manufacturer_name(lge_manufacturer);
 	if (!ret)
