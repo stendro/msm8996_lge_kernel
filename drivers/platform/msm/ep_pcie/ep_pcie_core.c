@@ -2290,7 +2290,6 @@ static int __init ep_pcie_init(void)
 		EP_PCIE_DBG(&ep_pcie_dev,
 			"PCIe V%d: IPC selected logging is enable for %s\n",
 			ep_pcie_dev.rev, logname);
-
 	snprintf(logname, MAX_NAME_LEN, "ep-pcie-short");
 	ep_pcie_dev.ipc_log_ful =
 		ipc_log_context_create(EP_PCIE_LOG_PAGES * 2, logname, 0);
