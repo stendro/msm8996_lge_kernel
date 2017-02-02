@@ -642,10 +642,11 @@ static ssize_t qpnp_wled_ramp_ms_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct qpnp_wled *wled = dev_get_drvdata(dev);
-	int data;
+	int data, rc;
 
-	if (sscanf(buf, "%d", &data) != 1)
-		return -EINVAL;
+	rc = kstrtoint(buf, 10, &data);
+	if (rc)
+		return rc;
 
 	wled->ramp_ms = data;
 	return count;
@@ -665,10 +666,11 @@ static ssize_t qpnp_wled_ramp_step_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct qpnp_wled *wled = dev_get_drvdata(dev);
-	int data;
+	int data, rc;
 
-	if (sscanf(buf, "%d", &data) != 1)
-		return -EINVAL;
+	rc = kstrtoint(buf, 10, &data);
+	if (rc)
+		return rc;
 
 	wled->ramp_step = data;
 	return count;
@@ -755,8 +757,9 @@ static ssize_t qpnp_wled_fs_curr_ua_store(struct device *dev,
 	int data, i, rc, temp;
 	u8 reg;
 
-	if (sscanf(buf, "%d", &data) != 1)
-		return -EINVAL;
+	rc = kstrtoint(buf, 10, &data);
+	if (rc)
+		return rc;
 
 	for (i = 0; i < wled->num_strings; i++) {
 		if (data < QPNP_WLED_FS_CURR_MIN_UA)
@@ -792,24 +795,15 @@ static ssize_t qpnp_wled_fs_curr_ua_store(struct device *dev,
 
 /* sysfs attributes exported by wled */
 static struct device_attribute qpnp_wled_attrs[] = {
-	__ATTR(dump_regs, (S_IRUGO | S_IWUSR | S_IWGRP),
-			qpnp_wled_dump_regs_show,
-			NULL),
-	__ATTR(dim_mode, (S_IRUGO | S_IWUSR | S_IWGRP),
-			qpnp_wled_dim_mode_show,
-			qpnp_wled_dim_mode_store),
-	__ATTR(fs_curr_ua, (S_IRUGO | S_IWUSR | S_IWGRP),
-			qpnp_wled_fs_curr_ua_show,
-			qpnp_wled_fs_curr_ua_store),
-	__ATTR(start_ramp, (S_IRUGO | S_IWUSR | S_IWGRP),
-			NULL,
-			qpnp_wled_ramp_store),
-	__ATTR(ramp_ms, (S_IRUGO | S_IWUSR | S_IWGRP),
-			qpnp_wled_ramp_ms_show,
-			qpnp_wled_ramp_ms_store),
-	__ATTR(ramp_step, (S_IRUGO | S_IWUSR | S_IWGRP),
-			qpnp_wled_ramp_step_show,
-			qpnp_wled_ramp_step_store),
+	__ATTR(dump_regs, 0664, qpnp_wled_dump_regs_show, NULL),
+	__ATTR(dim_mode, 0664, qpnp_wled_dim_mode_show,
+		qpnp_wled_dim_mode_store),
+	__ATTR(fs_curr_ua, 0664, qpnp_wled_fs_curr_ua_show,
+		qpnp_wled_fs_curr_ua_store),
+	__ATTR(start_ramp, 0664, NULL, qpnp_wled_ramp_store),
+	__ATTR(ramp_ms, 0664, qpnp_wled_ramp_ms_show, qpnp_wled_ramp_ms_store),
+	__ATTR(ramp_step, 0664, qpnp_wled_ramp_step_show,
+		qpnp_wled_ramp_step_store),
 };
 
 /* worker for setting wled brightness */
@@ -2025,7 +2019,7 @@ static int qpnp_wled_remove(struct spmi_device *spmi)
 	return 0;
 }
 
-static struct of_device_id spmi_match_table[] = {
+static const struct of_device_id spmi_match_table[] = {
 	{ .compatible = "qcom,qpnp-wled",},
 	{ },
 };
