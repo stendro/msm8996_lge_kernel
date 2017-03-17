@@ -909,23 +909,23 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
  * Convert configs to something easy to use in C code
  */
 #if defined(CONFIG_CMDLINE_FORCE)
-static const int overwrite_incoming_cmdline = 1;
-static const int read_dt_cmdline;
-static const int concat_cmdline;
+static const int overwrite_incoming_cmdline __initconst = 1;
+static const int read_dt_cmdline __initconst = 0;
+static const int concat_cmdline __initconst = 0;
 #elif defined(CONFIG_CMDLINE_EXTEND)
-static const int overwrite_incoming_cmdline;
-static const int read_dt_cmdline = 1;
-static const int concat_cmdline = 1;
+static const int overwrite_incoming_cmdline __initconst = 0;
+static const int read_dt_cmdline __initconst = 1;
+static const int concat_cmdline __initconst = 1;
 #else /* CMDLINE_FROM_BOOTLOADER */
-static const int overwrite_incoming_cmdline;
-static const int read_dt_cmdline = 1;
-static const int concat_cmdline;
+static const int overwrite_incoming_cmdline __initconst = 0;
+static const int read_dt_cmdline __initconst = 1;
+static const int concat_cmdline __initconst = 0;
 #endif
 
 #ifdef CONFIG_CMDLINE
-static const char *config_cmdline = CONFIG_CMDLINE;
+static const char *const config_cmdline __initconst = CONFIG_CMDLINE;
 #else
-static const char *config_cmdline = "";
+static const char *const config_cmdline __initconst = "";
 #endif
 
 /* the for the Real(tm) command-line magic */
