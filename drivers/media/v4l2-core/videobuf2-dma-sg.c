@@ -103,8 +103,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
 	/* size is already page aligned */
 	buf->num_pages = size >> PAGE_SHIFT;
 
-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
-			     GFP_KERNEL);
+	buf->pages = kvmalloc_array(buf->num_pages, sizeof(struct page *),
+				    GFP_KERNEL | __GFP_ZERO);
 	if (!buf->pages)
 		goto fail_pages_array_alloc;
 
@@ -132,7 +132,7 @@ fail_table_alloc:
 	while (num_pages--)
 		__free_page(buf->pages[num_pages]);
 fail_pages_alloc:
-	kfree(buf->pages);
+	kvfree(buf->pages);
 fail_pages_array_alloc:
 	kfree(buf);
 	return NULL;
@@ -151,7 +151,7 @@ static void vb2_dma_sg_put(void *buf_priv)
 		sg_free_table(&buf->sg_table);
 		while (--i >= 0)
 			__free_page(buf->pages[i]);
-		kfree(buf->pages);
+		kvfree(buf->pages);
 		kfree(buf);
 	}
 }
@@ -182,8 +182,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
 	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
 	buf->num_pages = last - first + 1;
 
-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
-			     GFP_KERNEL);
+	buf->pages = kvmalloc_array(buf->num_pages, sizeof(struct page *),
+				    GFP_KERNEL | __GFP_ZERO);
 	if (!buf->pages)
 		goto userptr_fail_alloc_pages;
 
@@ -244,7 +244,7 @@ userptr_fail_get_user_pages:
 			put_page(buf->pages[num_pages_from_user]);
 	vb2_put_vma(buf->vma);
 userptr_fail_find_vma:
-	kfree(buf->pages);
+	kvfree(buf->pages);
 userptr_fail_alloc_pages:
 	kfree(buf);
 	return NULL;
@@ -270,7 +270,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
 		if (!vma_is_io(buf->vma))
 			put_page(buf->pages[i]);
 	}
-	kfree(buf->pages);
+	kvfree(buf->pages);
 	vb2_put_vma(buf->vma);
 	kfree(buf);
 }

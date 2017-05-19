@@ -589,7 +589,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
 	end = PAGE_ALIGN(vaddr + size);
 	n_pages = (end - start) >> PAGE_SHIFT;
 
-	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
+	pages = kvmalloc_array(n_pages, sizeof(pages[0]), GFP_KERNEL);
 	if (!pages) {
 		ret = -ENOMEM;
 		pr_err("failed to allocate pages table\n");
@@ -624,7 +624,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
 		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
 			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
 			buf->size = size;
-			kfree(pages);
+			kvfree(pages);
 			return buf;
 		}
 
@@ -647,7 +647,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
 	}
 
 	/* pages are no longer needed */
-	kfree(pages);
+	kvfree(pages);
 	pages = NULL;
 
 	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
@@ -692,7 +692,7 @@ fail_vma:
 	vb2_put_vma(buf->vma);
 
 fail_pages:
-	kfree(pages); /* kfree is NULL-proof */
+	kvfree(pages); /* kvfree is NULL-proof */
 
 fail_buf:
 	kfree(buf);
