@@ -21,7 +21,8 @@
  * -Wunused-function.  This turns out to avoid the need for complex #ifdef
  * directives.  Suppress the warning in clang as well.
  */
-#define inline inline __attribute__((unused))
+#undef inline
+#define inline inline __attribute__((unused)) notrace
 
 /*
  * Not all versions of clang implement the the type-generic versions
