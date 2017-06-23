@@ -361,7 +361,7 @@
 
 	timer {
 		compatible = "arm,armv8-timer";
-	        interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
 				<GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
 				<GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
 				<GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
@@ -626,6 +626,7 @@
 		governor = "powersave";
 		qcom,src-dst-ports = <1 512>;
 		qcom,active-only;
+		status = "ok";
 		qcom,bw-tbl =
 			<  1525 /* 200 MHz */ >,
 			<  2288 /* 300 MHz */ >,
@@ -644,6 +645,7 @@
 		governor = "powersave";
 		qcom,src-dst-ports = <1 512>;
 		qcom,active-only;
+		status = "ok";
 		qcom,bw-tbl =
 			<  1525 /* 200 MHz */ >,
 			<  2288 /* 300 MHz */ >,
