@@ -2222,6 +2222,7 @@ extern int set_cpus_allowed_ptr(struct task_struct *p,
 #ifdef CONFIG_LGE_PM_TRITON /* ADAPT_LGE_BMC */
 extern int sched_get_cpu_cstate(int cpu);
 #endif
+extern bool cpupri_check_rt(void);
 #else
 static inline void do_set_cpus_allowed(struct task_struct *p,
 				      const struct cpumask *new_mask)
@@ -2240,6 +2241,10 @@ static inline int sched_get_cpu_cstate(int cpu)
 {
 }
 #endif
+static inline bool cpupri_check_rt(void)
+{
+	return false;
+}
 #endif
 
 extern int sched_set_wake_up_idle(struct task_struct *p, int wake_up_idle);
