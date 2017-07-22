@@ -82,7 +82,7 @@ config USB_LCD
 config USB_LED
 	tristate "USB LED driver support"
 	help
-	  Say Y here if you want to connect an USBLED device to your 
+	  Say Y here if you want to connect an USBLED device to your
 	  computer's USB port.
 
 	  To compile this driver as a module, choose M here: the
@@ -107,7 +107,7 @@ config USB_CYTHERM
 	  Say Y here if you want to connect a Cypress USB thermometer
 	  device to your computer's USB port. This device is also known
 	  as the Cypress USB Starter kit or demo board. The Elektor
-	  magazine published a modified version of this device in issue 
+	  magazine published a modified version of this device in issue
 	  #291.
 
 	  To compile this driver as a module, choose M here: the
@@ -274,3 +274,8 @@ config USB_QTI_KS_BRIDGE
 	  boot images, ram-dumps and efs sync.
 	  To compile this driver as a module, choose M here: the module
 	  will be called ks_bridge. If unsure, choose N.
+
+source "drivers/usb/misc/anx7418/Kconfig"
+source "drivers/usb/misc/anx7688/Kconfig"
+source "drivers/usb/misc/alice_friends/Kconfig"
+source "drivers/usb/misc/tusb422/Kconfig"
