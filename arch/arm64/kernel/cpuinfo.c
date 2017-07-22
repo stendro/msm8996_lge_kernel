@@ -33,6 +33,9 @@
 #include <linux/sched.h>
 #include <linux/smp.h>
 
+unsigned int system_rev;
+EXPORT_SYMBOL(system_rev);
+
 /*
  * In case the boot CPU is hotpluggable, we record its initial state and
  * current state separately. Certain system registers may contain different
@@ -152,6 +155,7 @@ static int c_show(struct seq_file *m, void *v)
 		seq_printf(m, "CPU part\t: 0x%03x\n", MIDR_PARTNUM(midr));
 		seq_printf(m, "CPU revision\t: %d\n\n", MIDR_REVISION(midr));
 	}
+	seq_printf(m, "Revision\t: %04x\n", system_rev);
 
 	if (!arch_read_hardware_id)
 		seq_printf(m, "Hardware\t: %s\n", machine_name);
