@@ -17,7 +17,12 @@
 #include "trace/events/msm_cam.h"
 
 
+#ifndef CONFIG_MACH_LGE
 #define ISP_SOF_DEBUG_COUNT 0
+#else
+#define ISP_SOF_DEBUG_COUNT 5
+#endif
+
 static int msm_isp_update_dual_HW_ms_info_at_start(
 	struct vfe_device *vfe_dev,
 	enum msm_vfe_input_src stream_src,
@@ -827,6 +832,10 @@ void msm_isp_increment_frame_id(struct vfe_device *vfe_dev,
 	uint32_t last_curr_diff = 0;
 	unsigned long flags;
 
+	if (vfe_dev->axi_data.src_info[frame_src].frame_id == 0)
+		msm_isp_update_dual_HW_ms_info_at_start(vfe_dev, frame_src,
+			ts);
+
 	spin_lock_irqsave(&vfe_dev->common_data->common_dev_data_lock, flags);
 	if (vfe_dev->axi_data.src_info[frame_src].frame_id == 0)
 		msm_isp_update_dual_HW_ms_info_at_start(vfe_dev, frame_src,
@@ -996,6 +1005,13 @@ void msm_isp_notify(struct vfe_device *vfe_dev, uint32_t event_type,
 	struct msm_vfe_axi_shared_data *axi_data = &vfe_dev->axi_data;
 	int i, j;
 	unsigned long flags;
+
+/* LGE_CHANGE_S, STATIC_ANALYSYS_DEV */
+	if (frame_src >= VFE_SRC_MAX) {
+		pr_err("%s: frame_src value is error = %d\n", __func__,	frame_src);
+		return;
+	}
+/* LGE_CHANGE_E, STATIC_ANALYSYS_DEV */
 
 	memset(&event_data, 0, sizeof(event_data));
 
@@ -1644,7 +1660,17 @@ void msm_isp_halt_send_error(struct vfe_device *vfe_dev, uint32_t event)
 			&irq_status0, &irq_status1, 1);
 		return;
 	}
-
+#if 0 //LGE_CHANGE, Duplicated part, 2016-11-24, seungmin.hong@lge.com
+	if (ISP_EVENT_PING_PONG_MISMATCH == event &&
+		vfe_dev->axi_data.recovery_count < MAX_RECOVERY_THRESHOLD) {
+		pr_err("%s:pingpong mismatch from vfe%d, core%d,recovery_count %d\n",
+			__func__, vfe_dev->pdev->id, smp_processor_id(),
+			vfe_dev->axi_data.recovery_count);
+		vfe_dev->axi_data.recovery_count++;
+		msm_isp_start_error_recovery(vfe_dev);
+		return;
+	}
+#endif
 	memset(&halt_cmd, 0, sizeof(struct msm_vfe_axi_halt_cmd));
 	memset(&error_event, 0, sizeof(struct msm_isp_event_data));
 	halt_cmd.stop_camif = 1;

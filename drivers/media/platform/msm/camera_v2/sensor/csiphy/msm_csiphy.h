@@ -23,6 +23,17 @@
 #include "msm_camera_dt_util.h"
 #include "cam_soc_api.h"
 
+#ifdef CONFIG_MACH_LGE
+/* LGE_CHANGE, CST, added csiphy timer for enableing/disable irq */
+#include <linux/timer.h>
+#define CSIPHY_ENABLE_IRQ_TIMEOUT	2000
+
+struct msm_csiphy_timer_t {
+	atomic_t used;
+	struct timer_list timer;
+};	/* LGE_CHANGE, CST, added csiphy timer for enableing/disable irq */
+#endif
+
 #define MAX_CSIPHY 3
 #define CSIPHY_NUM_CLK_MAX  16
 
@@ -171,8 +182,13 @@ struct csiphy_device {
 	uint32_t csiphy_sof_debug_count;
 	uint32_t is_combo_mode;
 	struct camera_vreg_t *csiphy_vreg;
+	struct msm_csiphy_timer_t csiphy_timer;
 	struct regulator *csiphy_reg_ptr[MAX_REGULATOR];
 	int32_t regulator_count;
+
+#ifdef CONFIG_MACH_LGE
+	struct regulator* csiphy_reg;    /* LGE_CHANGE, CST, added gdsc regulator */
+#endif
 };
 
 #define VIDIOC_MSM_CSIPHY_RELEASE \
