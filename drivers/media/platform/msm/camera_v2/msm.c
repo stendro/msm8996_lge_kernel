@@ -1426,10 +1426,10 @@ static int msm_probe(struct platform_device *pdev)
 
 	cam_debugfs_root = debugfs_create_dir(MSM_CAM_LOGSYNC_FILE_BASEDIR,
 						NULL);
-	if (!cam_debugfs_root) {
+	if (IS_ERR_OR_NULL(cam_debugfs_root)) {
 		pr_warn("NON-FATAL: failed to create logsync base directory\n");
 	} else {
-		if (!debugfs_create_file(MSM_CAM_LOGSYNC_FILE_NAME,
+		if (IS_ERR_OR_NULL(debugfs_create_file(MSM_CAM_LOGSYNC_FILE_NAME,
 		//CTS Issue Fix (MLM HONE-5010, Case#02316080)
 		#ifdef CONFIG_LGE_CAMERA_DRIVER
 					 0644,
@@ -1438,7 +1438,7 @@ static int msm_probe(struct platform_device *pdev)
 		#endif
 					 cam_debugfs_root,
 					 NULL,
-					 &logsync_fops))
+					 &logsync_fops)))
 			pr_warn("NON-FATAL: failed to create logsync debugfs file\n");
 	}
 
