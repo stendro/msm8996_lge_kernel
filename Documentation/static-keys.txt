@@ -155,7 +155,12 @@ Tracepoints are disabled by default, and can be placed in performance critical
 pieces of the kernel. Thus, by using a static key, the tracepoints can have
 absolutely minimal impact when not in use.
 
-Where an array of keys is required, it can be defined as:
+The state and the reference count can be retrieved with 'static_key_enabled()'
+and 'static_key_count()'.  In general, if you use these functions, they
+should be protected with the same mutex used around the enable/disable
+or increment/decrement function.
+
+Where an array of keys is required, it can be defined as::
 
 	DEFINE_STATIC_KEY_ARRAY_TRUE(keys, count);
 
