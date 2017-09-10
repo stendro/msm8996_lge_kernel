@@ -418,4 +418,11 @@ config LGE_HALL_IC
 	help
 	  Support sending a device-tree defined gpio code when hall IC is triggered
 
+config LGE_ACC_NT
+	tristate "Support NT accessory"
+	depends on MACH_LGE
+	default n
+	help
+	  Say Y here to enable pseudo mode setting
+
 endmenu
