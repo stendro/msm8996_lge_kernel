@@ -275,6 +275,11 @@ config USB_QTI_KS_BRIDGE
 	  To compile this driver as a module, choose M here: the module
 	  will be called ks_bridge. If unsure, choose N.
 
+config LGE_USB_TYPE_C
+	boolean "LG Type C device"
+	help
+	  This enables LG platform specific options in USB-C drivers
+
 source "drivers/usb/misc/anx7418/Kconfig"
 source "drivers/usb/misc/anx7688/Kconfig"
 source "drivers/usb/misc/alice_friends/Kconfig"

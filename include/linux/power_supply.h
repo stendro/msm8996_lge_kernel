@@ -259,6 +259,9 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_DIE_HEALTH,
 	POWER_SUPPLY_PROP_CONNECTOR_HEALTH,
 	POWER_SUPPLY_PROP_HW_CURRENT_MAX,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	POWER_SUPPLY_PROP_DP_ALT_MODE,
+#endif
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_PROP_CHARGE_COUNTER_EXT,
 	/* Properties of type `const char *' */
@@ -289,6 +292,11 @@ enum power_supply_type {
 	POWER_SUPPLY_TYPE_TYPEC,	/* Type-C */
 	POWER_SUPPLY_TYPE_UFP,		/* Type-C UFP */
 	POWER_SUPPLY_TYPE_DFP,		/* TYpe-C DFP */
+#ifdef CONFIG_LGE_USB_TYPE_C
+	POWER_SUPPLY_TYPE_CTYPE,	/* 18  USB Type-C Charger based on CC controller */
+	POWER_SUPPLY_TYPE_CTYPE_PD,	/* 19  USB Type-C Charger based on PD Message */
+	POWER_SUPPLY_TYPE_CTYPE_DEBUG_ACCESSORY, /* Type-C DebugAccessoryMode */
+#endif
 };
 
 /* Indicates USB Type-C CC connection status */
