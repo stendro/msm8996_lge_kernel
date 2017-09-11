@@ -402,13 +402,8 @@ static void msm_vfe32_clear_status_reg(struct vfe_device *vfe_dev)
 static void msm_vfe32_process_reset_irq(struct vfe_device *vfe_dev,
 	uint32_t irq_status0, uint32_t irq_status1)
 {
-	if (irq_status1 & BIT(23)) {
-		if (vfe_dev->vfe_reset_timeout_processed == 1) {
-			pr_err("%s:vfe reset was processed.\n", __func__);
-			return;
-		}
+	if (irq_status1 & BIT(23))
 		complete(&vfe_dev->reset_complete);
-	}
 }
 
 static void msm_vfe32_process_halt_irq(struct vfe_device *vfe_dev,
@@ -582,7 +577,7 @@ static void msm_vfe32_process_error_status(struct vfe_device *vfe_dev)
 		pr_err("%s: axi error\n", __func__);
 }
 
-static void msm_vfe32_read_irq_status_and_clear(struct vfe_device *vfe_dev,
+static void msm_vfe32_read_irq_status(struct vfe_device *vfe_dev,
 	uint32_t *irq_status0, uint32_t *irq_status1)
 {
 	*irq_status0 = msm_camera_io_r(vfe_dev->vfe_base + 0x2C);
@@ -598,13 +593,6 @@ static void msm_vfe32_read_irq_status_and_clear(struct vfe_device *vfe_dev,
 	if (*irq_status1 & BIT(7))
 		vfe_dev->error_info.violation_status |=
 			msm_camera_io_r(vfe_dev->vfe_base + 0x7B4);
-}
-
-static void msm_vfe32_read_irq_status(struct vfe_device *vfe_dev,
-	uint32_t *irq_status0, uint32_t *irq_status1)
-{
-	*irq_status0 = msm_camera_io_r(vfe_dev->vfe_base + 0x2C);
-	*irq_status1 = msm_camera_io_r(vfe_dev->vfe_base + 0x30);
 }
 
 static void msm_vfe32_process_reg_update(struct vfe_device *vfe_dev,
@@ -674,31 +662,10 @@ static void msm_vfe32_reg_update(struct vfe_device *vfe_dev,
 static long msm_vfe32_reset_hardware(struct vfe_device *vfe_dev,
 	uint32_t first_start, uint32_t blocking)
 {
-	long rc = 0;
-	uint32_t irq_status1;
-
-	if (blocking) {
-		init_completion(&vfe_dev->reset_complete);
-		msm_camera_io_w_mb(0x3FF, vfe_dev->vfe_base + 0x4);
-		vfe_dev->vfe_reset_timeout_processed = 0;
-		rc = wait_for_completion_timeout(
-			&vfe_dev->reset_complete, msecs_to_jiffies(500));
-	} else {
-		msm_camera_io_w_mb(0x3FF, vfe_dev->vfe_base + 0x4);
-	}
-
-	if (blocking && rc <= 0) {
-		/*read ISP status register*/
-		irq_status1 = msm_camera_io_r(vfe_dev->vfe_base + 0x30);
-		pr_err("%s: handling vfe reset time out error. irq_status1 0x%x\n",
-			__func__, irq_status1);
-		if (irq_status1 & BIT(23)) {
-			pr_err("%s: vfe reset has done actually\n", __func__);
-			vfe_dev->vfe_reset_timeout_processed = 1;
-			return 1;
-		}
-	}
-	return rc;
+	init_completion(&vfe_dev->reset_complete);
+	msm_camera_io_w_mb(0x3FF, vfe_dev->vfe_base + 0x4);
+	return wait_for_completion_timeout(
+	   &vfe_dev->reset_complete, msecs_to_jiffies(50));
 }
 
 static void msm_vfe32_axi_reload_wm(
@@ -782,11 +749,6 @@ static void msm_vfe32_axi_clear_wm_irq_mask(struct vfe_device *vfe_dev,
 	irq_mask = msm_camera_io_r(vfe_dev->vfe_base + 0x1C);
 	irq_mask &= ~BIT(stream_info->wm[0] + 6);
 	msm_camera_io_w(irq_mask, vfe_dev->vfe_base + 0x1C);
-}
-
-static void msm_vfe32_axi_clear_irq_mask(struct vfe_device *vfe_dev)
-{
-	msm_camera_io_w(0x0, vfe_dev->vfe_base + 0x1C);
 }
 
 static void msm_vfe32_cfg_framedrop(void __iomem *vfe_base,
@@ -1446,8 +1408,6 @@ struct msm_vfe_hardware_info vfe32_hw_info = {
 	.vfe_ops = {
 		.irq_ops = {
 			.read_irq_status = msm_vfe32_read_irq_status,
-			.read_irq_status_and_clear =
-				msm_vfe32_read_irq_status_and_clear,
 			.process_camif_irq = msm_vfe32_process_camif_irq,
 			.process_reset_irq = msm_vfe32_process_reset_irq,
 			.process_halt_irq = msm_vfe32_process_halt_irq,
@@ -1464,8 +1424,6 @@ struct msm_vfe_hardware_info vfe32_hw_info = {
 			.clear_comp_mask = msm_vfe32_axi_clear_comp_mask,
 			.cfg_wm_irq_mask = msm_vfe32_axi_cfg_wm_irq_mask,
 			.clear_wm_irq_mask = msm_vfe32_axi_clear_wm_irq_mask,
-			.clear_irq_mask =
-				msm_vfe32_axi_clear_irq_mask,
 			.cfg_framedrop = msm_vfe32_cfg_framedrop,
 			.clear_framedrop = msm_vfe32_clear_framedrop,
 			.cfg_wm_reg = msm_vfe32_axi_cfg_wm_reg,
@@ -1560,3 +1518,4 @@ module_init(msm_vfe32_init_module);
 module_exit(msm_vfe32_exit_module);
 MODULE_DESCRIPTION("MSM VFE32 driver");
 MODULE_LICENSE("GPL v2");
+
