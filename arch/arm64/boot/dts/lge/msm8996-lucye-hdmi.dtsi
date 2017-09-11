@@ -16,6 +16,7 @@
 
 &soc {
 	/delete-node/ qcom,mdss_fb_hdmi;
+	/delete-node/ qcom,sde_hdmi@9a0000;
 };
 
 / {
