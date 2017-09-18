@@ -48,12 +48,17 @@ KBUILD_CFLAGS	+= $(call cc-option, -mpc-relative-literal-loads)
 KBUILD_CFLAGS	+= $(call cc-ifversion, -ge, 0500, -DCONFIG_ARCH_SUPPORTS_INT128)
 KBUILD_AFLAGS	+= $(vdso32)
 
+KBUILD_CFLAGS	+= $(call cc-option,-mabi=lp64)
+KBUILD_AFLAGS	+= $(call cc-option,-mabi=lp64)
+
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
 LD		+= -EB
 ifeq ($(MK_LINKER),ld.gold)
 LDFLAGS		+= -maarch64_elf64_be_vec
+else
+LDFLAGS		+= $(call ld-option, -maarch64elfb, -maarch64linuxb)
 endif
 else
 KBUILD_CPPFLAGS	+= -mlittle-endian
@@ -61,6 +66,8 @@ AS		+= -EL
 LD		+= -EL
 ifeq ($(MK_LINKER),ld.gold)
 LDFLAGS		+= -maarch64_elf64_le_vec
+else
+LDFLAGS		+= $(call ld-option, -maarch64elf, -maarch64linux)
 endif
 endif
 
