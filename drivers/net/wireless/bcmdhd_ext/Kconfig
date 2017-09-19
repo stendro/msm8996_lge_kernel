@@ -38,14 +38,14 @@ config BCMDHD_OEM_HEADER_PATH
 config BCMDHD_FW_PATH
 	depends on BCMDHD
 	string "Firmware path"
-	default "/system/etc/firmware/fw_bcmdhd.bin"
+	default "/vendor/firmware/fw_bcmdhd.bin"
 	---help---
 	  Path to the firmware file.
 
 config BCMDHD_NVRAM_PATH
 	depends on BCMDHD
 	string "NVRAM path"
-	default "/system/etc/wifi/bcmdhd.cal"
+	default "/vendor/etc/wifi/bcmdhd.cal"
 	---help---
 	  Path to the calibration file.
 
@@ -163,7 +163,7 @@ config RUNTIME_TCPACK_SUPPRESS
 config BCMDHD_CLM_PATH
 	depends on BCM4359
 	string "CLM BLOB path"
-	default "/system/etc/wifi/4359_lg.clm_blob"
+	default "/vendor/etc/wifi/4359_lg.clm_blob"
 	---help---
 	  Path to the clm blob file.
 

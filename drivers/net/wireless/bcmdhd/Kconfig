@@ -104,14 +104,14 @@ config BCMDHD_OEM_HEADER_PATH
 config BCMDHD_FW_PATH
 	depends on BCMDHD
 	string "Firmware path"
-	default "/system/etc/firmware/fw_bcmdhd.bin"
+	default "/vendor/firmware/fw_bcmdhd.bin"
 	---help---
 	  Path to the firmware file.
 
 config BCMDHD_NVRAM_PATH
 	depends on BCMDHD
 	string "NVRAM path"
-	default "/system/etc/wifi/bcmdhd.cal"
+	default "/vendor/etc/wifi/bcmdhd.cal"
 	---help---
 	  Path to the calibration file.
 
