@@ -154,10 +154,7 @@ bool lge_battery_check()
 		usb_online = 0;
 	}
 
-	if (lge_is_factory_cable() && usb_online)
-		return true;
-	else
-		return is_battery_valid(battery_id);
+	return is_battery_valid(battery_id);
 }
 
 /*
