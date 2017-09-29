@@ -406,6 +406,15 @@ struct power_supply {
 	struct led_trigger *charging_blink_full_solid_trig;
 	char *charging_blink_full_solid_trig_name;
 #endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CORE
+	char **lge_power_supplied_to;
+	size_t num_lge_power_supplicants;
+	char **lge_power_supplied_from;
+	size_t num_lge_power_supplies;
+	void (*external_lge_power_changed)(struct power_supply *psy);
+	char **lge_psy_power_supplied_from;
+	size_t num_lge_psy_power_supplies;
+#endif
 };
 
 /*

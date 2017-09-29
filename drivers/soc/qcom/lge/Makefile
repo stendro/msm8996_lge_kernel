@@ -18,3 +18,6 @@ obj-$(CONFIG_LGE_ACC_NT) += lge_acc_nt.o
 #obj-$(CONFIG_LGE_QFPROM_INTERFACE) += lge_qfprom_access.o
 #obj-$(CONFIG_PRE_SELF_DIAGNOSIS) += lge_pre_selfd.o
 #obj-$(CONFIG_LGE_PM_SUPPORT_LG_POWER_CLASS) += power/
+
+obj-$(CONFIG_LGE_PM_LGE_POWER_CORE)		+= lge_power_class_core.o lge_power_class_sysfs.o
+obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER)		+= lge_power_class_battery_id_checker.o

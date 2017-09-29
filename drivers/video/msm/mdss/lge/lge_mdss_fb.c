@@ -15,7 +15,7 @@
 #include <linux/msm_mdp.h>
 #include "../mdss_fb.h"
 #ifdef CONFIG_LGE_PM_LGE_POWER_CORE
-#include <soc/qcom/lge/power/lge_power_class.h>
+#include <soc/qcom/lge/lge_power_class.h>
 #include <soc/qcom/smem.h>
 #endif
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
