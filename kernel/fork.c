@@ -692,7 +692,7 @@ int mmput(struct mm_struct *mm)
 	int mm_freed = 0;
 	might_sleep();
 
-	if (atomic_dec_and_test(&mm->mm_users))
+	if (atomic_dec_and_test(&mm->mm_users)) {
 		__mmput(mm);
 		mm_freed = 1;
 	}

@@ -399,7 +399,7 @@ static int create_autodetect_quirks(struct snd_usb_audio *chip,
 }
 
 /*
- * Create a stream for an Edirol UA-700/UA-25/UA-4FX interface.  
+ * Create a stream for an Edirol UA-700/UA-25/UA-4FX interface.
  * The only way to detect the sample rate is by looking at wMaxPacketSize.
  */
 static int create_uaxx_quirk(struct snd_usb_audio *chip,
@@ -1128,6 +1128,14 @@ bool snd_usb_get_sample_rate_quirk(struct snd_usb_audio *chip)
 	case USB_ID(0x045E, 0x0779): /* MS Lifecam HD-3000 */
 	case USB_ID(0x047F, 0xAA05): /* Plantronics DA45 */
 	case USB_ID(0x04D8, 0xFEEA): /* Benchmark DAC1 Pre */
+	case USB_ID(0x0556, 0x0014): /* Phoenix Audio TMX320VC */
+	case USB_ID(0x074D, 0x3553): /* Outlaw RR2150 (Micronas UAC3553B) */
+	case USB_ID(0x1395, 0x740a): /* Sennheiser DECT */
+	case USB_ID(0x1901, 0x0191): /* GE B850V3 CP2114 audio interface */
+	case USB_ID(0x1de7, 0x0013): /* Phoenix Audio MT202exe */
+	case USB_ID(0x1de7, 0x0014): /* Phoenix Audio TMX320 */
+	case USB_ID(0x1de7, 0x0114): /* Phoenix Audio MT202pcs */
+	case USB_ID(0x21B4, 0x0081): /* AudioQuest DragonFly */
 		return true;
 	}
 	return false;
