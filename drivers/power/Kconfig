@@ -692,6 +692,25 @@ config LGE_PM_EMBEDDED_BATT_ID_ADC
 	help
 	  For distinguish battery id by adc value
 
+config LGE_PM_SOC_SCALING
+	bool "Battery Capacity Scaling"
+	depends on LGE_PM
+	help
+		Say Y here to enable the battery capacity to be scaled.
+
+config LGE_PM_SOC_RECHARGING_WA
+	bool "LGE_PM Support recharging by SOC"
+	depends on LGE_PM
+	help
+		Say Y here to recharging by SOC
+
+config LGE_PM_CYCLE_BASED_CHG_VOLTAGE
+	bool "LGE battery cycle based chg voltage change feature"
+	default n
+	depends on LGE_PM
+	help
+	  lge battery extending feature
+
 source "drivers/power/reset/Kconfig"
 
 endif # POWER_SUPPLY
