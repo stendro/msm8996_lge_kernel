@@ -251,7 +251,6 @@ extern struct lge_power *lge_power_get_by_name(const char *name);
 extern void lge_power_changed(struct lge_power *lpc);
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
-extern int lgcc_get_effective_icl_id(void);
 extern int lgcc_get_effective_fcc_result(void);
 #endif
 

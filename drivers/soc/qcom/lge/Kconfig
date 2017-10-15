@@ -439,12 +439,47 @@ config LGE_PM_LGE_POWER_CORE
 	help
 	  Say Y here enable support lge power core
 
+config LGE_PM_CHARGING_CONTROLLER
+        tristate "LGE Charging controller"
+        default n
+        depends on MACH_LGE
+        help
+          enable the LGE Charging controller
+
+config LGE_PM_CHARGING_SCENARIO
+        tristate "Support LGE PM Charging Scenario"
+        default n
+        depends on MACH_LGE
+        help
+          LGE PM Charging Scenario
+
 config LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER
 	tristate "Battery ID checker driver for LG Power Class"
 	depends on LGE_PM_LGE_POWER_CORE
 	default n
 	help
 	  Say Y here enable support battery id checker driver for LG Power Class
+
+config LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
+        tristate "LGE charging controller driver for LG Power Class"
+        depends on LGE_PM_LGE_POWER_CORE
+        default n
+        help
+          Say Y here enable support charging controller for LG Power Class
+
+config LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
+        bool "Apply to support hvdcp type"
+        depends on LGE_PM_LGE_POWER_CORE
+        default n
+        help
+          Say Y here enable support hvdcp function for LG Power Class
+
+config LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
+        bool "Charger Sleep Feature for LG Power Class"
+        depends on LGE_PM_LGE_POWER_CORE
+        default n
+        help
+          Say Y here enable charger sleep feature used for LG Power Class
 
 config LGE_PM_EMBEDDED_BATTERY
 	bool "embedded battery"

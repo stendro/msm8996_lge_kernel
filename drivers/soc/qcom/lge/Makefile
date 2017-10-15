@@ -6,8 +6,8 @@ obj-$(CONFIG_LGE_HANDLE_PANIC) += lge_handle_panic.o
 #obj-$(CONFIG_LGE_PM) += lge_monitor_thermal.o
 #obj-$(CONFIG_LGE_PM_CABLE_DETECTION) += lge_cable_detection.o
 #obj-$(CONFIG_LGE_PM_SMPL_COUNTER) += lge_smpl_count.o
-#obj-$(CONFIG_LGE_PM_CHARGING_CONTROLLER) += lge_charging_controller.o
-#obj-$(CONFIG_LGE_PM_CHARGING_SCENARIO) += lge_charging_scenario.o
+obj-$(CONFIG_LGE_PM_CHARGING_CONTROLLER) += lge_charging_controller.o
+obj-$(CONFIG_LGE_PM_CHARGING_SCENARIO) += lge_charging_scenario.o
 #obj-$(CONFIG_LGE_PM_UNIFIED_NODE) += lge_power_sysfs.o
 #obj-$(CONFIG_LGE_PM_PSEUDO_BATTERY) += lge_pseudo_batt.o
 #obj-$(CONFIG_LGE_QSDL_SUPPORT) += lge_qsdl.o
@@ -21,3 +21,4 @@ obj-$(CONFIG_LGE_ACC_NT) += lge_acc_nt.o
 
 obj-$(CONFIG_LGE_PM_LGE_POWER_CORE)		+= lge_power_class_core.o lge_power_class_sysfs.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER)		+= lge_power_class_battery_id_checker.o
+obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER)        += lge_power_class_charging_controller.o
