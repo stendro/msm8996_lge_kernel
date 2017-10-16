@@ -35,10 +35,6 @@
 #include <linux/string_helpers.h>
 #include <linux/alarmtimer.h>
 #include <linux/qpnp/qpnp-revid.h>
-#ifdef CONFIG_LGE_PM
-#include <linux/cpufreq.h>
-#include <soc/qcom/lge/board_lge.h>
-#endif
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER
 #include <linux/power/lge_battery_id.h>
@@ -89,10 +85,6 @@
 #define BCL_MA_TO_ADC(_current, _adc_val) {		\
 	_adc_val = (u8)((_current) * 100 / 976);	\
 }
-
-#ifdef CONFIG_LGE_PM_SOC_RECHARGING_WA
-#define SOC_BASE_RECHARGE_THRESHOLD 0xF8
-#endif
 
 /* Debug Flag Definitions */
 enum {
@@ -481,10 +473,6 @@ struct dischg_gain_soc {
 };
 
 #define THERMAL_COEFF_N_BYTES		6
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-#define MAX_CYCLE_STEP	4
-#define DEFAULT_VFLOAT_VOTLAGE	4350
-#endif
 struct fg_chip {
 	struct device		*dev;
 	struct spmi_device	*spmi;
@@ -663,20 +651,6 @@ struct fg_chip {
 	bool			batt_info_restore;
 	bool			*batt_range_ocv;
 	int			*batt_range_pct;
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-	int			batt_scale_criteria;
-#endif
-#ifdef CONFIG_LGE_PM_SOC_RECHARGING_WA
-	int			batt_recharge_threshold;
-#endif
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	u32			batt_life_cycle_set[MAX_CYCLE_STEP];
-	u32			batt_life_cycle_offset[MAX_CYCLE_STEP];
-	u32			batt_life_cycle_vfloat[MAX_CYCLE_STEP];
-	int			battery_cycle;
-	int			rescale_offset;
-	int			cycle_based_vfloat;
-#endif
 };
 
 /* FG_MEMIF DEBUGFS structures */
@@ -746,11 +720,6 @@ static char *fg_supplicants[] = {
 	"bcl",
 	"fg_adc"
 };
-
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-static bool is_charger_available(struct fg_chip *chip);
-static void fg_set_cycle_based_offset(struct fg_chip *chip, int battery_cycle);
-#endif
 
 #define DEBUG_PRINT_BUFFER_SIZE 64
 static void fill_string(char *str, size_t str_len, u8 *buf, int buf_len)
@@ -2286,102 +2255,6 @@ static int get_monotonic_soc_raw(struct fg_chip *chip)
 #define MISSING_CAPACITY	100
 #define FULL_CAPACITY		100
 #define FULL_SOC_RAW		0xFF
-
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-#define LGE_SOC_SCALE_CRITERIA	0xF5 //96% in 256 scale soc.
-static int rescale_monotonic_soc (int msoc, struct fg_chip *chip)
-{
-	int capacity = 0;
-	static int prev_capacity = 0;
-#ifdef CONFIG_LGE_PM_BATT_PROFILE
-#ifndef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
-	long batt_soc_temp = 0;
-	int scaling_cap =0;
-#endif
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	int rescale_threshold;
-#endif
-#endif
-
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	if (msoc > (chip->batt_scale_criteria - chip->rescale_offset)){
-		fg_set_cycle_based_offset(chip, chip->battery_cycle);
-		if (fg_debug_mask & FG_STATUS)
-			pr_info("msoc = %x cycle = %d rescale_offset %d \n", msoc,
-						chip->battery_cycle, chip->rescale_offset);
-	}
-#endif
-	if (msoc > 0)
-#ifdef CONFIG_LGE_PM_BATT_PROFILE //0xF5 96% -> 100% rescaling
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-		rescale_threshold = chip->batt_scale_criteria - (chip->rescale_offset);
-		capacity = (((msoc - 1) * (FULL_CAPACITY - 2))*100/(rescale_threshold - 2)) + 100;
-#else
-		capacity = (((msoc - 1) * (FULL_CAPACITY - 2))*100/(chip->batt_scale_criteria - 2)) + 100;
-#endif
-#else
-		capacity = ((msoc - 1) * (FULL_CAPACITY - 2)/(chip->batt_scale_criteria - 2)) + 100;
-#endif
-
-#ifdef CONFIG_LGE_PM_BATT_PROFILE
-	if ((capacity/100) > 100)
-		capacity = 10000;
-#else
-	if (capacity > 100)
-		capacity = 100;
-#endif
-
-#ifdef CONFIG_LGE_PM_BATT_PROFILE
-#ifndef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
-	if (chip->batt_profile_enabled) {
-		scaling_cap = capacity;
-		batt_soc_temp = capacity;
-#ifdef CONFIG_LGE_PM_BATT_PROFILE_DEBUG
-		batt_soc_original = capacity;
-#endif
-#ifdef LINEARITY_UNDER_5LEVEL//for linearity under 5% level
-		if (batt_soc_temp > 0 && batt_soc_temp <= BATTERY_SOC_X2)
-			batt_soc_temp = batt_soc_temp*(BATTERY_SOC_Y2)/(BATTERY_SOC_X2);
-#endif
-		if(batt_soc_temp > 180 && batt_soc_temp <= 260)
-			batt_soc_temp = 200;
-		else if (batt_soc_temp > 260 && batt_soc_temp <= 420)
-			batt_soc_temp = 300;
-		else if (batt_soc_temp > 420 && batt_soc_temp <= 560)
-			batt_soc_temp = 400;
-		else if (batt_soc_temp > 560 && batt_soc_temp <= BATTERY_SOC_X2)
-			batt_soc_temp = 500;
-		else if ((BATTERY_SOC_X2 < batt_soc_temp) &&
-				(batt_soc_temp <= BATTERY_SOC_X1)) {
-			batt_soc_temp = BATTERY_SOC_Y2 +
-				(batt_soc_temp*(BATTERY_SOC_Y1-BATTERY_SOC_Y2)-
-				BATTERY_SOC_X2*(BATTERY_SOC_Y1-BATTERY_SOC_Y2))/
-				(BATTERY_SOC_X1-BATTERY_SOC_X2);
-		} else if ((BATTERY_SOC_X1 < batt_soc_temp) &&
-				(batt_soc_temp <= BATTERY_SOC_100)) {
-			batt_soc_temp = BATTERY_SOC_Y1 +
-				(batt_soc_temp*(BATTERY_SOC_100-BATTERY_SOC_Y1)-
-				BATTERY_SOC_X1*(BATTERY_SOC_100-BATTERY_SOC_Y1))/
-				(BATTERY_SOC_100-BATTERY_SOC_X1);
-		} else
-			batt_soc_temp = capacity;
-		capacity = (batt_soc_temp/100);
-#ifdef CONFIG_LGE_PM_BATT_PROFILE_DEBUG
-		batt_soc_modify = capacity;
-		batt_soc_original /= 100;
-#endif
-	} else
-#endif
-		capacity /= 100;
-#endif
-	if (capacity != prev_capacity) {
-		prev_capacity = capacity;
-		power_supply_changed(&chip->bms_psy);
-	}
-	return capacity;
-}
-#endif
-
 static int get_prop_capacity(struct fg_chip *chip)
 {
 	int msoc, rc;
@@ -2390,13 +2263,9 @@ static int get_prop_capacity(struct fg_chip *chip)
 	if (chip->use_last_soc && chip->last_soc) {
 		if (chip->last_soc == FULL_SOC_RAW)
 			return FULL_CAPACITY;
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-		return rescale_monotonic_soc(chip->last_soc,chip);
-#else
 		return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
 				(FULL_CAPACITY - 2),
 				FULL_SOC_RAW - 2) + 1;
-#endif
 	}
 
 	if (chip->battery_missing)
@@ -2425,15 +2294,11 @@ static int get_prop_capacity(struct fg_chip *chip)
 				return EMPTY_CAPACITY;
 			}
 
-			if (!vbatt_low_sts) {
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-				return rescale_monotonic_soc(chip->last_soc,chip);
-#else
+			if (!vbatt_low_sts)
 				return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
 						(FULL_CAPACITY - 2),
 						FULL_SOC_RAW - 2) + 1;
-#endif
-			} else
+			else
 				return EMPTY_CAPACITY;
 		} else {
 			return EMPTY_CAPACITY;
@@ -2441,9 +2306,6 @@ static int get_prop_capacity(struct fg_chip *chip)
 	} else if (msoc == FULL_SOC_RAW) {
 		return FULL_CAPACITY;
 	}
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-	return rescale_monotonic_soc(msoc,chip);
-#endif
 
 	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 2),
 			FULL_SOC_RAW - 2) + 1;
@@ -3186,26 +3048,6 @@ out:
 	mutex_unlock(&chip->cyc_ctr.lock);
 }
 
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-static int fg_get_battery_cycle(struct fg_chip *chip)
-{
-	int i;
-	int cycle_bucket_sum = 0;
-
-	if (!chip->cyc_ctr.en)
-		return 0;
-
-	for (i = 0; i < BUCKET_COUNT; i++)
-		cycle_bucket_sum = cycle_bucket_sum + chip->cyc_ctr.count[i];
-
-	chip->battery_cycle = cycle_bucket_sum/8;
-
-	pr_info("Get battery cycle = %d\n", chip->battery_cycle);
-
-	return chip->battery_cycle;
-}
-#endif
-
 static int fg_get_cycle_count(struct fg_chip *chip)
 {
 	int count;
@@ -3218,77 +3060,9 @@ static int fg_get_cycle_count(struct fg_chip *chip)
 
 	mutex_lock(&chip->cyc_ctr.lock);
 	count = chip->cyc_ctr.count[chip->cyc_ctr.id - 1];
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	fg_get_battery_cycle(chip);
-#endif
 	mutex_unlock(&chip->cyc_ctr.lock);
 	return count;
 }
-
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-static int fg_set_battery_cycle(struct fg_chip *chip, int cycle_write)
-{
-	int rc = 0, i, address;
-	u8 data[2];
-
-	//Write Battery Cycle data to FG SRAM.
-	for (i = 0; i < BUCKET_COUNT; i++) {
-		chip->cyc_ctr.count[i] = cycle_write;
-		data[0] = cycle_write & 0xFF;
-		data[1] = cycle_write >> 8;
-
-		address = BATT_CYCLE_NUMBER_REG + i * 2;
-
-		rc = fg_mem_write(chip, data, address, 2, BATT_CYCLE_OFFSET, 0);
-		if (rc)
-			pr_err("failed to write BATT_CYCLE_NUMBER[%d] rc=%d\n",
-			       i, rc);
-
-		pr_info(" Write cycle count, [%d] = %d\n",i, cycle_write);
-	}
-
-	return rc;
-}
-#define DECCUR_FLOAT_VOLTAGE	4000
-static void fg_set_cycle_based_offset(struct fg_chip *chip, int battery_cycle)
-{
-	int i, rc = 0;
-	int full_chg_offset = 0;
-	int vfloat_set = DEFAULT_VFLOAT_VOTLAGE;
-	union power_supply_propval val = {0, };
-
-	for( i =0; i < MAX_CYCLE_STEP; i++ ) {
-		if(battery_cycle > chip->batt_life_cycle_set[i]) {
-			full_chg_offset = chip->batt_life_cycle_offset[i];
-			vfloat_set = chip->batt_life_cycle_vfloat[i];
-		}
-	}
-
-	if (!is_charger_available(chip)) {
-		pr_err("Charger not available yet!\n");
-		return;
-	}
-
-	rc = chip->batt_psy->get_property(chip->batt_psy,
-		POWER_SUPPLY_PROP_VOLTAGE_MAX, &val);
-	if (val.intval == DECCUR_FLOAT_VOLTAGE) {
-		pr_err("Skip setting vfloat at DECCUR state of OTP\n");
-                return;
-	}
-
-	if (vfloat_set != chip->cycle_based_vfloat) {
-		val.intval = vfloat_set;
-		rc = chip->batt_psy->set_property(chip->batt_psy,
-				POWER_SUPPLY_PROP_VOLTAGE_MAX, &val);
-		if(rc) {
-			pr_err("couldn't config cycle based vfloat %d\n", rc);
-		} else {
-			chip->rescale_offset = full_chg_offset;
-			chip->cycle_based_vfloat = vfloat_set;
-		}
-	}
-}
-#endif
 
 static void half_float_to_buffer(int64_t uval, u8 *buffer)
 {
@@ -5120,11 +4894,6 @@ static int fg_power_set_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_BATTERY_INFO_ID:
 		chip->batt_info_id = val->intval;
 		break;
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	case POWER_SUPPLY_PROP_BATTERY_CYCLE:
-		rc = fg_set_battery_cycle(chip, val->intval);
-		break;
-#endif
 	default:
 		return -EINVAL;
 	};
@@ -6736,25 +6505,6 @@ wait:
 	if (rc)
 		pr_warn("couldn't find battery max voltage\n");
 
-#ifdef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-	rc = of_property_read_u32(profile_node, "qcom,batt-scale-criteria",
-				  &chip->batt_scale_criteria);
-	if (rc) {
-		pr_err("Could not read batt scale criteria: %d\n", rc);
-	}
-	pr_info("scale criteria : [%d]", chip->batt_scale_criteria);
-#endif
-#ifdef CONFIG_LGE_PM_SOC_RECHARGING_WA
-	rc = of_property_read_u32(profile_node, "qcom,batt-recharge-threshold",
-				  &chip->batt_recharge_threshold);
-	if (rc) {
-		pr_err("Could not read batt recharge threshold: %d\n", rc);
-	}
-	pr_info("recharge threshold : [%d]\n", chip->batt_recharge_threshold);
-#endif
-#endif
-
 	/*
 	 * Only configure from profile if fg-cc-cv-threshold-mv is not
 	 * defined in the charger device node.
@@ -6936,15 +6686,6 @@ done:
 	}
 	estimate_battery_age(chip, &chip->actual_cap_uah);
 	schedule_work(&chip->status_change_work);
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	fg_set_cycle_based_offset(chip, fg_get_battery_cycle(chip));
-	pr_info("rescale_offset:[%d], cycle_based_vfloat:[%d]\n",
-			chip->rescale_offset, chip->cycle_based_vfloat);
-	pr_info("overwrite resume soc to %d\n", chip->batt_recharge_threshold);
-	rc = fg_set_resume_soc(chip, chip->batt_recharge_threshold - chip->rescale_offset);
-	if (rc)
-		pr_err("fail to write resume soc!\n");
-#endif
 	if (chip->power_supply_registered)
 		power_supply_changed(&chip->bms_psy);
 	fg_relax(&chip->profile_wakeup_source);
@@ -7363,123 +7104,6 @@ out:
 	chip->dischg_gain.enable = false;
 	return rc;
 }
-
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-#define DEFAULT_FLOAT_VOLTAGE	4350
-static int fg_batt_cycle_offset_dt_init(struct fg_chip *chip)
-{
-	struct device_node *node = chip->spmi->dev.of_node;
-	struct property *prop;
-	int i, rc = 0;
-	size_t size;
-
-	prop = of_find_property(node, "qcom,fg-batt-life-cycle-set",
-			NULL);
-	if (!prop) {
-		pr_err("qcom-fg-batt-life-cycle-set not specified\n");
-		goto out;
-	}
-
-	size = prop->length / sizeof(u32);
-	if (size != MAX_CYCLE_STEP) {
-		pr_err("Battery Life Cycle Set specified is of incorrect size\n");
-		goto out;
-	}
-
-	rc = of_property_read_u32_array(node,
-		"qcom,fg-batt-life-cycle-set", chip->batt_life_cycle_set, size);
-	if (rc < 0) {
-		pr_err("Reading qcom-fg-batt-life-cycle-set failed, rc=%d\n",
-			rc);
-		goto out;
-	}
-
-	for (i = 0; i < MAX_CYCLE_STEP; i++) {
-		if (chip->batt_life_cycle_set[i] < 0 ||
-				chip->batt_life_cycle_set[i] > 1000) {
-			pr_err("Incorrect fg-batt-life-cycle-set\n");
-			goto out;
-		}
-	}
-
-	prop = of_find_property(node, "qcom,fg-batt-life-cycle-offset",
-			NULL);
-	if (!prop) {
-		pr_err("qcom-fg-batt-life-cycle-offset not specified\n");
-		goto out;
-	}
-
-	size = prop->length / sizeof(u32);
-	if (size != MAX_CYCLE_STEP) {
-		pr_err("fg-batt-life-cycle-offset specified is of incorrect size\n");
-		goto out;
-	}
-
-	rc = of_property_read_u32_array(node,
-		"qcom,fg-batt-life-cycle-offset", chip->batt_life_cycle_offset,
-		size);
-	if (rc < 0) {
-		pr_err("Reading fg-batt-life-cycle-offset failed, rc=%d\n",
-			rc);
-		goto out;
-	}
-
-	for (i = 0; i < MAX_CYCLE_STEP; i++) {
-		if (chip->batt_life_cycle_offset[i] < 0 ||
-				chip->batt_life_cycle_offset[i] > 100) {
-			pr_err("Incorrect fg-batt-life-cycle-offset\n");
-			goto out;
-		}
-	}
-
-	prop = of_find_property(node, "qcom,fg-batt-life-cycle-vfloat",
-			NULL);
-	if (!prop) {
-		pr_err("qcom-fg-batt-life-cycle-vfloat not specified\n");
-		goto out;
-	}
-
-	size = prop->length / sizeof(u32);
-	if (size != MAX_CYCLE_STEP) {
-		pr_err("fg-batt-life-cycle-vfloat specified is of incorrect size\n");
-		goto out;
-	}
-
-	rc = of_property_read_u32_array(node,
-		"qcom,fg-batt-life-cycle-vfloat", chip->batt_life_cycle_vfloat,
-		size);
-	if (rc < 0) {
-		pr_err("Reading fg-batt-life-cycle-vfloat failed, rc=%d\n",
-			rc);
-		goto out;
-	}
-
-	for (i = 0; i < MAX_CYCLE_STEP; i++) {
-		if (chip->batt_life_cycle_vfloat[i] < 3900 ||
-				chip->batt_life_cycle_vfloat[i] > 4500) {
-			pr_err("Incorrect fg-batt-life-cycle-vfloat\n");
-			goto out;
-		}
-	}
-
-	if (fg_debug_mask & FG_AGING) {
-		for (i = 0; i < MAX_CYCLE_STEP; i++)
-			pr_err("Cycle %d - Offset = %d Vfloat=%d\n",
-				chip->batt_life_cycle_set[i],
-				chip->batt_life_cycle_offset[i],
-				chip->batt_life_cycle_vfloat[i]);
-	}
-	return 0;
-out:
-	//Write default cycle step & offset value
-	for (i = 0; i < MAX_CYCLE_STEP; i++){
-		chip->batt_life_cycle_set[i] = 0;
-		chip->batt_life_cycle_offset[i] = 0;
-		chip->batt_life_cycle_vfloat[i] = DEFAULT_FLOAT_VOLTAGE;
-	}
-	return rc;
-}
-#endif
 
 #define DEFAULT_EVALUATION_CURRENT_MA	1000
 static int fg_of_init(struct fg_chip *chip)
@@ -9333,22 +8957,6 @@ static int fg_probe(struct spmi_device *spmi)
 		goto of_init_fail;
 	}
 
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	rc = fg_batt_cycle_offset_dt_init(chip);
-	if (rc) {
-		pr_err("failed to parse devicetree rc%d\n", rc);
-		goto of_init_fail;
-	}
-	chip->rescale_offset = 0; //Init rescale offset to 0.
-	//DEFAULT_VFLOAT_VOTLAGE should be same with chip->batt_life_cycle_vfloat[0].
-	chip->cycle_based_vfloat = DEFAULT_VFLOAT_VOTLAGE;
-#endif
-#ifdef CONFIG_LGE_PM_SOC_SCALING
-	chip->batt_scale_criteria = LGE_SOC_SCALE_CRITERIA;
-#endif
-#ifdef CONFIG_LGE_PM_SOC_RECHARGING_WA
-	chip->batt_recharge_threshold = SOC_BASE_RECHARGE_THRESHOLD;
-#endif
 	if (chip->jeita_hysteresis_support) {
 		rc = fg_init_batt_temp_state(chip);
 		if (rc) {
