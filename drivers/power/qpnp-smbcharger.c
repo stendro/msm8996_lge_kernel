@@ -251,10 +251,6 @@ struct smbchg_chip {
 	struct power_supply		dc_psy;
 	struct power_supply		*bms_psy;
 	struct power_supply		*typec_psy;
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
-	struct delayed_work					lge_cc_enable_work;
-	struct mutex			lge_cc_ibat_lock;
-#endif
 	int				dc_psy_type;
 	const char			*bms_psy_name;
 	const char			*battery_psy_name;
@@ -359,9 +355,6 @@ enum wake_reason {
 #define ESR_PULSE_FCC_VOTER	"ESR_PULSE_FCC_VOTER"
 #define BATT_TYPE_FCC_VOTER	"BATT_TYPE_FCC_VOTER"
 #define RESTRICTED_CHG_FCC_VOTER	"RESTRICTED_CHG_FCC_VOTER"
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
-#define LGE_POWER_CLASS_FCC_VOTER	"LGE_POWER_CLASS_FCC_VOTER"
-#endif
 
 /* ICL VOTERS */
 #define PSY_ICL_VOTER		"PSY_ICL_VOTER"
@@ -411,10 +404,6 @@ enum wake_reason {
 #define BATTCHG_USER_EN_VOTER	"BATTCHG_USER_EN_VOTER"
 	/* battery charging disabled while loading battery profiles */
 #define BATTCHG_UNKNOWN_BATTERY_EN_VOTER "BATTCHG_UNKNOWN_BATTERY_EN_VOTER"
-
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
-#define LGCC_EN_VOTER	"LGCC_EN_VOTER"
-#endif
 
 /* hw_aicl_rerun_enable_indirect_voters */
 /* enabled via device tree */
@@ -517,117 +506,6 @@ module_param_named(
 		else							\
 			pr_debug_ratelimited(fmt, ##__VA_ARGS__);	\
 	} while (0)
-
-#ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
-struct smbchg_chip *smb_chip;
-
-extern void start_lgcc_work(int delay);
-extern void stop_lgcc_work(void);
-extern int get_btm_state(void);
-extern int get_pseudo_ui(void);
-static bool is_usb_present(struct smbchg_chip *chip);
-static bool is_dc_present(struct smbchg_chip *chip);
-static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
-	enum power_supply_type *usb_supply_type);
-static struct power_supply *get_parallel_psy(struct smbchg_chip *chip);
-
-int lgcc_is_charger_present(void)
-{
-	bool charger_present = false;
-	charger_present = is_usb_present(smb_chip) | is_dc_present(smb_chip);
-
-	pr_smb(PR_PM, "charger_present[%d]\n", charger_present);
-	return charger_present;
-}
-EXPORT_SYMBOL(lgcc_is_charger_present);
-
-static int lgcc_set_ibat_current(struct smbchg_chip *chip,
-		int chg_current) {
-	int rc = 0;
-
-	pr_smb(PR_PM, "chg_current[%d]\n", chg_current);
-
-	mutex_lock(&chip->lge_cc_ibat_lock);
-	if (!chip->usb_present) {
-		rc = vote(chip->fcc_votable, LGE_POWER_CLASS_FCC_VOTER,
-				false, chg_current);
-	} else {
-		rc = vote(chip->fcc_votable, LGE_POWER_CLASS_FCC_VOTER,
-				true, chg_current);
-	}
-	if (rc < 0) {
-		pr_err("Couldn't vote fcc setting\n");
-		mutex_unlock(&chip->lge_cc_ibat_lock);
-		return rc;
-	}
-	mutex_unlock(&chip->lge_cc_ibat_lock);
-
-	return rc;
-}
-EXPORT_SYMBOL(lgcc_set_ibat_current);
-
-static int lgcc_set_charging_enable(struct smbchg_chip *chip,
-		int enable) {
-	int rc = 0;
-
-	vote(chip->battchg_suspend_votable, LGCC_EN_VOTER, !enable, 0);
-	if (rc < 0)
-		pr_smb(PR_PM, "failed to set Charging Status \n");
-
-	return rc;
-}
-EXPORT_SYMBOL(lgcc_set_charging_enable);
-
-int lgcc_get_effective_fcc_result(void) {
-	int rc;
-
-	rc = get_effective_result_locked(smb_chip->fcc_votable);
-	if (rc < 0)
-		pr_err("Failed to get fcc votable\n");
-
-	return rc;
-}
-EXPORT_SYMBOL(lgcc_get_effective_fcc_result);
-#endif
-
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-static bool is_factory_cable(struct smbchg_chip *chip) {
-	if (chip)
-		return chip->is_factory_cable;
-	else
-		return is_boot_factory_cable;
-	return false;
-}
-#endif
-
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-static int batt_life_cycle_set_fcc_ma (struct smbchg_chip *chip) {
-    int i, rc = 0;
-
-    for (i = 0; i < MAX_CYCLE_STEP; i++) {
-        if(chip->vfloat_mv == chip->batt_life_cycle_vfloat[i]) {
-            chip->cfg_fastchg_current_ma =
-                chip->batt_life_cycle_fcc_ma[i];
-            break;
-        }
-    }
-
-    if (MAX_CYCLE_STEP == i) {
-        pr_smb(PR_LGE, "now DECCUR state %d \n", chip->vfloat_mv);
-        return rc;
-    }
-
-    pr_smb(PR_LGE, "vfloat %d fcc-ma %d",
-        chip->vfloat_mv, chip->cfg_fastchg_current_ma);
-
-    rc = vote(chip->fcc_votable, BATTERY_LIFE_CYCLE_FCC_VOTER, true,
-        chip->cfg_fastchg_current_ma);
-    if (rc < 0)
-        pr_err("Couldn't vote en rc %d\n", rc);
-
-    return rc;
-}
-#endif
 
 static int smbchg_read(struct smbchg_chip *chip, u8 *val,
 			u16 addr, int count)
