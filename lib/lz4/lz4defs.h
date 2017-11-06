@@ -186,6 +186,17 @@ static FORCE_INLINE unsigned int LZ4_count(
 {
 	const BYTE *const pStart = pIn;
 
+	if (likely(pIn < pInLimit - (STEPSIZE - 1))) {
+		size_t const diff = LZ4_read_ARCH(pMatch) ^ LZ4_read_ARCH(pIn);
+
+		if (!diff) {
+			pIn += STEPSIZE;
+			pMatch += STEPSIZE;
+		} else {
+			return LZ4_NbCommonBytes(diff);
+		}
+	}
+
 	while (likely(pIn < pInLimit - (STEPSIZE - 1))) {
 		size_t const diff = LZ4_read_ARCH(pMatch) ^ LZ4_read_ARCH(pIn);
 
