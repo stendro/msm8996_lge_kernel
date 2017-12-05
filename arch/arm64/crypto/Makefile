@@ -17,6 +17,11 @@ sha2-ce-y := sha2-ce-glue.o sha2-ce-core.o
 obj-$(CONFIG_CRYPTO_GHASH_ARM64_CE) += ghash-ce.o
 ghash-ce-y := ghash-ce-glue.o ghash-ce-core.o
 
+obj-$(CONFIG_CRYPTO_CRC32_ARM64) += crc32-arm64.o
+
+obj-$(CONFIG_CRYPTO_CRC32_ARM64_CE) += crc32-ce.o
+crc32-ce-y:= crc32-ce-core.o crc32-ce-glue.o
+
 obj-$(CONFIG_CRYPTO_AES_ARM64_CE) += aes-ce-cipher.o
 CFLAGS_aes-ce-cipher.o += -march=armv8-a+crypto
 
@@ -31,6 +36,8 @@ aes-neon-blk-y := aes-glue-neon.o aes-neon.o
 
 AFLAGS_aes-ce.o		:= -DINTERLEAVE=2 -DINTERLEAVE_INLINE
 AFLAGS_aes-neon.o	:= -DINTERLEAVE=4
+
+CFLAGS_crc32-arm64.o	:= -mcpu=generic+crc
 
 CFLAGS_aes-glue-ce.o	:= -DUSE_V8_CRYPTO_EXTENSIONS
 
