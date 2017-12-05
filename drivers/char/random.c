@@ -313,9 +313,7 @@ static int random_read_wakeup_bits = 64;
 static int random_write_wakeup_bits = 28 * OUTPUT_POOL_WORDS;
 
 /*
- * The minimum number of seconds between urandom pool reseeding.  We
- * do this to limit the amount of entropy that can be drained from the
- * input pool even if there are heavy demands on /dev/urandom.
+ * Variable is currently unused by left for user space compatibility.
  */
 static int random_min_urandom_seed = 60;
 
@@ -409,7 +407,6 @@ static struct poolinfo {
  */
 static DECLARE_WAIT_QUEUE_HEAD(random_read_wait);
 static DECLARE_WAIT_QUEUE_HEAD(random_write_wait);
-static DECLARE_WAIT_QUEUE_HEAD(urandom_init_wait);
 static struct fasync_struct *fasync;
 
 /**********************************************************************
@@ -436,7 +433,6 @@ struct entropy_store {
 	int entropy_count;
 	int entropy_total;
 	unsigned int initialized:1;
-	unsigned int limit:1;
 	unsigned int last_data_init:1;
 	__u8 last_data[EXTRACT_SIZE];
 };
@@ -449,7 +445,6 @@ static __u32 nonblocking_pool_data[OUTPUT_POOL_WORDS];
 static struct entropy_store input_pool = {
 	.poolinfo = &poolinfo_table[0],
 	.name = "input",
-	.limit = 1,
 	.lock = __SPIN_LOCK_UNLOCKED(input_pool.lock),
 	.pool = input_pool_data
 };
@@ -457,7 +452,6 @@ static struct entropy_store input_pool = {
 static struct entropy_store blocking_pool = {
 	.poolinfo = &poolinfo_table[1],
 	.name = "blocking",
-	.limit = 1,
 	.pull = &input_pool,
 	.lock = __SPIN_LOCK_UNLOCKED(blocking_pool.lock),
 	.pool = blocking_pool_data,
@@ -963,15 +957,6 @@ static void xfer_secondary_pool(struct entropy_store *r, size_t nbytes)
 	    r->entropy_count > r->poolinfo->poolfracbits)
 		return;
 
-	if (r->limit == 0 && random_min_urandom_seed) {
-		unsigned long now = jiffies;
-
-		if (time_before(now,
-				r->last_pulled + random_min_urandom_seed * HZ))
-			return;
-		r->last_pulled = now;
-	}
-
 	_xfer_secondary_pool(r, nbytes);
 }
 
@@ -979,8 +964,6 @@ static void _xfer_secondary_pool(struct entropy_store *r, size_t nbytes)
 {
 	__u32	tmp[OUTPUT_POOL_WORDS];
 
-	/* For /dev/random's pool, always leave two wakeups' worth */
-	int rsvd_bytes = r->limit ? 0 : random_read_wakeup_bits / 4;
 	int bytes = nbytes;
 
 	/* pull at least as much as a wakeup */
@@ -991,7 +974,7 @@ static void _xfer_secondary_pool(struct entropy_store *r, size_t nbytes)
 	trace_xfer_secondary_pool(r->name, bytes * 8, nbytes * 8,
 				  ENTROPY_BITS(r), ENTROPY_BITS(r->pull));
 	bytes = extract_entropy(r->pull, tmp, bytes,
-				random_read_wakeup_bits / 8, rsvd_bytes);
+				random_read_wakeup_bits / 8, 0);
 	mix_pool_bytes(r, tmp, bytes);
 	credit_entropy_bits(r, bytes*8);
 }
@@ -1019,7 +1002,7 @@ static void push_to_pool(struct work_struct *work)
 static size_t account(struct entropy_store *r, size_t nbytes, int min,
 		      int reserved)
 {
-	int entropy_count, orig;
+	int entropy_count, orig, have_bytes;
 	size_t ibytes, nfrac;
 
 	BUG_ON(r->entropy_count > r->poolinfo->poolfracbits);
@@ -1028,14 +1011,12 @@ static size_t account(struct entropy_store *r, size_t nbytes, int min,
 retry:
 	entropy_count = orig = ACCESS_ONCE(r->entropy_count);
 	ibytes = nbytes;
-	/* If limited, never pull more than available */
-	if (r->limit) {
-		int have_bytes = entropy_count >> (ENTROPY_SHIFT + 3);
+	/* never pull more than available */
+	have_bytes = entropy_count >> (ENTROPY_SHIFT + 3);
 
-		if ((have_bytes -= reserved) < 0)
-			have_bytes = 0;
-		ibytes = min_t(size_t, ibytes, have_bytes);
-	}
+	if ((have_bytes -= reserved) < 0)
+		have_bytes = 0;
+	ibytes = min_t(size_t, ibytes, have_bytes);
 	if (ibytes < min)
 		ibytes = 0;
 
@@ -1726,63 +1707,65 @@ struct ctl_table random_table[] = {
 };
 #endif 	/* CONFIG_SYSCTL */
 
-static u32 random_int_secret[MD5_MESSAGE_BYTES / 4] ____cacheline_aligned;
-
-int random_int_secret_init(void)
-{
-	get_random_bytes(random_int_secret, sizeof(random_int_secret));
-	return 0;
-}
-
-static DEFINE_PER_CPU(__u32 [MD5_DIGEST_WORDS], get_random_int_hash)
-		__aligned(sizeof(unsigned long));
+struct batched_entropy {
+	union {
+		unsigned long entropy_long[CHACHA20_BLOCK_SIZE / sizeof(unsigned long)];
+		unsigned int entropy_int[CHACHA20_BLOCK_SIZE / sizeof(unsigned int)];
+	};
+	unsigned int position;
+};
 
 /*
- * Get a random word for internal kernel use only. Similar to urandom but
- * with the goal of minimal entropy pool depletion. As a result, the random
- * value is not cryptographically secure but for several uses the cost of
- * depleting entropy is too high
+ * Get a random word for internal kernel use only. The quality of the random
+ * number is either as good as RDRAND or as good as /dev/urandom, with the
+ * goal of being quite fast and not depleting entropy.
  */
-unsigned int get_random_int(void)
-{
-	__u32 *hash;
-	unsigned int ret;
-
-	if (arch_get_random_int(&ret))
-		return ret;
-
-	hash = get_cpu_var(get_random_int_hash);
-
-	hash[0] += current->pid + jiffies + random_get_entropy();
-	md5_transform(hash, random_int_secret);
-	ret = hash[0];
-	put_cpu_var(get_random_int_hash);
-
-	return ret;
-}
-EXPORT_SYMBOL(get_random_int);
-
-/*
- * Same as get_random_int(), but returns unsigned long.
- */
+static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_long);
 unsigned long get_random_long(void)
 {
-	__u32 *hash;
 	unsigned long ret;
+	struct batched_entropy *batch;
 
 	if (arch_get_random_long(&ret))
 		return ret;
 
-	hash = get_cpu_var(get_random_int_hash);
-
-	hash[0] += current->pid + jiffies + random_get_entropy();
-	md5_transform(hash, random_int_secret);
-	ret = *(unsigned long *)hash;
-	put_cpu_var(get_random_int_hash);
-
+	batch = &get_cpu_var(batched_entropy_long);
+	if (batch->position % ARRAY_SIZE(batch->entropy_long) == 0) {
+		extract_crng((u8 *)batch->entropy_long);
+		batch->position = 0;
+	}
+	ret = batch->entropy_long[batch->position++];
+	put_cpu_var(batched_entropy_long);
 	return ret;
 }
 EXPORT_SYMBOL(get_random_long);
+
+#if BITS_PER_LONG == 32
+unsigned int get_random_int(void)
+{
+	return get_random_long();
+}
+#else
+static DEFINE_PER_CPU(struct batched_entropy, batched_entropy_int);
+unsigned int get_random_int(void)
+{
+	unsigned int ret;
+	struct batched_entropy *batch;
+
+	if (arch_get_random_int(&ret))
+		return ret;
+
+	batch = &get_cpu_var(batched_entropy_int);
+	if (batch->position % ARRAY_SIZE(batch->entropy_int) == 0) {
+		extract_crng((u8 *)batch->entropy_int);
+		batch->position = 0;
+	}
+	ret = batch->entropy_int[batch->position++];
+	put_cpu_var(batched_entropy_int);
+	return ret;
+}
+#endif
+EXPORT_SYMBOL(get_random_int);
 
 /*
  * randomize_range() returns a start address such that
