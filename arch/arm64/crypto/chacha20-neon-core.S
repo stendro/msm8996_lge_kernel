@@ -36,10 +36,8 @@ ENTRY(chacha20_block_xor_neon)
 	//
 
 	// x0..3 = s0..3
-	adr		x3, ROT8
 	ld1		{v0.4s-v3.4s}, [x0]
 	ld1		{v8.4s-v11.4s}, [x0]
-	ld1		{v12.4s}, [x3]
 
 	mov		x3, #10
 
@@ -57,8 +55,9 @@ ENTRY(chacha20_block_xor_neon)
 
 	// x0 += x1, x3 = rotl32(x3 ^ x0, 8)
 	add		v0.4s, v0.4s, v1.4s
-	eor		v3.16b, v3.16b, v0.16b
-	tbl		v3.16b, {v3.16b}, v12.16b
+	eor		v4.16b, v3.16b, v0.16b
+	shl		v3.4s, v4.4s, #8
+	sri		v3.4s, v4.4s, #24
 
 	// x2 += x3, x1 = rotl32(x1 ^ x2, 7)
 	add		v2.4s, v2.4s, v3.4s
@@ -86,8 +85,9 @@ ENTRY(chacha20_block_xor_neon)
 
 	// x0 += x1, x3 = rotl32(x3 ^ x0, 8)
 	add		v0.4s, v0.4s, v1.4s
-	eor		v3.16b, v3.16b, v0.16b
-	tbl		v3.16b, {v3.16b}, v12.16b
+	eor		v4.16b, v3.16b, v0.16b
+	shl		v3.4s, v4.4s, #8
+	sri		v3.4s, v4.4s, #24
 
 	// x2 += x3, x1 = rotl32(x1 ^ x2, 7)
 	add		v2.4s, v2.4s, v3.4s
@@ -142,8 +142,8 @@ ENTRY(chacha20_4block_xor_neon)
 	// matrix by interleaving 32- and then 64-bit words, which allows us to
 	// do XOR in NEON registers.
 	//
-	adr		x3, CTRINC		// ... and ROT8
-	ld1		{v30.4s-v31.4s}, [x3]
+	adr		x3, CTRINC
+	ld1		{v16.4s}, [x3]
 
 	// x0..15[0-3] = s0..3[0..3]
 	mov		x4, x0
@@ -153,7 +153,7 @@ ENTRY(chacha20_4block_xor_neon)
 	ld4r		{v12.4s-v15.4s}, [x4]
 
 	// x12 += counter values 0-3
-	add		v12.4s, v12.4s, v30.4s
+	add		v12.4s, v12.4s, v16.4s
 
 	mov		x3, #10
 
@@ -186,20 +186,20 @@ ENTRY(chacha20_4block_xor_neon)
 	add		v10.4s, v10.4s, v14.4s
 	add		v11.4s, v11.4s, v15.4s
 
-	eor		v16.16b, v4.16b, v8.16b
-	eor		v17.16b, v5.16b, v9.16b
-	eor		v18.16b, v6.16b, v10.16b
-	eor		v19.16b, v7.16b, v11.16b
+	eor		v17.16b, v4.16b, v8.16b
+	eor		v18.16b, v5.16b, v9.16b
+	eor		v19.16b, v6.16b, v10.16b
+	eor		v20.16b, v7.16b, v11.16b
 
-	shl		v4.4s, v16.4s, #12
-	shl		v5.4s, v17.4s, #12
-	shl		v6.4s, v18.4s, #12
-	shl		v7.4s, v19.4s, #12
+	shl		v4.4s, v17.4s, #12
+	shl		v5.4s, v18.4s, #12
+	shl		v6.4s, v19.4s, #12
+	shl		v7.4s, v20.4s, #12
 
-	sri		v4.4s, v16.4s, #20
-	sri		v5.4s, v17.4s, #20
-	sri		v6.4s, v18.4s, #20
-	sri		v7.4s, v19.4s, #20
+	sri		v4.4s, v17.4s, #20
+	sri		v5.4s, v18.4s, #20
+	sri		v6.4s, v19.4s, #20
+	sri		v7.4s, v20.4s, #20
 
 	// x0 += x4, x12 = rotl32(x12 ^ x0, 8)
 	// x1 += x5, x13 = rotl32(x13 ^ x1, 8)
@@ -210,15 +210,20 @@ ENTRY(chacha20_4block_xor_neon)
 	add		v2.4s, v2.4s, v6.4s
 	add		v3.4s, v3.4s, v7.4s
 
-	eor		v12.16b, v12.16b, v0.16b
-	eor		v13.16b, v13.16b, v1.16b
-	eor		v14.16b, v14.16b, v2.16b
-	eor		v15.16b, v15.16b, v3.16b
+	eor		v17.16b, v12.16b, v0.16b
+	eor		v18.16b, v13.16b, v1.16b
+	eor		v19.16b, v14.16b, v2.16b
+	eor		v20.16b, v15.16b, v3.16b
 
-	tbl		v12.16b, {v12.16b}, v31.16b
-	tbl		v13.16b, {v13.16b}, v31.16b
-	tbl		v14.16b, {v14.16b}, v31.16b
-	tbl		v15.16b, {v15.16b}, v31.16b
+	shl		v12.4s, v17.4s, #8
+	shl		v13.4s, v18.4s, #8
+	shl		v14.4s, v19.4s, #8
+	shl		v15.4s, v20.4s, #8
+
+	sri		v12.4s, v17.4s, #24
+	sri		v13.4s, v18.4s, #24
+	sri		v14.4s, v19.4s, #24
+	sri		v15.4s, v20.4s, #24
 
 	// x8 += x12, x4 = rotl32(x4 ^ x8, 7)
 	// x9 += x13, x5 = rotl32(x5 ^ x9, 7)
@@ -229,20 +234,20 @@ ENTRY(chacha20_4block_xor_neon)
 	add		v10.4s, v10.4s, v14.4s
 	add		v11.4s, v11.4s, v15.4s
 
-	eor		v16.16b, v4.16b, v8.16b
-	eor		v17.16b, v5.16b, v9.16b
-	eor		v18.16b, v6.16b, v10.16b
-	eor		v19.16b, v7.16b, v11.16b
+	eor		v17.16b, v4.16b, v8.16b
+	eor		v18.16b, v5.16b, v9.16b
+	eor		v19.16b, v6.16b, v10.16b
+	eor		v20.16b, v7.16b, v11.16b
 
-	shl		v4.4s, v16.4s, #7
-	shl		v5.4s, v17.4s, #7
-	shl		v6.4s, v18.4s, #7
-	shl		v7.4s, v19.4s, #7
+	shl		v4.4s, v17.4s, #7
+	shl		v5.4s, v18.4s, #7
+	shl		v6.4s, v19.4s, #7
+	shl		v7.4s, v20.4s, #7
 
-	sri		v4.4s, v16.4s, #25
-	sri		v5.4s, v17.4s, #25
-	sri		v6.4s, v18.4s, #25
-	sri		v7.4s, v19.4s, #25
+	sri		v4.4s, v17.4s, #25
+	sri		v5.4s, v18.4s, #25
+	sri		v6.4s, v19.4s, #25
+	sri		v7.4s, v20.4s, #25
 
 	// x0 += x5, x15 = rotl32(x15 ^ x0, 16)
 	// x1 += x6, x12 = rotl32(x12 ^ x1, 16)
@@ -272,20 +277,20 @@ ENTRY(chacha20_4block_xor_neon)
 	add		v8.4s, v8.4s, v13.4s
 	add		v9.4s, v9.4s, v14.4s
 
-	eor		v16.16b, v5.16b, v10.16b
-	eor		v17.16b, v6.16b, v11.16b
-	eor		v18.16b, v7.16b, v8.16b
-	eor		v19.16b, v4.16b, v9.16b
+	eor		v17.16b, v5.16b, v10.16b
+	eor		v18.16b, v6.16b, v11.16b
+	eor		v19.16b, v7.16b, v8.16b
+	eor		v20.16b, v4.16b, v9.16b
 
-	shl		v5.4s, v16.4s, #12
-	shl		v6.4s, v17.4s, #12
-	shl		v7.4s, v18.4s, #12
-	shl		v4.4s, v19.4s, #12
+	shl		v5.4s, v17.4s, #12
+	shl		v6.4s, v18.4s, #12
+	shl		v7.4s, v19.4s, #12
+	shl		v4.4s, v20.4s, #12
 
-	sri		v5.4s, v16.4s, #20
-	sri		v6.4s, v17.4s, #20
-	sri		v7.4s, v18.4s, #20
-	sri		v4.4s, v19.4s, #20
+	sri		v5.4s, v17.4s, #20
+	sri		v6.4s, v18.4s, #20
+	sri		v7.4s, v19.4s, #20
+	sri		v4.4s, v20.4s, #20
 
 	// x0 += x5, x15 = rotl32(x15 ^ x0, 8)
 	// x1 += x6, x12 = rotl32(x12 ^ x1, 8)
@@ -296,15 +301,20 @@ ENTRY(chacha20_4block_xor_neon)
 	add		v2.4s, v2.4s, v7.4s
 	add		v3.4s, v3.4s, v4.4s
 
-	eor		v15.16b, v15.16b, v0.16b
-	eor		v12.16b, v12.16b, v1.16b
-	eor		v13.16b, v13.16b, v2.16b
-	eor		v14.16b, v14.16b, v3.16b
+	eor		v17.16b, v15.16b, v0.16b
+	eor		v18.16b, v12.16b, v1.16b
+	eor		v19.16b, v13.16b, v2.16b
+	eor		v20.16b, v14.16b, v3.16b
 
-	tbl		v15.16b, {v15.16b}, v31.16b
-	tbl		v12.16b, {v12.16b}, v31.16b
-	tbl		v13.16b, {v13.16b}, v31.16b
-	tbl		v14.16b, {v14.16b}, v31.16b
+	shl		v15.4s, v17.4s, #8
+	shl		v12.4s, v18.4s, #8
+	shl		v13.4s, v19.4s, #8
+	shl		v14.4s, v20.4s, #8
+
+	sri		v15.4s, v17.4s, #24
+	sri		v12.4s, v18.4s, #24
+	sri		v13.4s, v19.4s, #24
+	sri		v14.4s, v20.4s, #24
 
 	// x10 += x15, x5 = rotl32(x5 ^ x10, 7)
 	// x11 += x12, x6 = rotl32(x6 ^ x11, 7)
@@ -315,131 +325,152 @@ ENTRY(chacha20_4block_xor_neon)
 	add		v8.4s, v8.4s, v13.4s
 	add		v9.4s, v9.4s, v14.4s
 
-	eor		v16.16b, v5.16b, v10.16b
-	eor		v17.16b, v6.16b, v11.16b
-	eor		v18.16b, v7.16b, v8.16b
-	eor		v19.16b, v4.16b, v9.16b
+	eor		v17.16b, v5.16b, v10.16b
+	eor		v18.16b, v6.16b, v11.16b
+	eor		v19.16b, v7.16b, v8.16b
+	eor		v20.16b, v4.16b, v9.16b
 
-	shl		v5.4s, v16.4s, #7
-	shl		v6.4s, v17.4s, #7
-	shl		v7.4s, v18.4s, #7
-	shl		v4.4s, v19.4s, #7
+	shl		v5.4s, v17.4s, #7
+	shl		v6.4s, v18.4s, #7
+	shl		v7.4s, v19.4s, #7
+	shl		v4.4s, v20.4s, #7
 
-	sri		v5.4s, v16.4s, #25
-	sri		v6.4s, v17.4s, #25
-	sri		v7.4s, v18.4s, #25
-	sri		v4.4s, v19.4s, #25
+	sri		v5.4s, v17.4s, #25
+	sri		v6.4s, v18.4s, #25
+	sri		v7.4s, v19.4s, #25
+	sri		v4.4s, v20.4s, #25
 
 	subs		x3, x3, #1
 	b.ne		.Ldoubleround4
-
-	ld4r		{v16.4s-v19.4s}, [x0], #16
-	ld4r		{v20.4s-v23.4s}, [x0], #16
-
-	// x12 += counter values 0-3
-	add		v12.4s, v12.4s, v30.4s
 
 	// x0[0-3] += s0[0]
 	// x1[0-3] += s0[1]
 	// x2[0-3] += s0[2]
 	// x3[0-3] += s0[3]
-	add		v0.4s, v0.4s, v16.4s
-	add		v1.4s, v1.4s, v17.4s
-	add		v2.4s, v2.4s, v18.4s
-	add		v3.4s, v3.4s, v19.4s
-
-	ld4r		{v24.4s-v27.4s}, [x0], #16
-	ld4r		{v28.4s-v31.4s}, [x0]
+	ld4r		{v17.4s-v20.4s}, [x0], #16
+	add		v0.4s, v0.4s, v17.4s
+	add		v1.4s, v1.4s, v18.4s
+	add		v2.4s, v2.4s, v19.4s
+	add		v3.4s, v3.4s, v20.4s
 
 	// x4[0-3] += s1[0]
 	// x5[0-3] += s1[1]
 	// x6[0-3] += s1[2]
 	// x7[0-3] += s1[3]
-	add		v4.4s, v4.4s, v20.4s
-	add		v5.4s, v5.4s, v21.4s
-	add		v6.4s, v6.4s, v22.4s
-	add		v7.4s, v7.4s, v23.4s
+	ld4r		{v21.4s-v24.4s}, [x0], #16
+	add		v4.4s, v4.4s, v21.4s
+	add		v5.4s, v5.4s, v22.4s
+	add		v6.4s, v6.4s, v23.4s
+	add		v7.4s, v7.4s, v24.4s
 
 	// x8[0-3] += s2[0]
 	// x9[0-3] += s2[1]
 	// x10[0-3] += s2[2]
 	// x11[0-3] += s2[3]
-	add		v8.4s, v8.4s, v24.4s
-	add		v9.4s, v9.4s, v25.4s
-	add		v10.4s, v10.4s, v26.4s
-	add		v11.4s, v11.4s, v27.4s
+	ld4r		{v17.4s-v20.4s}, [x0], #16
+	add		v8.4s, v8.4s, v17.4s
+	add		v9.4s, v9.4s, v18.4s
+	add		v10.4s, v10.4s, v19.4s
+	add		v11.4s, v11.4s, v20.4s
 
 	// x12[0-3] += s3[0]
 	// x13[0-3] += s3[1]
 	// x14[0-3] += s3[2]
 	// x15[0-3] += s3[3]
-	add		v12.4s, v12.4s, v28.4s
-	add		v13.4s, v13.4s, v29.4s
-	add		v14.4s, v14.4s, v30.4s
-	add		v15.4s, v15.4s, v31.4s
+	ld4r		{v21.4s-v24.4s}, [x0]
+	add		v12.4s, v12.4s, v21.4s
+	add		v13.4s, v13.4s, v22.4s
+	add		v14.4s, v14.4s, v23.4s
+	add		v15.4s, v15.4s, v24.4s
 
-	// interleave 32-bit words in state n, n+1
-	zip1		v16.4s, v0.4s, v1.4s
-	zip2		v17.4s, v0.4s, v1.4s
-	zip1		v18.4s, v2.4s, v3.4s
-	zip2		v19.4s, v2.4s, v3.4s
-	zip1		v20.4s, v4.4s, v5.4s
-	zip2		v21.4s, v4.4s, v5.4s
-	zip1		v22.4s, v6.4s, v7.4s
-	zip2		v23.4s, v6.4s, v7.4s
-	zip1		v24.4s, v8.4s, v9.4s
-	zip2		v25.4s, v8.4s, v9.4s
-	zip1		v26.4s, v10.4s, v11.4s
-	zip2		v27.4s, v10.4s, v11.4s
-	zip1		v28.4s, v12.4s, v13.4s
-	zip2		v29.4s, v12.4s, v13.4s
-	zip1		v30.4s, v14.4s, v15.4s
-	zip2		v31.4s, v14.4s, v15.4s
+	// x12 += counter values 0-3
+	add		v12.4s, v12.4s, v16.4s
 
-	// interleave 64-bit words in state n, n+2
-	zip1		v0.2d, v16.2d, v18.2d
-	zip2		v4.2d, v16.2d, v18.2d
-	zip1		v8.2d, v17.2d, v19.2d
-	zip2		v12.2d, v17.2d, v19.2d
 	ld1		{v16.16b-v19.16b}, [x2], #64
-
-	zip1		v1.2d, v20.2d, v22.2d
-	zip2		v5.2d, v20.2d, v22.2d
-	zip1		v9.2d, v21.2d, v23.2d
-	zip2		v13.2d, v21.2d, v23.2d
 	ld1		{v20.16b-v23.16b}, [x2], #64
 
-	zip1		v2.2d, v24.2d, v26.2d
-	zip2		v6.2d, v24.2d, v26.2d
-	zip1		v10.2d, v25.2d, v27.2d
-	zip2		v14.2d, v25.2d, v27.2d
-	ld1		{v24.16b-v27.16b}, [x2], #64
+	// interleave 32-bit words in state n, n+1
+	zip1		v24.4s, v0.4s, v1.4s
+	zip1		v25.4s, v2.4s, v3.4s
+	zip1		v26.4s, v4.4s, v5.4s
+	zip1		v27.4s, v6.4s, v7.4s
+	zip1		v28.4s, v8.4s, v9.4s
+	zip1		v29.4s, v10.4s, v11.4s
+	zip1		v30.4s, v12.4s, v13.4s
+	zip1		v31.4s, v14.4s, v15.4s
 
-	zip1		v3.2d, v28.2d, v30.2d
-	zip2		v7.2d, v28.2d, v30.2d
-	zip1		v11.2d, v29.2d, v31.2d
-	zip2		v15.2d, v29.2d, v31.2d
+	zip2		v1.4s, v0.4s, v1.4s
+	zip2		v3.4s, v2.4s, v3.4s
+	zip2		v5.4s, v4.4s, v5.4s
+	zip2		v7.4s, v6.4s, v7.4s
+	zip2		v9.4s, v8.4s, v9.4s
+	zip2		v11.4s, v10.4s, v11.4s
+	zip2		v13.4s, v12.4s, v13.4s
+	zip2		v15.4s, v14.4s, v15.4s
+
+	mov		v0.16b, v24.16b
+	mov		v2.16b, v25.16b
+	mov		v4.16b, v26.16b
+	mov		v6.16b, v27.16b
+	mov		v8.16b, v28.16b
+	mov		v10.16b, v29.16b
+	mov		v12.16b, v30.16b
+	mov		v14.16b, v31.16b
+
+	// interleave 64-bit words in state n, n+2
+	zip1		v24.2d, v0.2d, v2.2d
+	zip1		v25.2d, v1.2d, v3.2d
+	zip1		v26.2d, v4.2d, v6.2d
+	zip1		v27.2d, v5.2d, v7.2d
+	zip1		v28.2d, v8.2d, v10.2d
+	zip1		v29.2d, v9.2d, v11.2d
+	zip1		v30.2d, v12.2d, v14.2d
+	zip1		v31.2d, v13.2d, v15.2d
+
+	zip2		v2.2d, v0.2d, v2.2d
+	zip2		v3.2d, v1.2d, v3.2d
+	zip2		v6.2d, v4.2d, v6.2d
+	zip2		v7.2d, v5.2d, v7.2d
+	zip2		v10.2d, v8.2d, v10.2d
+	zip2		v11.2d, v9.2d, v11.2d
+	zip2		v14.2d, v12.2d, v14.2d
+	zip2		v15.2d, v13.2d, v15.2d
+
+	mov		v0.16b, v24.16b
+	mov		v1.16b, v25.16b
+	mov		v4.16b, v26.16b
+	mov		v5.16b, v27.16b
+
+	mov		v8.16b, v28.16b
+	mov		v9.16b, v29.16b
+	mov		v12.16b, v30.16b
+	mov		v13.16b, v31.16b
+
+	ld1		{v24.16b-v27.16b}, [x2], #64
 	ld1		{v28.16b-v31.16b}, [x2]
 
 	// xor with corresponding input, write to output
 	eor		v16.16b, v16.16b, v0.16b
-	eor		v17.16b, v17.16b, v1.16b
-	eor		v18.16b, v18.16b, v2.16b
-	eor		v19.16b, v19.16b, v3.16b
-	eor		v20.16b, v20.16b, v4.16b
-	eor		v21.16b, v21.16b, v5.16b
+	eor		v17.16b, v17.16b, v4.16b
+	eor		v18.16b, v18.16b, v8.16b
+	eor		v19.16b, v19.16b, v12.16b
 	st1		{v16.16b-v19.16b}, [x1], #64
-	eor		v22.16b, v22.16b, v6.16b
-	eor		v23.16b, v23.16b, v7.16b
-	eor		v24.16b, v24.16b, v8.16b
-	eor		v25.16b, v25.16b, v9.16b
+
+	eor		v20.16b, v20.16b, v2.16b
+	eor		v21.16b, v21.16b, v6.16b
+	eor		v22.16b, v22.16b, v10.16b
+	eor		v23.16b, v23.16b, v14.16b
 	st1		{v20.16b-v23.16b}, [x1], #64
-	eor		v26.16b, v26.16b, v10.16b
-	eor		v27.16b, v27.16b, v11.16b
-	eor		v28.16b, v28.16b, v12.16b
+
+	eor		v24.16b, v24.16b, v1.16b
+	eor		v25.16b, v25.16b, v5.16b
+	eor		v26.16b, v26.16b, v9.16b
+	eor		v27.16b, v27.16b, v13.16b
 	st1		{v24.16b-v27.16b}, [x1], #64
-	eor		v29.16b, v29.16b, v13.16b
-	eor		v30.16b, v30.16b, v14.16b
+
+	eor		v28.16b, v28.16b, v3.16b
+	eor		v29.16b, v29.16b, v7.16b
+	eor		v30.16b, v30.16b, v11.16b
 	eor		v31.16b, v31.16b, v15.16b
 	st1		{v28.16b-v31.16b}, [x1]
 
@@ -447,4 +478,3 @@ ENTRY(chacha20_4block_xor_neon)
 ENDPROC(chacha20_4block_xor_neon)
 
 CTRINC:	.word		0, 1, 2, 3
-ROT8:	.word		0x02010003, 0x06050407, 0x0a09080b, 0x0e0d0c0f
