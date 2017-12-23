@@ -103,5 +103,8 @@ tools/gator/daemon/escape
 tools/gator/daemon/events.xml
 tools/gator/daemon/events_xml.h
 
-# build output folder
+# Build output folder
 /build/
+
+# Test files
+arch/arm64/configs/lge_defconfig-test
