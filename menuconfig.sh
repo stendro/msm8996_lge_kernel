@@ -5,10 +5,10 @@
 RDIR=$(pwd)
 
 # directory containing cross-compile arm64 toolchain
-TOOLCHAIN=$HOME/build/toolchain/gcc-linaro-6.1.1-2016.08-x86_64_aarch64-linux-gnu
+TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
 
 export ARCH=arm64
-export CROSS_COMPILE=$TOOLCHAIN/bin/aarch64-linux-gnu-
+export CROSS_COMPILE=$TOOLCHAIN
 
 ABORT() {
 	[ "$1" ] && echo "Error: $*"
@@ -47,8 +47,8 @@ echo -n "Are you satisfied with these changes? Y/N: "
 read option
 case $option in
 y|Y)
-	cp build/.config "$DEFCONFIG_FILE"
-	echo "Copied new config to $DEFCONFIG_FILE"
+	cp build/.config "$HOME/build/msm8996_lge_kernel/defconfig_regen"
+	echo "Copied new config to $HOME/build/msm8996_lge_kernel/defconfig_regen"
 	;;
 *)
 	echo "That's unfortunate"

@@ -105,6 +105,9 @@ tools/gator/daemon/events_xml.h
 
 # Build output folder
 /build/
+/out/
 
-# Test files
-arch/arm64/configs/lge_defconfig-test
+# Misc files
+arch/arm64/configs/lge_defconfig-bak
+# arch/arm64/configs/lge_defconfig-twrp
+arch/arm64/configs/device_lge_twrp
