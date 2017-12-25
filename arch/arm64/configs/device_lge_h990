@@ -48,10 +48,8 @@ CONFIG_TCP_CONG_LIA=y
 CONFIG_TCP_CONG_OLIA=y
 CONFIG_TCP_CONG_WVEGAS=y
 # New options
-CONFIG_PM_SUSPEND_BG_SYNC=y
 CONFIG_IP6_NF_NAT=y
 CONFIG_UFS_LGE_CARD_RESET=y
-CONFIG_LGE_PM_FG_ACFA=y
 # CONFIG_LGE_USB_ANX7688_ADC is not set
 #########################################################################
 # Fix kernel command-line (may or may not be important)			#
