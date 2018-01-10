@@ -1379,7 +1379,7 @@ int tcp_fragment(struct sock *sk, struct sk_buff *skb, u32 len,
 #ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 void __pskb_trim_head(struct sk_buff *skb, int len)
 #else
-static int __pskb_trim_head(struct sk_buff *skb, int len)
+static void __pskb_trim_head(struct sk_buff *skb, int len)
 #endif
 {
 	struct skb_shared_info *shinfo;
@@ -1390,7 +1390,7 @@ static int __pskb_trim_head(struct sk_buff *skb, int len)
 		__skb_pull(skb, eat);
 		len -= eat;
 		if (!len)
-			return 0;
+			return;
 	}
 	eat = len;
 	k = 0;
@@ -1416,7 +1416,6 @@ static int __pskb_trim_head(struct sk_buff *skb, int len)
 	skb_reset_tail_pointer(skb);
 	skb->data_len -= len;
 	skb->len = skb->data_len;
-	return len;
 }
 
 /* Remove acked data from a packet in the transmit queue. */
@@ -1426,22 +1425,19 @@ int tcp_trim_head(struct sock *sk, struct sk_buff *skb, u32 len)
 	if (mptcp(tcp_sk(sk)) && !is_meta_sk(sk) && mptcp_is_data_seq(skb))
 		return mptcp_trim_head(sk, skb, len);
 #endif
-	u32 delta_truesize;
 
 	if (skb_unclone(skb, GFP_ATOMIC))
 		return -ENOMEM;
 
-	delta_truesize = __pskb_trim_head(skb, len);
+	__pskb_trim_head(skb, len);
 
 	TCP_SKB_CB(skb)->seq += len;
 	skb->ip_summed = CHECKSUM_PARTIAL;
 
-	if (delta_truesize) {
-		skb->truesize	   -= delta_truesize;
-		sk->sk_wmem_queued -= delta_truesize;
-		sk_mem_uncharge(sk, delta_truesize);
-		sock_set_flag(sk, SOCK_QUEUE_SHRUNK);
-	}
+	skb->truesize	     -= len;
+	sk->sk_wmem_queued   -= len;
+	sk_mem_uncharge(sk, len);
+	sock_set_flag(sk, SOCK_QUEUE_SHRUNK);
 
 	/* Any change of skb->len requires recalculation of tso factor. */
 	if (tcp_skb_pcount(skb) > 1)
