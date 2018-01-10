@@ -41,6 +41,8 @@ ABORT() {
 	exit 1
 }
 
+export KBUILD_BUILD_USER=stendro
+export KBUILD_BUILD_HOST=xda
 export ARCH=arm64
 export USE_CCACHE=1
 export CROSS_COMPILE=$TOOLCHAIN
