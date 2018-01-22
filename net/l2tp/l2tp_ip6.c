@@ -291,8 +291,8 @@ static int l2tp_ip6_bind(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 	lock_sock(sk);
 
 	err = -EINVAL;
- if (!sock_flag(sk, SOCK_ZAPPED))
-  goto out_unlock;
+	if (!sock_flag(sk, SOCK_ZAPPED))
+		goto out_unlock;
 
 	if (sk->sk_state != TCP_CLOSE)
 		goto out_unlock;
