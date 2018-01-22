@@ -40,7 +40,7 @@
 		qcom,mdss-dsi-bllp-eof-power-mode;
 		qcom,mdss-dsi-bllp-power-mode;
 		qcom,partial-update-enabled;
-		qcom,panel-roi-alignment = <440 160 1440 160 1440 160>;
+		qcom,panel-roi-alignment = <1440 16 1440 16 1440 16>;
 		qcom,mdss-dsi-lane-0-state;
 		qcom,mdss-dsi-lane-1-state;
 		qcom,mdss-dsi-lane-2-state;
@@ -78,7 +78,7 @@
 			/* Manufacturer Command Protection */
 			15 01 00 00 00 00 02 B0 AC
 			/* Init. Code Version */
-			39 01 00 00 00 00 04 D7 1A 14 01
+			39 01 00 00 00 00 03 D7 1A 11
 			/*Left Side GIP pad setting*/
 			39 01 00 00 00 00 0E E5 1A 0D 0C 0E 1A 1A 01 05 07 09 0B 1A 11
 			/*Right Side GIP pad setting*/
@@ -92,7 +92,7 @@
 			/* Partial Area Set */
 			39 01 00 00 00 00 05 30 00 00 00 A3
 			/* TE line */
-			39 01 00 00 00 00 03 44 0A 8F
+			39 01 00 00 00 00 03 44 00 00
 			/* Tearing Effect Line on */
 			15 01 00 00 00 00 02 35 00
 			/* Write Display Brightness */
@@ -130,7 +130,7 @@
 			/* Power Sequence Option Configuration */
 			39 01 00 00 00 00 06 C9 05 5D 03 04 01
 			/* APO Control */
-			39 01 00 00 00 00 03 CA 9F 10
+			39 01 00 00 00 00 03 CA 9F 00
 			/* LFD Control */
 			39 01 00 00 00 00 06 CB F3 90 3D 3D CC
 			/* Tail TFT Setting */
@@ -510,7 +510,7 @@
 		dsi_sw49407_dsc_cmd_config1: config1 {
 		        qcom,lm-split = <720 720>;
 		        qcom,mdss-dsc-encoders = <1>; /* 3D Mux */
-		        qcom,mdss-dsc-slice-height = <160>;
+		        qcom,mdss-dsc-slice-height = <16>;
 		        qcom,mdss-dsc-slice-width = <1440>;
 		        qcom,mdss-dsc-slice-per-pkt = <1>;
 
@@ -545,4 +545,7 @@
 				};
 			};
 	};
+};
+&mdss_fb0 {
+	/delete-node/ qcom,cont-splash-memory;
 };
