@@ -14,8 +14,8 @@
 # h870   = International (Global)
 #          LGH870   (LG G6)
 #
-# h872   = T-Mobile (US)
-#          LGH872   (LG G6)
+# us997  = US Cellular & Unlocked (US)
+#          US997    (LG G6)
 #
 ###################### CONFIG ######################
 
