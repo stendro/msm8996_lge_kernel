@@ -9843,9 +9843,9 @@ static void lgcc_charger_reginfo(struct work_struct *work) {
 	else
 		delay_time = CHARGING_INFORM_NORMAL_TIME;
 
-		queue_delayed_work(system_power_efficient_wq,
-			&chip->charging_info_work,
-			round_jiffies_relative(msecs_to_jiffies(delay_time)));
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->charging_info_work,
+		round_jiffies_relative(msecs_to_jiffies(delay_time)));
 
 }
 #endif

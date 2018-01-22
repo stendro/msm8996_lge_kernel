@@ -65,7 +65,7 @@ CONFIG_MDFPP_CCAUDIT=y
 # Fix kernel command-line (may or may not be important)			#
 #########################################################################
 CONFIG_CMDLINE_SEARCHREPLACE=y
-CONFIG_CMDLINE_SAR_VERIFY_GREEN=y
+#CONFIG_CMDLINE_SAR_VERIFY_GREEN=y
 CONFIG_CMDLINE_SAR_ENABLE0=y
 CONFIG_CMDLINE_SAR_SEARCH0=" model.name=LG-US996 "
 CONFIG_CMDLINE_SAR_REPLACE0=" model.name=LG-VS995 "
