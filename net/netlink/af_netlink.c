@@ -2700,11 +2700,11 @@ static int netlink_dump(struct sock *sk)
 		cb->done(cb);
 
 	nlk->cb_running = false;
- module = cb->module;
- skb = cb->skb;
+	module = cb->module;
+	skb = cb->skb;
 	mutex_unlock(nlk->cb_mutex);
- module_put(module);
- consume_skb(skb);
+	module_put(module);
+	consume_skb(skb);
 	return 0;
 
 errout_skb:
