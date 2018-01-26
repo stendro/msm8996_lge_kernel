@@ -9422,13 +9422,15 @@ static int fg_probe(struct spmi_device *spmi)
 	 */
 	chip->batt_psy_name = "battery";
 
+#ifdef CONFIG_DEBUG_FS
 	if (chip->mem_base) {
 		rc = fg_dfs_create(chip);
 		if (rc < 0) {
 			pr_err("failed to create debugfs rc = %d\n", rc);
-			goto power_supply_unregister;
+			rc = 0;
 		}
 	}
+#endif
 
 	/* Fake temperature till the actual temperature is read */
 	chip->last_good_temp = 250;
@@ -9453,9 +9455,7 @@ static int fg_probe(struct spmi_device *spmi)
 
 	return rc;
 
- power_supply_unregister:
-	power_supply_unregister(&chip->bms_psy);
- cancel_work:
+cancel_work:
 	cancel_delayed_work_sync(&chip->update_jeita_setting);
 	cancel_delayed_work_sync(&chip->update_sram_data);
 	cancel_delayed_work_sync(&chip->update_temp_work);
@@ -9480,7 +9480,7 @@ static int fg_probe(struct spmi_device *spmi)
 	cancel_work_sync(&chip->slope_limiter_work);
 	cancel_work_sync(&chip->dischg_gain_work);
 	cancel_work_sync(&chip->cc_soc_store_work);
- of_init_fail:
+of_init_fail:
 	mutex_destroy(&chip->rslow_comp.lock);
 	mutex_destroy(&chip->rw_lock);
 	mutex_destroy(&chip->cyc_ctr.lock);
