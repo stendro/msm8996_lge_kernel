@@ -10,5 +10,8 @@ obj-$(CONFIG_LGE_USB_ANX7418) += anx7418_i2c.o
 obj-$(CONFIG_LGE_USB_ANX7418) += anx7418_pd.o
 obj-$(CONFIG_LGE_USB_ANX7418) += anx7418_charger.o
 obj-$(CONFIG_LGE_USB_ANX7418) += anx7418_firmware.o
-obj-$(CONFIG_LGE_USB_ANX7418) += anx7418_debugfs.o
 obj-$(CONFIG_LGE_USB_ANX7418) += anx7418_sysfs.o
+
+ifeq ($(CONFIG_LGE_USB_ANX7418),y)
+obj-$(CONFIG_DEBUG_FS) += anx7418_debugfs.o
+endif

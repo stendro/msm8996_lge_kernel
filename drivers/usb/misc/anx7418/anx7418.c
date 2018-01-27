@@ -21,7 +21,9 @@
 #include "anx7418_drp.c"
 #endif
 #include "anx7418_charger.h"
+#ifdef CONFIG_DEBUG_FS
 #include "anx7418_debugfs.h"
+#endif
 #include "anx7418_sysfs.h"
 
 #define OCM_STARTUP_TIMEOUT 3200
@@ -1497,7 +1499,9 @@ static int anx7418_probe(struct i2c_client *client,
 	if (rc < 0)
 		goto err_sysfs_init;
 
+#ifdef CONFIG_DEBUG_FS
 	anx7418_debugfs_init(anx);
+#endif
 
 #ifdef CONFIG_LGE_ALICE_FRIENDS
 	if (anx->friends == LGE_ALICE_FRIENDS_HM ||

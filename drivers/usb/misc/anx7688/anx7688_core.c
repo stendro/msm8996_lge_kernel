@@ -41,7 +41,9 @@
 #include "anx7688_dp.h"
 #endif
 #include "anx7688_mi1.h"
+#ifdef CONFIG_DEBUG_FS
 #include "anx7688_debugfs.h"
+#endif
 
 #define ANX7688_WAKE_LOCK_TIMEOUT 5000
 #define SET_ROLE_TIMEOUT 600
@@ -2345,11 +2347,11 @@ static int anx7688_probe(struct i2c_client *client,
 			goto err7;
 		}
 	}
-
+#ifdef CONFIG_DEBUG_FS
 	ret = anx7688_debugfs_init(chip);
 	if (ret)
 		dev_dbg(cdev, "debugfs is not available\n");
-
+#endif
 	enable_irq_wake(chip->cdet_irq);
 	enable_irq_wake(chip->alter_irq);
 
@@ -2414,9 +2416,9 @@ static int anx7688_remove(struct i2c_client *client)
 		devm_dual_role_instance_unregister(cdev, chip->dual_role);
 		devm_kfree(cdev, chip->desc);
 	}
-
+#ifdef CONFIG_DEBUG_FS
 	anx7688_debugfs_cleanup();
-
+#endif
 	if (chip->alter_irq > 0)
 		devm_free_irq(cdev, chip->alter_irq, chip);
 
