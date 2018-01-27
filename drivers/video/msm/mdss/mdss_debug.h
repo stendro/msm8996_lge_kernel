@@ -167,6 +167,7 @@ u32 get_dump_range(struct dump_offset *range_node, size_t max_offset);
 void mdss_dump_reg(const char *dump_name, u32 reg_dump_flag, char *addr,
 	int len, u32 **dump_mem, bool from_isr);
 void mdss_mdp_debug_mid(u32 mid);
+int mdss_dump_misr_data(char **buf, u32 size);
 #else
 struct mdss_debug_base;
 struct dump_offset;
@@ -214,9 +215,8 @@ static inline u32 get_dump_range(struct dump_offset *range_node, size_t max_offs
 static inline void mdss_dump_reg(const char *dump_name, u32 reg_dump_flag, char *addr,
 	int len, u32 **dump_mem, bool from_isr) { }
 static inline void mdss_mdp_debug_mid(u32 mid) { }
+static inline int mdss_dump_misr_data(char **buf, u32 size) { return 0; }
 #endif
-
-int mdss_dump_misr_data(char **buf, u32 size);
 
 static inline int mdss_debug_register_io(const char *name,
 		struct dss_io_data *io_data, struct mdss_debug_base **dbg_blk)
