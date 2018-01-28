@@ -1297,10 +1297,10 @@ static int msm_config_create_debugfs(struct video_device *ctrl_t)
 
 	snprintf(dirname, sizeof(dirname), "msm-config");
 	debugfs_base = debugfs_create_dir(dirname, NULL);
-	if (!debugfs_base)
+	if (IS_ERR_OR_NULL(debugfs_base))
 		return -ENOMEM;
-	if (!debugfs_create_file("timeout", S_IRUGO | S_IWUSR, debugfs_base,
-		ctrl_t, &msm_config_debugfs))
+	if (IS_ERR_OR_NULL(debugfs_create_file("timeout", S_IRUGO | S_IWUSR, debugfs_base,
+		ctrl_t, &msm_config_debugfs)))
 		return -ENOMEM;
 
 	return 0;
