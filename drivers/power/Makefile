@@ -1,3 +1,5 @@
+ccflags-y += $(call cc-disable-warning,maybe-uninitialized,)
+
 ccflags-$(CONFIG_POWER_SUPPLY_DEBUG) := -DDEBUG
 
 power_supply-y				:= power_supply_core.o

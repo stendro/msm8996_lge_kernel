@@ -3,6 +3,8 @@
 # default feature list
 ######################
 
+ccflags-y += $(call cc-disable-warning,maybe-uninitialized,)
+
 DHDCFLAGS += -Wall -Wstrict-prototypes -Dlinux -DLINUX -DBCMDRIVER            \
         -DBCMDONGLEHOST -DUNRELEASEDCHIP -DBCMDMA32 -DBCMFILEIMAGE            \
         -DDHDTHREAD -DSHOW_EVENTS -DBCMDBG -DWLP2P                            \
