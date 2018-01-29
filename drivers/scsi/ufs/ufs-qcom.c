@@ -1419,11 +1419,13 @@ static void ufs_qcom_pm_qos_req_end(struct ufs_hba *hba, struct request *req,
 	if (!hba || !req)
 		return;
 
-	if (should_lock)
+	if (should_lock) {
 		spin_lock_irqsave(hba->host->host_lock, flags);
-	__ufs_qcom_pm_qos_req_end(ufshcd_get_variant(hba), req->cpu);
-	if (should_lock)
+		__ufs_qcom_pm_qos_req_end(ufshcd_get_variant(hba), req->cpu);
 		spin_unlock_irqrestore(hba->host->host_lock, flags);
+	} else {
+		__ufs_qcom_pm_qos_req_end(ufshcd_get_variant(hba), req->cpu);
+	}
 }
 
 static void ufs_qcom_pm_qos_vote_work(struct work_struct *work)
@@ -2219,8 +2221,8 @@ static bool ufs_qcom_testbus_cfg_is_ok(struct ufs_qcom_host *host)
 
 int ufs_qcom_testbus_config(struct ufs_qcom_host *host)
 {
-	int reg;
-	int offset;
+	int reg = 0;
+	int offset = 0;
 	u32 mask = TEST_BUS_SUB_SEL_MASK;
 
 	if (!host)

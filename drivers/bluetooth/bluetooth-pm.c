@@ -1008,7 +1008,7 @@ int bt_pinctrl_init(struct device *dev)
 
 static int bluetooth_pm_probe(struct platform_device *pdev)
 {
-    int ret;
+    int ret = 0;
     bool default_state = true;  /* off */
 
     struct bluetooth_pm_device_info *bdev;

@@ -4,6 +4,8 @@
 #
 ## Each configuration option enables a list of files.
 
+ccflags-y += $(call cc-disable-warning,maybe-uninitialized,)
+
 # Touch Core Driver Common Header Code..!!
 ccflags-y += -I$(srctree)/drivers/input/touchscreen/lge/
 

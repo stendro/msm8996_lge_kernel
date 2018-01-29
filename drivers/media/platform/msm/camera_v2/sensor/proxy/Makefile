@@ -1,3 +1,5 @@
+ccflags-y += $(call cc-disable-warning,maybe-uninitialized,)
+
 ccflags-y += -Idrivers/media/platform/msm/camera_v2
 ccflags-y += -Idrivers/media/platform/msm/camera_v2/common
 ccflags-y += -Idrivers/media/platform/msm/camera_v2/sensor/io

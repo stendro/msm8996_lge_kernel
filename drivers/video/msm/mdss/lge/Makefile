@@ -1,3 +1,5 @@
+ccflags-y += $(call cc-disable-warning,maybe-uninitialized,)
+
 obj-$(CONFIG_LGE_DISPLAY_H1_COMMON) += h1/
 obj-$(CONFIG_LGE_DISPLAY_HPLUS_COMMON) += hplus/
 obj-$(CONFIG_LGE_DISPLAY_LUCYE_COMMON) += lucye/

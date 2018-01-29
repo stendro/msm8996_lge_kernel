@@ -489,7 +489,7 @@ static int lge_adc_qct_probe(struct platform_device *pdev)
 	struct lge_adc *lge_adc_chip;
 	struct lge_power *lge_power_adc;
 	union power_supply_propval prop = {0, };
-	int ret;
+	int ret = 0;
 
 	pr_err("lge_battery_probe starts!!!\n");
 	lge_adc_chip = kzalloc(sizeof(struct lge_adc),
