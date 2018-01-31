@@ -3410,7 +3410,7 @@ static int cdrom_storage_function_bind_config(struct android_usb_function *f,
 {
 	struct cdrom_storage_function_config *config = f->config;
 	int ret = 0;
-	int i;
+	int i = 0;
 	struct fsg_opts *fsg_opts;
 	struct fsg_config m_config;
 
