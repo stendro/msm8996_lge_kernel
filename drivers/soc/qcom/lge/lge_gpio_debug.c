@@ -444,11 +444,11 @@ static int gpio_debug_probe(struct platform_device *pdev)
 
 	debugfs_base = debugfs_create_dir("gpios", NULL);
 
-	if (!debugfs_base)
+	if (IS_ERR_OR_NULL(debugfs_base))
 		return -ENOMEM;
 
-	if (!debugfs_create_u32("debug_suspend", S_IRUGO | S_IWUSR,
-				debugfs_base, &debug_suspend)) {
+	if (IS_ERR_OR_NULL(debugfs_create_u32("debug_suspend", S_IRUGO | S_IWUSR,
+				debugfs_base, &debug_suspend))) {
 		debugfs_remove_recursive(debugfs_base);
 		return -ENOMEM;
 	}
