@@ -1,0 +1,52 @@
+config ECRYPT_FS
+	tristate "eCrypt filesystem layer support"
+	depends on KEYS && CRYPTO && (ENCRYPTED_KEYS || ENCRYPTED_KEYS=n)
+	select CRYPTO_ECB
+	select CRYPTO_CBC
+	select CRYPTO_MD5
+	help
+	  Encrypted filesystem that operates on the VFS layer.  See
+	  <file:Documentation/filesystems/ecryptfs.txt> to learn more about
+	  eCryptfs.  Userspace components are required and can be
+	  obtained from <http://ecryptfs.sf.net>.
+
+	  To compile this file system support as a module, choose M here: the
+	  module will be called ecryptfs.
+
+config ECRYPT_FS_MESSAGING
+	bool "Enable notifications for userspace key wrap/unwrap"
+	depends on ECRYPT_FS
+	help
+	  Enables the /dev/ecryptfs entry for use by ecryptfsd. This allows
+	  for userspace to wrap/unwrap file encryption keys by other
+	  backends, like OpenSSL.
+
+config CRYPTO_DEV_HWCRYPTO_FOR_SDCARD
+    bool "Enable Qcom HW crypto for sdcard encryption"
+    help
+      Enables Qcom HW crypto for sdcard encryption.
+
+config CRYPTO_DEV_FOR_H1_SPRINT
+    bool "Enable flage for SPRINT"
+    help
+      This config is only for SPRINT.
+
+config CRYPTO_DEV_KEY_INTEGRITY_CHECK
+    bool "Enable flage for key integrity check"
+    help
+      This config is only for DISA model.
+
+config SD_ENCRYPTION_MANAGER
+	bool "Enable LG SDCard encryption for media exception/decryption only"
+	depends on ECRYPT_FS
+	help
+	  LG provides SD card encryption to protect external SD card data.
+	  all created data on the external SD card is automatically encrypted by
+	  file system (eCryptfs) before committing it to SD card and all reads
+	  automatically decrypt data before returning it to the calling process.
+
+config SDP
+    bool "Enable Sensitive data protection"
+    depends on ECRYPT_FS_MESSAGING
+    help
+      LG provides Sensitive Data Protection
