@@ -1,0 +1,83 @@
+# enable blu_active & tweaks
+
+on boot
+
+    # Set foreground and background cpusets
+    write /dev/cpuset/top-app/cpus 0-3
+    write /dev/cpuset/foreground/boost/cpus 0-3
+    write /dev/cpuset/foreground/cpus 0-3
+    write /dev/cpuset/background/cpus 0-3
+    write /dev/cpuset/system-background/cpus 0-3
+
+on property:sys.post_boot.parsed=1
+
+    # Update foreground and background cpusets
+    write /dev/cpuset/top-app/cpus 0-3
+    write /dev/cpuset/foreground/boost/cpus 2-3
+    write /dev/cpuset/foreground/cpus 0-3
+    write /dev/cpuset/background/cpus 0-1
+    write /dev/cpuset/system-background/cpus 0-1
+
+    # Set idle GPU to 133 Mhz
+    write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
+
+    # Setting b.L scheduler parameters
+    write /proc/sys/kernel/sched_upmigrate 95
+    write /proc/sys/kernel/sched_downmigrate 90
+
+    # Disable thermal bcl hotplug to switch governor
+    write /sys/module/msm_thermal/core_control/enabled 0
+    write /sys/devices/soc/soc:qcom,bcl/mode "disable"
+    write /sys/devices/soc/soc:qcom,bcl/hotplug_mask 0
+    write /sys/devices/soc/soc:qcom,bcl/hotplug_soc_mask 0
+    write /sys/devices/soc/soc:qcom,bcl/mode "enable"
+
+    # Configure governor settings for little cluster
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "blu_active"
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/above_hispeed_delay 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/go_hispeed_load 90
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/timer_rate 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/hispeed_freq 960000
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/io_is_busy 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/align_windows 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/target_loads 80
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/min_sample_time 40000
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/timer_slack 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/fastlane 0
+    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/fastlane_threshold 50
+
+    # Configure governor settings for big cluster
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor "blu_active"
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/above_hispeed_delay "20000 1400000:40000 1700000:20000 2100000:80000"
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/go_hispeed_load 90
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/timer_rate 20000
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/hispeed_freq 1228800
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/io_is_busy 1
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/align_windows 1
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/target_loads "85 1500000:90 1800000:70 2100000:95"
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/min_sample_time 40000
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/timer_slack 20000
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/fastlane 0
+    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/fastlane_threshold 50
+
+    # Re-enable thermal and BCL hotplug
+    write /sys/module/msm_thermal/core_control/enabled 1
+    write /sys/devices/soc/soc:qcom,bcl/mode "disable"
+    write /sys/devices/soc/soc:qcom,bcl/hotplug_mask 0
+    write /sys/devices/soc/soc:qcom,bcl/hotplug_soc_mask 0
+    write /sys/devices/soc/soc:qcom,bcl/mode "enable"
+
+    # Tweak VM
+    write /proc/sys/vm/swappiness 100
+    write /proc/sys/vm/dirty_background_ratio 20
+    write /proc/sys/vm/dirty_ratio 40
+    write /proc/sys/vm/vfs_cache_pressure 50
+    write /proc/sys/vm/oom_dump_tasks 1
+    write /proc/sys/vm/oom_kill_allocating_task 0
+    write /proc/sys/vm/overcommit_ratio 50
+    write /proc/sys/vm/panic_on_oom 0
+    write /proc/sys/vm/swap_ratio 100
+    write /proc/sys/vm/dirty_expire_centisecs 400
+    write /proc/sys/vm/dirty_writeback_centisecs 1000
+
+    write /dev/kmsg "Boot completed "
