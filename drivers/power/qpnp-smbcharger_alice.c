@@ -979,7 +979,8 @@ static void lgcc_charger_reginfo(struct work_struct *work)
 		batt_volt, total_iusb_set, pmi_iusb_aicl,
 		pmi_ibat_set, smb_ibat_set, total_ibat_now);
 
-	schedule_delayed_work(&chip->charging_info_work,
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->charging_info_work,
 		round_jiffies_relative(msecs_to_jiffies(CHARGING_INFORM_NORMAL_TIME)));
 }
 #endif
@@ -3147,7 +3148,8 @@ static void smbchg_parallel_usb_en_work(struct work_struct *work)
 	return;
 
 recheck:
-	schedule_delayed_work(&chip->parallel_en_work, 0);
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->parallel_en_work, 0);
 }
 
 static void smbchg_parallel_usb_check_ok(struct smbchg_chip *chip)
@@ -3158,7 +3160,8 @@ static void smbchg_parallel_usb_check_ok(struct smbchg_chip *chip)
 		return;
 
 	smbchg_stay_awake(chip, PM_PARALLEL_CHECK);
-	schedule_delayed_work(&chip->parallel_en_work, 0);
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->parallel_en_work, 0);
 }
 
 static int charging_suspend_vote_cb(struct device *dev, int suspend,
@@ -4042,7 +4045,8 @@ static void smbchg_vfloat_adjust_check(struct smbchg_chip *chip)
 
 	smbchg_stay_awake(chip, PM_REASON_VFLOAT_ADJUST);
 	pr_smb(PR_STATUS, "Starting vfloat adjustments\n");
-	schedule_delayed_work(&chip->vfloat_adjust_work, 0);
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->vfloat_adjust_work, 0);
 }
 
 #define FV_STS_REG			0xC
@@ -5528,8 +5532,9 @@ stop:
 	return;
 
 reschedule:
-	schedule_delayed_work(&chip->vfloat_adjust_work,
-			msecs_to_jiffies(VFLOAT_RESAMPLE_DELAY_MS));
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->vfloat_adjust_work,
+		msecs_to_jiffies(VFLOAT_RESAMPLE_DELAY_MS));
 	return;
 }
 
@@ -6197,8 +6202,9 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	chip->is_evp_ta = 0;
 #endif
 #ifdef CONFIG_LGE_PM_WEAK_BATT_PACK
-		schedule_delayed_work(&chip->batt_pack_check_work,
-				msecs_to_jiffies(800));
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->batt_pack_check_work,
+		msecs_to_jiffies(800));
 #endif
 #ifdef CONFIG_LGE_PM_VFLOAT_TRIM_RESTORE
 	if (chip->vfloat_trim_restore_status) {
@@ -6306,7 +6312,8 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 			chip->acc_nt_type == NT_TYPE_HM) {
 			cancel_delayed_work_sync(&chip->hvdcp_det_work);
 			smbchg_stay_awake(chip, PM_DETECT_HVDCP);
-			schedule_delayed_work(&chip->hvdcp_det_work,
+			queue_delayed_work(system_power_efficient_wq,
+					&chip->hvdcp_det_work,
 					msecs_to_jiffies(HVDCP_NOTIFY_MS));
 			pr_err("hvdcp_det_work start\n");
 		} else {
@@ -6353,7 +6360,8 @@ static void lgcc_work_enable_check(struct work_struct *work)
 		if (lgcc_is_probed != 1) {
 			pr_smb(PR_LGE, "lgcc is not probed yet. "
 				"restart lgcc_work after 500ms\n");
-			schedule_delayed_work(&chip->lgcc_work_enable_work,
+			queue_delayed_work(system_power_efficient_wq,
+				&chip->lgcc_work_enable_work,
 				round_jiffies_relative(msecs_to_jiffies(500)));
 			return;
 		}
@@ -6387,7 +6395,8 @@ void update_usb_status(struct smbchg_chip *chip, bool usb_present, bool force)
 		} else {
 			pr_smb(PR_LGE, "lgcc is not probed yet. "
 				"restart lgcc_work after 10s\n");
-			schedule_delayed_work(&chip->lgcc_work_enable_work,
+			queue_delayed_work(system_power_efficient_wq,
+				&chip->lgcc_work_enable_work,
 				round_jiffies_relative(msecs_to_jiffies(LGCC_WORK_ENABLE_DELAY)));
 		}
 #endif
@@ -6719,7 +6728,8 @@ static void smbchg_handle_hvdcp3_disable(struct smbchg_chip *chip)
 #ifdef CONFIG_LGE_PM
 			smbchg_stay_awake(chip, PM_DETECT_HVDCP);
 #endif
-			schedule_delayed_work(&chip->hvdcp_det_work,
+			queue_delayed_work(system_power_efficient_wq,
+				&chip->hvdcp_det_work,
 				msecs_to_jiffies(HVDCP_NOTIFY_MS));
 	} else {
 		smbchg_change_usb_supply_type(chip, POWER_SUPPLY_TYPE_UNKNOWN);
@@ -7343,7 +7353,8 @@ static void smbchg_rerun_hvdcp_work(struct work_struct *work)
 			(usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP)) {
 		cancel_delayed_work_sync(&chip->hvdcp_det_work);
 		smbchg_stay_awake(chip, PM_DETECT_HVDCP);
-		schedule_delayed_work(&chip->hvdcp_det_work,
+		queue_delayed_work(system_power_efficient_wq,
+				&chip->hvdcp_det_work,
 				msecs_to_jiffies(HVDCP_NOTIFY_MS));
 		pr_err("hvdcp_det_work start\n");
 
@@ -7482,7 +7493,8 @@ static int smbchg_battery_set_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_ENABLE_EVP_CHG:
 		chip->is_evp_ta = val->intval;
 		pr_smb(PR_LGE, "is_evp_ta = %d\n", chip->is_evp_ta);
-		schedule_delayed_work(&chip->enable_evp_chg_work, 0);
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->enable_evp_chg_work, 0);
 		break;
 #endif
 #ifdef CONFIG_LGE_USB_TYPE_C
@@ -9868,7 +9880,8 @@ static void rerun_hvdcp_det_if_necessary(struct smbchg_chip *chip)
 		if (!chip->hvdcp_not_supported) {
 			cancel_delayed_work_sync(&chip->hvdcp_det_work);
 			smbchg_stay_awake(chip, PM_DETECT_HVDCP);
-			schedule_delayed_work(&chip->hvdcp_det_work,
+			queue_delayed_work(system_power_efficient_wq,
+					&chip->hvdcp_det_work,
 					msecs_to_jiffies(HVDCP_NOTIFY_MS));
 		}
 	}
@@ -10222,7 +10235,8 @@ static int smbchg_probe(struct spmi_device *spmi)
 #endif
 
 #ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
-	schedule_delayed_work(&chip->charging_info_work,
+	queue_delayed_work(system_power_efficient_wq,
+		&chip->charging_info_work,
 		round_jiffies_relative(msecs_to_jiffies(CHARGING_INFORM_NORMAL_TIME)));
 	pr_smb(PR_LGE, "smbchg_probe end\n");
 #endif
