@@ -13,7 +13,7 @@
  */
 
 #include <linux/delay.h>
-#include "../../mdss_dsi.h"
+#include "../../mdss_dsi_lucye.h"
 #include "../lge_mdss_display.h"
 #include "../../mdss_dba_utils.h"
 #include <linux/input/lge_touch_notify.h>

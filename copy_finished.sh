@@ -31,6 +31,7 @@ CLEAN_DIR() {
 
 SETUP_DIR() {
 	echo "Setting up $DEVICE$VER..."
+	mkdir -p out/
 	unzip -q ramdisk/ak-root.zip -d $DEVICE_FOLDER \
 		|| ABORT "Failed to unzip *ak-root.zip*"
 	cp ramdisk/update-binary $DEVICE_FOLDER/META-INF/com/google/android \

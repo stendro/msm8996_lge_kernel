@@ -18,7 +18,11 @@
 #include <linux/of_device.h>
 #include <linux/module.h>
 #include <soc/qcom/lge/board_lge.h>
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "../mdss_dsi_lucye.h"
+#else
 #include "../mdss_dsi.h"
+#endif
 #include "../mdss_panel.h"
 #include "../mdss_fb.h"
 

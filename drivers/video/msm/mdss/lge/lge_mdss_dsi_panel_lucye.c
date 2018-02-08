@@ -13,7 +13,7 @@
  */
 
 #include <linux/of_platform.h>
-#include "../mdss_dsi.h"
+#include "../mdss_dsi_lucye.h"
 #include "lge_mdss_dsi_panel.h"
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_READER_MODE)
 #include "lge_reader_mode.h"

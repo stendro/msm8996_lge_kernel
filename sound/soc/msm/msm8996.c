@@ -39,7 +39,7 @@
 #include "../codecs/wsa881x.h"
 
 #ifdef CONFIG_SND_SOC_ES9018
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
+#if defined(CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION) && defined(CONFIG_MACH_MSM8996_ELSA)
 #include <soc/qcom/lge/power/lge_board_revision.h>
 #include <soc/qcom/lge/power/lge_power_class.h>
 #else
@@ -4271,7 +4271,7 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 	struct snd_soc_dai_link *dailink;
 	int len_1, len_2, len_3, len_4;
 	const struct of_device_id *match;
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
+#if defined(CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION) && defined(CONFIG_MACH_MSM8996_ELSA)
 	union lge_power_propval lge_val = {0,};
 	struct lge_power *lge_hw_rev_lpc = NULL;
 	int rc;
@@ -4337,7 +4337,7 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 			card->num_links = LGE_DAI_LINK_ID_BASE;
 		}
 #ifdef CONFIG_SND_SOC_ES9018
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
+#if defined(CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION) && defined(CONFIG_MACH_MSM8996_ELSA)
 		lge_hw_rev_lpc = lge_power_get_by_name("lge_hw_rev");
 		if (lge_hw_rev_lpc) {
 			rc = lge_hw_rev_lpc->get_property(lge_hw_rev_lpc,
