@@ -681,7 +681,7 @@ static int dma_init(struct cs4297a_state *s)
             init_serdma(&s->dma_dac))
                 return -1;
 
-        if (__raw_readq(SS_CSR(R_SER_DMA_DSCR_COUNT_RX))||
+        if (__raw_readq(SS_CSR(R_SER_DMA_DSCR_COUNT_RX)) ||
             __raw_readq(SS_CSR(R_SER_DMA_DSCR_COUNT_TX))) {
                 panic("DMA state corrupted?!");
         }

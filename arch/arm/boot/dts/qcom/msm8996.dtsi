@@ -195,11 +195,11 @@
 			size = <0 0x5c00000>;
 		};
 
-		modem_mem: modem_region@88000000 {
+		/* modem_mem: modem_region@88000000 {
 			compatible = "removed-dma-pool";
 			no-map;
 			reg = <0 0x88000000 0 0x6900000>;
-		};
+		}; */
 
 		dfps_data_mem: dfps_data_mem@83400000 {
 		       reg = <0 0x83400000 0 0x1000>;

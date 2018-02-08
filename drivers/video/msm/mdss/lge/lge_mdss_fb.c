@@ -182,6 +182,7 @@ bool lge_battery_present(void){
 }
 #endif
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 int lge_charger_present(void){
 	struct lge_power *lge_cd_lpc;
 	union lge_power_propval	lge_val = {0,};
@@ -206,6 +207,7 @@ int lge_charger_present(void){
 	}
 	return chg_present;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 /* Brightness - Backlight mapping (main)                                     */

@@ -1,8 +1,11 @@
 #!/bin/bash
 # simple script for executing menuconfig
-
+# -modified by stendro (source: jcadduono)
+#
 # root directory of LGE msm8996 git repo (default is this script's location)
 RDIR=$(pwd)
+OUTDIR=$(dirname "$RDIR")
+OUTFILE=defconfig_regen
 
 # directory containing cross-compile arm64 toolchain
 TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
@@ -47,8 +50,8 @@ echo -n "Are you satisfied with these changes? Y/N: "
 read option
 case $option in
 y|Y)
-	cp build/.config "$HOME/build/msm8996_lge_kernel/defconfig_regen"
-	echo "Copied new config to $HOME/build/msm8996_lge_kernel/defconfig_regen"
+	cp build/.config "../$OUTFILE"
+	echo "Copied new config to $OUTDIR/$OUTFILE"
 	;;
 *)
 	echo "That's unfortunate"

@@ -20,7 +20,7 @@
 #		LGH830   (LG G5)
 #
 # RS988		= Unlocked (US)
-#		LGRS988  (LG G5) (Not yet prepared for build)
+#		LGRS988  (LG G5)
 #
 #   ************************
 #

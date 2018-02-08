@@ -43,9 +43,9 @@
 #include <soc/qcom/lge/lge_acc_nt_type.h>
 #endif
 
-#ifdef CONFIG_LGE_PM_BATT_MANAGER
+/* #ifdef CONFIG_LGE_PM_BATT_MANAGER
 #include "lge_battery_manager.h"
-#endif
+#endif */
 
 #ifdef CONFIG_LGE_PM_CABLE_DETECTION
 #include <soc/qcom/lge/lge_cable_detection.h>

@@ -104,8 +104,9 @@ struct charging_rsp {
 	enum lge_states_changes     change_lvl;
 	bool                        force_update;
 	bool                        disable_chg;
-	int				chg_current;
-	int				float_voltage;
+/*	int                         dc_current; */ // Original g5/v20, substituted with chg_current.
+	int                         chg_current;
+	int                         float_voltage;
 	enum lge_btm_states         btm_state;
 	int                         pseudo_chg_ui;
 };

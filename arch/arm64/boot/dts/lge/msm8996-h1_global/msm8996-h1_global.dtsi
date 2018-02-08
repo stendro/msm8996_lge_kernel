@@ -40,6 +40,10 @@
 		};
 
 		/delete-node/ dfps_data_mem@83400000;
+
+		modem_mem: modem_region@88800000 {
+			reg = <0 0x88800000 0 0x6100000>;
+		};
 	};
 };
 

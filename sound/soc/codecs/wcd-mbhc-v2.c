@@ -40,11 +40,13 @@ union power_supply_propval value;
 
 #define HDSET_FACTORY
 
-#if defined(CONFIG_SND_SOC_ES9018)|| defined(CONFIG_SND_SOC_ES9218P)
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #define SKIP_RECALC_IMPED
 #if defined(SKIP_RECALC_IMPED)  // defensive code
 static bool skip_recalc_imped = false;
 #endif
+#endif
+#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
 extern bool enable_es9218p;
 extern int es9218_sabre_headphone_on(void);
 extern int es9218_sabre_headphone_off(void);
@@ -455,7 +457,7 @@ static void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 		}
 #endif
 		switch_set_state(&mbhc->sdev, switch_device);
-#if defined(CONFIG_SND_SOC_ES9018)|| defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
 		if(enable_es9218p) {
 			if (status == 0)
 				es9218_sabre_headphone_off();
@@ -1047,7 +1049,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			if ( !((mbhc->mbhc_cfg->detect_extn_cable) && (mbhc->hph_status == SND_JACK_LINEOUT))) {
 				wcd_mbhc_jack_report(mbhc, &mbhc->headset_jack,
 					0, WCD_MBHC_JACK_MASK);
-#if defined(CONFIG_SND_SOC_ES9018)|| defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
                 if ( enable_es9218p && (mbhc->hph_status & WCD_MBHC_JACK_MASK) ) {
                     pr_info("[LGE MBHC] %s: call #2 es9218_sabre_headphone_on().\n", __func__);
                     pr_debug("[LGE MBHC] %s: remove jack(%d) and report insertion of another jack.\n", __func__, mbhc->hph_status);
@@ -1082,11 +1084,11 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			jack_type == SND_JACK_HEADPHONE)
 			mbhc->hph_status &= ~SND_JACK_HEADSET;
 
-#if defined(CONFIG_SND_SOC_ES9018)|| defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
 		if (enable_es9218p) {
-            pr_info("[LGE MBHC] %s: call #3 es9218_sabre_headphone_on()\n", __func__);
+			pr_info("[LGE MBHC] %s: call #3 es9218_sabre_headphone_on()\n", __func__);
 			es9218_sabre_headphone_on();
-        }
+		}
 #endif
 		/* Report insertion */
 		if (jack_type == SND_JACK_HEADPHONE)
@@ -2257,11 +2259,11 @@ static irqreturn_t wcd_mbhc_mech_plug_detect_irq(int irq, void *data)
 		r = IRQ_NONE;
 	} else {
 		/* Call handler */
-#if defined(CONFIG_SND_SOC_ES9018)|| defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
 		if (enable_es9218p) {
-            pr_info("[LGE MBHC] %s: call #4 es9218_sabre_headphone_on()\n", __func__);
-            es9218_sabre_headphone_on();
-        }
+			pr_info("[LGE MBHC] %s: call #4 es9218_sabre_headphone_on()\n", __func__);
+			es9218_sabre_headphone_on();
+		}
 #endif
 		wcd_mbhc_swch_irq_handler(mbhc);
 		mbhc->mbhc_cb->lock_sleep(mbhc, false);

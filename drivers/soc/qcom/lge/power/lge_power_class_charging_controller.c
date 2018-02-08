@@ -1637,7 +1637,9 @@ static int lge_charging_controller_probe(struct platform_device *pdev) {
 #ifdef CONFIG_LGE_USB_TYPE_C
 	cc->update_ctype_state = 0;
 #endif
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	schedule_delayed_work(&cc->batt_cap_fcc_work, 0);
+#endif
 	pr_info("LG Charging controller probe done~!!\n");
 
 	return 0;

@@ -609,7 +609,9 @@ static int lge_adc_qct_probe(struct platform_device *pdev)
 	return 0;
 
 err_free:
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	gpio_free(lge_adc_chip->sbu_en);
+#endif
 	kfree(lge_adc_chip);
 	return ret;
 }

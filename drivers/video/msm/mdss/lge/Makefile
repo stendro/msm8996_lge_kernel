@@ -7,7 +7,11 @@ obj-$(CONFIG_LGE_DISPLAY_LUCYE_COMMON) += lucye/
 obj-$(CONFIG_LGE_DISPLAY_AOD_SUPPORTED) += lge_mdss_aod.o
 obj-$(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI) += lge_mdss_watch.o
 obj-$(CONFIG_LGE_DISPLAY_COMMON) += lge_mdss_dsi.o
+ifdef CONFIG_MACH_MSM8996_LUCYE
+obj-$(CONFIG_LGE_DISPLAY_COMMON) += lge_mdss_dsi_panel_lucye.o
+else
 obj-$(CONFIG_LGE_DISPLAY_COMMON) += lge_mdss_dsi_panel.o
+endif
 obj-$(CONFIG_LGE_DISPLAY_COMMON) += lge_mdss_fb.o
 ifeq ($(CONFIG_LGE_DISPLAY_READER_MODE),y)
 obj-$(CONFIG_LGE_DISPLAY_COMMON) += lge_reader_mode.o

@@ -287,7 +287,8 @@ static int bl_get_led_temp(void *data) {
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)data;
 	return mfd->bl_level;
 }
-
+#endif
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int bl_get_led_c_temp(void *data) {
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)data;
 	if (lge_charger_present()) {
@@ -1796,7 +1797,8 @@ static int mdss_fb_probe(struct platform_device *pdev)
 			rc = -EFAULT;
 			goto err_vs_led_s;
 		}
-
+#endif
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		/* led_c_sensor */
 		mfd->vs_led_cs = kzalloc(sizeof(struct value_sensor), GFP_KERNEL);
 		if (IS_ERR_OR_NULL(mfd->vs_led_cs)) {
@@ -1820,13 +1822,16 @@ static int mdss_fb_probe(struct platform_device *pdev)
 
 
 		pr_info("\"led\" virtual value sensor is registered.\n");
-	}
 #endif
+	}
+
 	return rc;
 
 #if defined(CONFIG_LGE_PM_THERMAL_VTS)
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 err_vs_led_cs:
 	kfree(mfd->vs_led_s);
+#endif
 err_vs_led_s:
 	kfree(mfd->vs_led);
 err_vs_led:

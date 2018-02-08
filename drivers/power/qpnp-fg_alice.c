@@ -39,9 +39,11 @@
 #include <linux/cpufreq.h>
 #include <soc/qcom/lge/board_lge.h>
 #endif
-#ifdef CONFIG_LGE_PM_BATT_MANAGER
+
+/* #ifdef CONFIG_LGE_PM_BATT_MANAGER
 #include "lge_battery_manager.h"
-#endif
+#endif */
+
 #ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
 #include <linux/power/lge_battery_id.h>
 #endif
@@ -3446,7 +3448,7 @@ static int lookup_ocv_for_soc(struct fg_chip *chip, int soc)
 		     + div_s64(coeffs[3] * soc * soc * soc, 1000000000LL));
 }
 
-#ifdef CONFIG_LGE_PM_BATT_MANAGER
+/* #ifdef CONFIG_LGE_PM_BATT_MANAGER
 static void batt_mngr_get_ocv_table(struct fg_chip *chip,
 				    const union power_supply_propval *val)
 {
@@ -3458,7 +3460,7 @@ static void batt_mngr_get_ocv_table(struct fg_chip *chip,
 	}
 	batt_mngr_ocv_table(ocv_table, i);
 }
-#endif
+#endif */
 
 static int lookup_soc_for_ocv(struct fg_chip *chip, int ocv)
 {
@@ -5112,11 +5114,11 @@ static int fg_power_set_property(struct power_supply *psy,
 			schedule_work(&chip->bcl_hi_power_work);
 		}
 		break;
-#ifdef CONFIG_LGE_PM_BATT_MANAGER
+/* #ifdef CONFIG_LGE_PM_BATT_MANAGER
 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
 		batt_mngr_get_ocv_table(chip, val);
 		break;
-#endif
+#endif */
 #ifdef CONFIG_LGE_PM_RESTORE_BATT_INFO
 	case POWER_SUPPLY_PROP_BATTERY_INFO:
 		rc = fg_set_battery_info(chip, val->intval);

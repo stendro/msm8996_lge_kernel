@@ -33,7 +33,11 @@ obj-$(CONFIG_DEBUG_FS) += mdss_mdp_debug.o
 endif
 
 mdss-dsi-objs := mdss_dsi.o mdss_dsi_host.o mdss_dsi_cmd.o mdss_dsi_status.o
+ifdef CONFIG_MACH_MSM8996_LUCYE
+mdss-dsi-objs += mdss_dsi_panel_lucye.o
+else
 mdss-dsi-objs += mdss_dsi_panel.o
+endif
 mdss-dsi-objs += msm_mdss_io_8974.o
 mdss-dsi-objs += mdss_dsi_phy.o
 mdss-dsi-objs += mdss_dsi_clk.o

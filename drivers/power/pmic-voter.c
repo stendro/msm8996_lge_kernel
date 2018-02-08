@@ -21,16 +21,14 @@
 
 #include "pmic-voter.h"
 
-#ifdef CONFIG_LGE_PM
 #ifdef CONFIG_MACH_MSM8996_H1
 #define NUM_MAX_CLIENTS	8
-#elif CONFIG_MACH_MSM8996_LUCYE
-#define NUM_MAX_CLIENTS	12
-#else
+#endif
+#ifdef CONFIG_MACH_MSM8996_ELSA
 #define NUM_MAX_CLIENTS	10
 #endif
-#else
-#define NUM_MAX_CLIENTS	8
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#define NUM_MAX_CLIENTS	12
 #endif
 
 struct client_vote {

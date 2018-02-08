@@ -882,7 +882,7 @@ config SND_SOC_MSM_STUB
 config SND_USE_KNOWLES_DMIC_DELAY
 	tristate "KNOWLES DMIC DELAY"
 	depends on MACH_LGE
-        default y
+        default n
 
 config SND_USE_MBHC_EXTN_CABLE
         tristate "MBHC EXTN CABLE USECASE"
