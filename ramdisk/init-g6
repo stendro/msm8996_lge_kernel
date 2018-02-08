@@ -1,5 +1,11 @@
 # enable blu_active & tweaks
 
+on init
+
+    # Debugfs is disabled in this kernel
+    rm /d
+    symlink /proc/wakeup /d
+
 on boot
 
     # Set foreground and background cpusets

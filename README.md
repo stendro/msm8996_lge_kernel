@@ -27,10 +27,16 @@ This kernel is for the following LG DEVICES:
 
 * VS995		Verizon (US)
 
-* H990		International (Global)
+* H990DS	International (Global)
+  * For H990 (Single SIM) you'll need to some cmdline settings in the device config
 
 * LS997		Sprint (US)
   * Needs updated defconfig
+
+### G6
+- H870		International (Global)
+
+* US997		US Cellular & Unlocked (US)
 
 ## COMPILE THE KERNEL
 

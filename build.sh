@@ -45,6 +45,14 @@
 # LS997		= Sprint (US)
 #		LGLS997  (LG V20) (Not yet prepared for build)
 #
+#   ************************
+#
+# H870		= International (Global)
+#		LGH870   (LG G6)
+#
+# US997		= US Cellular & Unlocked (US)
+#		US997    (LG G6)
+#
 ###################### CONFIG ######################
 
 # root directory of LGE msm8996 git repo (default is this script's location)
