@@ -103,10 +103,10 @@ static int msm_tert_mi2s_tx_ch = 2;
 #ifdef CONFIG_SND_USE_QUAT_MI2S
 static int msm_quat_mi2s_tx_ch = 2;
 #endif
-#ifdef CONFIG_MACH_MSM8996_ELSA
+#if defined(CONFIG_SND_SOC_ES9018) && defined(CONFIG_MACH_MSM8996_ELSA)
 bool enable_es9218p = true;
 #endif
-#if defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9218P) && defined(CONFIG_MACH_MSM8996_LUCYE)
 bool enable_es9218p = false;
 #endif
 
@@ -4357,7 +4357,7 @@ static struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 #endif
 		memcpy(msm8996_tasha_dai_links + card->num_links,
 			   msm8996_lge_dai_links, sizeof(msm8996_lge_dai_links));
-		card->num_links += ARRAY_SIZE(msm8996_lge_dai_links);		
+		card->num_links += ARRAY_SIZE(msm8996_lge_dai_links);
 //set SEC_MI2S dai if ESS DAC DTSI is enabled
 #ifdef CONFIG_SND_SOC_ES9218P
 		if(of_property_read_bool(dev->of_node, "lge,es9218p-codec")) { //check ESS DAC DTSI is enabled

@@ -96,6 +96,7 @@
 			dac,power-gpio = <&pm8994_gpios 11 0x0>;
 			dac,hph-sw = <&pm8994_gpios 10 0x0>;
 			dac,reset-gpio = <&pmi8994_gpios 2 0x0>;
+			lge,skip-auto-mute = <1>;
 		};
 	};
 };

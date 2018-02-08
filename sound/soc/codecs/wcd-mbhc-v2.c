@@ -130,7 +130,12 @@ static int wcd_event_notify_from_usb(struct notifier_block *self, unsigned long 
 // temporary code before applying tunning values of MBHC
 #define LGE_NORMAL_HEADSET_THRESHOLD	50
 #define LGE_ADVANCED_HEADSET_THRESHOLD	600
-#else /* LGE original from ELSA*/
+#endif
+#if defined(CONFIG_MACH_MSM8996_ELSA)
+#define LGE_NORMAL_HEADSET_THRESHOLD	50
+#define LGE_ADVANCED_HEADSET_THRESHOLD	400
+#endif
+#if defined(CONFIG_MACH_MSM8996_H1)
 #define LGE_NORMAL_HEADSET_THRESHOLD	100
 #define LGE_ADVANCED_HEADSET_THRESHOLD	400
 #endif
@@ -291,7 +296,9 @@ end:
 
 static void lge_set_sdev_name(struct wcd_mbhc *mbhc, int status)
 {
+#ifdef CONFIG_SND_SOC_ES9218P
 	int ess_threshold = -30;    // for diva w/o DAC
+#endif
 	pr_debug("%s: enter\n", __func__);
 
 #if defined(CONFIG_SND_SOC_ES9218P)
@@ -338,15 +345,15 @@ static void lge_set_sdev_name(struct wcd_mbhc *mbhc, int status)
 	else
 		mbhc->sdev.name = LGE_SWITCH_NAME_AUX;
 #else   /* LGE original from ELSA*/
-    if ((mbhc->mbhc_cfg->detect_extn_cable) && (status == SND_JACK_LINEOUT))
+	if ((mbhc->mbhc_cfg->detect_extn_cable) && (status == SND_JACK_LINEOUT))
 		mbhc->sdev.name = LGE_SWITCH_NAME_AUX_HIDDEN;
 	else if ((mbhc->zl >= LGE_ADVANCED_HEADSET_THRESHOLD) ||
-		       (mbhc->zr >= LGE_ADVANCED_HEADSET_THRESHOLD))
+			(mbhc->zr >= LGE_ADVANCED_HEADSET_THRESHOLD))
 		mbhc->sdev.name = LGE_SWITCH_NAME_AUX;
-	else if (mbhc->zr < (LGE_NORMAL_HEADSET_THRESHOLD - ess_threshold))
+	else if (mbhc->zr < LGE_NORMAL_HEADSET_THRESHOLD)
 		mbhc->sdev.name = LGE_SWITCH_NAME_NORMAL;
-	else if (mbhc->zr >= (LGE_NORMAL_HEADSET_THRESHOLD - ess_threshold) &&
-				mbhc->zr < LGE_ADVANCED_HEADSET_THRESHOLD)
+	else if (mbhc->zr >= LGE_NORMAL_HEADSET_THRESHOLD &&
+			mbhc->zr < LGE_ADVANCED_HEADSET_THRESHOLD)
 		mbhc->sdev.name = LGE_SWITCH_NAME_ADVANCED;
 	else
 		mbhc->sdev.name = LGE_SWITCH_NAME_AUX;
@@ -389,7 +396,6 @@ static int lge_set_switch_device(struct wcd_mbhc *mbhc, int status)
                         (mbhc->zr < LGE_ADVANCED_HEADSET_THRESHOLD)?"Headset":"AUX Cable",
 #endif
 						status);
-
 
 #if defined (CONFIG_LGE_TOUCH_CORE)
 			touch_notify_earjack(1);
@@ -960,6 +966,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			mbhc->buttons_pressed &=
 				~WCD_MBHC_JACK_BUTTON_MASK;
 		}
+
 		if (mbhc->micbias_enable) {
 			if (mbhc->mbhc_cb->mbhc_micbias_control)
 				mbhc->mbhc_cb->mbhc_micbias_control(
@@ -975,6 +982,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			}
 			mbhc->micbias_enable = false;
 		}
+
 		mbhc->hph_type = WCD_MBHC_HPH_NONE;
 		mbhc->zl = mbhc->zr = 0;
 		pr_debug("%s: Reporting removal %d(%x)\n", __func__,
@@ -1039,10 +1047,10 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
             if( skip_recalc_imped ) {
                 pr_info("[LGE MBHC] 2 skip_recalc_imped, skip mbhc->zl = mbhc->zr = 0\n");
             } else {
-			    mbhc->zl = mbhc->zr = 0;
+			mbhc->zl = mbhc->zr = 0;
             }
 #else /* Qualcomm Original */
-            mbhc->zl = mbhc->zr = 0;
+			mbhc->zl = mbhc->zr = 0;
 #endif
 			pr_debug("%s: Reporting removal (%x)\n",
 				 __func__, mbhc->hph_status);
@@ -1107,18 +1115,15 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			mbhc->mbhc_cb->compute_impedance &&
 			(mbhc->mbhc_cfg->linein_th != 0)) {
 #if defined(CONFIG_SND_SOC_ES9218P) && defined(SKIP_RECALC_IMPED)
-                if( enable_es9218p) { /* for models with DAC */
-                    if( skip_recalc_imped ) {
-                        pr_info("[LGE MBHC] 3 skip_recalc_imped, skip compute_impedance() \n");
-                    } else {
-                        mbhc->mbhc_cb->compute_impedance(mbhc, &mbhc->zl, &mbhc->zr);
-                    }
-                } else { /* for models without DAC */
-                    mbhc->mbhc_cb->compute_impedance(mbhc, &mbhc->zl, &mbhc->zr);
-                }
+		if( enable_es9218p) { /* for models with DAC */
+			if( skip_recalc_imped ) {
+				pr_info("[LGE MBHC] 3 skip_recalc_imped, skip compute_impedance() \n");
+		} else { /* for models without DAC */
+			mbhc->mbhc_cb->compute_impedance(mbhc, &mbhc->zl, &mbhc->zr);
+		}
 #else /* Qualcomm Original */
-                    mbhc->mbhc_cb->compute_impedance(mbhc,
-                        &mbhc->zl, &mbhc->zr);
+				mbhc->mbhc_cb->compute_impedance(mbhc,
+						&mbhc->zl, &mbhc->zr);
 #endif
 #ifndef CONFIG_MACH_LGE
 			if ((mbhc->zl > mbhc->mbhc_cfg->linein_th &&
@@ -1605,8 +1610,8 @@ static void wcd_correct_swch_plug(struct work_struct *work)
 
 	pr_debug("%s: enter\n", __func__);
 #if defined(CONFIG_SND_SOC_ES9218P) && defined(SKIP_RECALC_IMPED)
-    skip_recalc_imped = false;
-    pr_info("[LGE MBHC] 0 skip_recalc_imped, init. skip_recal_imped = false \n");
+	skip_recalc_imped = false;
+	pr_info("[LGE MBHC] 0 skip_recalc_imped, init. skip_recal_imped = false \n");
 #endif
 
 	mbhc = container_of(work, struct wcd_mbhc, correct_plug_swch);
@@ -2328,6 +2333,12 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 				__func__);
 			return IRQ_HANDLED;
 		}
+	}
+#else
+	if (!mbhc->mbhc_cfg->detect_extn_cable) {
+		pr_debug("%s: Returning as Extension cable feature not enabled\n",
+			__func__);
+		return IRQ_HANDLED;
 	}
 #endif
 	WCD_MBHC_RSC_LOCK(mbhc);
