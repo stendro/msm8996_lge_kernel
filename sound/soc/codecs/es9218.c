@@ -1016,7 +1016,7 @@ static int	es9218_sabre_hifitwo2lpb(void)
 
 	pr_info("%s()\n", __func__);
 
-	//GOLDEN SEQUENCE DO NOT MODIFY
+	// GOLDEN SEQUENCE DO NOT MODIFY
 	es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_45, 0x7C);
 	es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_47, 0x7F);
 	es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_48, 0x41);
@@ -1034,7 +1034,7 @@ static int	es9218_sabre_hifitwo2lpb(void)
 
 	es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_45, 0xFC);		//	Enable switch
 
-	es9218_reset_gpio_L(); //RESETb LOW move to Low Power Bypass mode
+	es9218_reset_gpio_L(); // RESETb LOW move to Low Power Bypass mode
 
 	return	0;
 }
@@ -1071,80 +1071,81 @@ static int es9218_sabre_bypass2hifi(void)
 		if (g_dop_flag == 0) { //  PCM
 			pr_info("%s(): Rev-B PCM Format Reg Initial in es9218_sabre_bypass2hifi() \n", __func__);
 
-			/*  PCM Reg. Initial    */
+			/*  PCM Reg. Initial  */
 			for (i = 0 ; i < sizeof(es9218_RevB_init_register)/sizeof(es9218_RevB_init_register[0]) ; i++) {
 				es9218_write_reg(g_es9218_priv->i2c_client,
 								es9218_RevB_init_register[i].num,
 								es9218_RevB_init_register[i].value);
 			}
-            /*  BSP Setting     */
-            switch (es9218_bps) {
-                case 16 :
-                    es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_IN_CONFIG, 0x0);
-                    break;
-                case 24 :
-                case 32 :
-                default :
-                    es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_IN_CONFIG, 0x80);
-                    /*  Automute Time Setting   */
-                    if(!g_skip_auto_mute){
-                    switch  (es9218_rate) {
-                        case 48000  :
-                            break;
-                        case 96000  :
-                            /*  Automute Time                   */
-                            /*   0xFF : 0 msec ,    0x07 : 50 msec ,    0x04 : 100 msec ,   0x02 : 170 msec */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL1, 0x0A);      // 0x02 : 170msec, 0x0A : 34msec
-                            /*  Volume Rate */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL3, 0x46);
+	/*  BSP Setting  */
+	switch (es9218_bps) {
+		case 16 :
+			es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_IN_CONFIG, 0x0);
+			break;
+		case 24 :
+		case 32 :
+		default :
+			es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_IN_CONFIG, 0x80);
+		/*  Automute Time Setting  */
+		if(!g_skip_auto_mute) {
+		switch  (es9218_rate) {
+			case 48000 :
+				break;
+			case 96000 :
+				/*  Automute Time  */
+				/*  0xFF : 0 msec, 0x07 : 50 msec, 0x04 : 100 msec, 0x02 : 170 msec  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL1, 0x0A);	// 0x02 : 170msec, 0x0A : 34msec
 
-                            /*  Soft Start  */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SOFT_START, 0x0A);
+				/*  Volume Rate  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL3, 0x46);
 
-                            /*  Auto Mute enable    */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02, 0xF4);
-                            break;
-                        case 192000 :
-                        default :
-                            /*  Automute Time                   */
-                            /*   0xFF : 0 msec ,    0x04 : 50 msec ,    0x02 : 100 msec ,   0x01 : 170 msec */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL1, 0x05);      // 0x01 : 170msec, 0x05 : 34msec
+				/*  Soft Start  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SOFT_START, 0x0A);
 
-                            /*  Volume Rate */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL3, 0x45);
+				/*  Auto Mute enable  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02, 0xF4);
+				break;
+			case 192000 :
+			default :
+				/*  Automute Time                   */
+				/*  0xFF : 0 msec, 0x04 : 50 msec, 0x02 : 100 msec, 0x01 : 170 msec  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL1, 0x05);	// 0x01 : 170msec, 0x05 : 34msec
 
-                            /*  Soft Start  */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SOFT_START, 0x0B);
+				/*  Volume Rate */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SVOLCNTL3, 0x45);
 
-                            /*  Auto Mute enable    */
-                            es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02, 0xF4);
-                            break;
-                    }
-                }
-                    break;
-            }
+				/*  Soft Start  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_SOFT_START, 0x0B);
+
+				/*  Auto Mute enable  */
+				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02, 0xF4);
+				break;
 		}
-		else if (g_dop_flag > 0) { //  DOP
+		}
+			break;
+	}
+		}
+		else if (g_dop_flag > 0) {  // DOP
 			pr_info("%s(): Rev-B DOP Format Reg Initial in es9218_sabre_bypass2hifi() \n", __func__);
 
-			/*  DOP Reg. Initial    */
+			/*  DOP Reg. Initial  */
 			for (i = 0 ; i < sizeof(es9218_RevB_DOP_init_register)/sizeof(es9218_RevB_DOP_init_register[0]) ; i++) {
 				es9218_write_reg(g_es9218_priv->i2c_client,
 								es9218_RevB_DOP_init_register[i].num,
 								es9218_RevB_DOP_init_register[i].value);
 			}
 
-			/*  BSP Setting     */
+			/*  BSP Setting  */
 			switch (g_dop_flag) {
 				case 64 :
-					//es9218_write_reg(g_es9218_priv, ESS9218_SYSTEM_SET, 0x04);   //  Reg #0
-					es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_MASTERMODE, 0xA2);   //  Reg #10
+					//es9218_write_reg(g_es9218_priv, ESS9218_SYSTEM_SET, 0x04);  // Reg #0
+					es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_MASTERMODE, 0xA2);  // Reg #10
 					break;
 
 				case 128 :
 				default :
-					//es9218_write_reg(g_es9218_priv, ESS9218_SYSTEM_SET, 0x00);   //  Reg #0	: HW Default Value
-					es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_MASTERMODE, 0x82);   //  Reg #10
+					//es9218_write_reg(g_es9218_priv, ESS9218_SYSTEM_SET, 0x00);  // Reg #0  : HW Default Value
+					es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_MASTERMODE, 0x82);  // Reg #10
 					break;
 			}
 		}
@@ -2131,7 +2132,7 @@ static int es9218_pcm_hw_params(struct snd_pcm_substream *substream,
 					ret = es9218_write_reg(priv->i2c_client, ESS9218_IN_CONFIG, in_cfg_reg);
 
 					if (!g_skip_auto_mute) {
-					/*	Automute Time Setting	*/
+					/*  Automute Time Setting  */
 					switch	(es9218_rate) {
 						case 48000	:
 
