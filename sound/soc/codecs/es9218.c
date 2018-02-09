@@ -503,7 +503,7 @@ static int es9218_master_trim(struct i2c_client *client, int vol)
 	int ret = 0;
 	u32 value;
 
-	if (vol >= sizeof(master_trim_tbl)/sizeof(master_trim_tbl[0])) {
+	if (vol >= sizeof(master_trim_tbl) / sizeof(master_trim_tbl[0])) {
 		pr_err("%s() : Invalid vol = %d return \n", __func__, vol);
 		return 0;
 	}
@@ -542,7 +542,7 @@ static int es9218_set_avc_volume(struct i2c_client *client, int vol)
 	int ret = 0;
 	u8 value;
 
-	if (vol >= sizeof(avc_vol_tbl)/sizeof(avc_vol_tbl[0])) {
+	if (vol >= sizeof(avc_vol_tbl) / sizeof(avc_vol_tbl[0])) {
 		pr_err("%s() : Invalid vol = %d return \n", __func__, vol);
 		return 0;
 	}
@@ -751,7 +751,7 @@ static int es9218_sabre_cfg_custom_filter(struct sabre_custom_filter *sabre_filt
 		}
 		return rc;
 	}
-	count_stage1 = sizeof(sabre_filter->stage1_coeff)/sizeof(sabre_filter->stage1_coeff[0]);
+	count_stage1 = sizeof(sabre_filter->stage1_coeff) / sizeof(sabre_filter->stage1_coeff[0]);
 	pr_info("%s: count_stage1 : %d",__func__,count_stage1);
 
 	rv = (sabre_filter->symmetry << 2) | 0x02;        // set the write enable bit
@@ -1055,7 +1055,7 @@ static int es9218_sabre_bypass2hifi(void)
 		
 		if (g_dop_flag == 0) {
 			pr_info("%s() : ESS_A Running !! \n", __func__);
-			for (i = 0 ; i < sizeof(es9218_init_register)/sizeof(es9218_init_register[0]) ; i++) {
+			for (i = 0 ; i < sizeof(es9218_init_register) / sizeof(es9218_init_register[0]) ; i++) {
 						es9218_write_reg(g_es9218_priv->i2c_client,
 									es9218_init_register[i].num,
 									es9218_init_register[i].value);
@@ -1072,7 +1072,7 @@ static int es9218_sabre_bypass2hifi(void)
 			pr_info("%s(): Rev-B PCM Format Reg Initial in es9218_sabre_bypass2hifi() \n", __func__);
 
 			/*  PCM Reg. Initial  */
-			for (i = 0 ; i < sizeof(es9218_RevB_init_register)/sizeof(es9218_RevB_init_register[0]) ; i++) {
+			for (i = 0 ; i < sizeof(es9218_RevB_init_register) / sizeof(es9218_RevB_init_register[0]) ; i++) {
 				es9218_write_reg(g_es9218_priv->i2c_client,
 								es9218_RevB_init_register[i].num,
 								es9218_RevB_init_register[i].value);
@@ -1129,7 +1129,7 @@ static int es9218_sabre_bypass2hifi(void)
 			pr_info("%s(): Rev-B DOP Format Reg Initial in es9218_sabre_bypass2hifi() \n", __func__);
 
 			/*  DOP Reg. Initial  */
-			for (i = 0 ; i < sizeof(es9218_RevB_DOP_init_register)/sizeof(es9218_RevB_DOP_init_register[0]) ; i++) {
+			for (i = 0 ; i < sizeof(es9218_RevB_DOP_init_register) / sizeof(es9218_RevB_DOP_init_register[0]) ; i++) {
 				es9218_write_reg(g_es9218_priv->i2c_client,
 								es9218_RevB_DOP_init_register[i].num,
 								es9218_RevB_DOP_init_register[i].value);
@@ -1529,26 +1529,26 @@ static int es9218_auto_mute_put(struct snd_kcontrol *kcontrol,
 		return 0;
 	}
 
-	if(g_auto_mute_flag || g_skip_auto_mute)
+	if (g_auto_mute_flag || g_skip_auto_mute)
 	{
-	pr_info("%s(): Disable g_auto_mute_flag = %d \n", __func__, g_auto_mute_flag);
-	es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02,0x34); // #02	: Automute Config Disable
+		pr_info("%s(): Disable g_auto_mute_flag = %d \n", __func__, g_auto_mute_flag);
+		es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02,0x34); // #02  : Automute Config Disable
 	}
 	else
 	{
-	/*  BSP Setting  */
-	switch (es9218_bps) {
-		case 24 :
-		case 32 :
-		switch (es9218_rate) {
-			case 96000 :
-			case 192000 :
-			/*  Auto Mute enable  */
-				pr_info("%s(): Enable g_auto_mute_flag = %d \n", __func__, g_auto_mute_flag);
-				es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02,0xF4); // #02  : Automute Config Enable
-			break;
+		/*  BSP Setting  */
+		switch (es9218_bps) {
+			case 24 :
+			case 32 :
+				switch (es9218_rate) {
+					case 96000 :
+					case 192000 :
+					/*  Auto Mute enable  */
+						pr_info("%s(): Enable g_auto_mute_flag = %d \n", __func__, g_auto_mute_flag);
+						es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_02,0xF4); // #02  : Automute Config Enable
+					break;
+				}
 		}
-	}
 	}
 	return ret;
 }
@@ -2197,7 +2197,7 @@ static int es9218_pcm_hw_params(struct snd_pcm_substream *substream,
             #if	(0)	//	Register Initial Postion move to es9218_sabre_bypass2hifi
 
             /*  DOP Reg. Initial    */
-            for (i = 0 ; i < sizeof(es9218_RevB_DOP_init_register)/sizeof(es9218_RevB_DOP_init_register[0]) ; i++) {
+            for (i = 0 ; i < sizeof(es9218_RevB_DOP_init_register) / sizeof(es9218_RevB_DOP_init_register[0]) ; i++) {
                 ret = es9218_write_reg(g_es9218_priv->i2c_client,
                                 es9218_RevB_DOP_init_register[i].num,
                                 es9218_RevB_DOP_init_register[i].value);
@@ -2486,11 +2486,11 @@ static int es9218_probe(struct i2c_client *client,const struct i2c_device_id *id
     //rev.b + ESS_A': ESS_A
     //rev.b + ESS_B : ESS_B
     //rev.c~           : ESS_B
-    if(pdata->hw_rev <= HW_REV_A) {
+    if (pdata->hw_rev <= HW_REV_A) {
         g_ess_rev = ESS_A;
-    } else if(pdata->hw_rev == HW_REV_B) {
+    } else if (pdata->hw_rev == HW_REV_B) {
         u8  readChipStatus;
-        unsigned char   chipId = 0x00;
+        unsigned char chipId = 0x00;
         int readCnt;
 
         es9218_power_gpio_H();
@@ -2539,7 +2539,7 @@ reset_gpio_request_error:
 power_gpio_request_error:
 	gpio_free(pdata->power_gpio);
 ear_dbg_gpio_request_error:
-    if(pdata->hw_rev == HW_REV_B) {
+    if (pdata->hw_rev == HW_REV_B) {
         gpio_free(pdata->ear_dbg);
     }
 	return ret;

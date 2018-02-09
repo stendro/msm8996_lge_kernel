@@ -1044,7 +1044,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			}
 			mbhc->hph_type = WCD_MBHC_HPH_NONE;
 #if defined(CONFIG_SND_SOC_ES9218P) && defined(SKIP_RECALC_IMPED)
-            if( skip_recalc_imped ) {
+            if (skip_recalc_imped) {
                 pr_info("[LGE MBHC] 2 skip_recalc_imped, skip mbhc->zl = mbhc->zr = 0\n");
             } else {
 			mbhc->zl = mbhc->zr = 0;
@@ -1058,7 +1058,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 				wcd_mbhc_jack_report(mbhc, &mbhc->headset_jack,
 					0, WCD_MBHC_JACK_MASK);
 #if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
-                if ( enable_es9218p && (mbhc->hph_status & WCD_MBHC_JACK_MASK) ) {
+                if (enable_es9218p && (mbhc->hph_status & WCD_MBHC_JACK_MASK)) {
                     pr_info("[LGE MBHC] %s: call #2 es9218_sabre_headphone_on().\n", __func__);
                     pr_debug("[LGE MBHC] %s: remove jack(%d) and report insertion of another jack.\n", __func__, mbhc->hph_status);
                     es9218_sabre_headphone_on();
@@ -1115,9 +1115,12 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			mbhc->mbhc_cb->compute_impedance &&
 			(mbhc->mbhc_cfg->linein_th != 0)) {
 #if defined(CONFIG_SND_SOC_ES9218P) && defined(SKIP_RECALC_IMPED)
-		if( enable_es9218p) { /* for models with DAC */
-			if( skip_recalc_imped ) {
+		if (enable_es9218p) { /* for models with DAC */
+			if (skip_recalc_imped) {
 				pr_info("[LGE MBHC] 3 skip_recalc_imped, skip compute_impedance() \n");
+			} else {
+				mbhc->mbhc_cb->compute_impedance(mbhc, &mbhc->zl, &mbhc->zr);
+			}
 		} else { /* for models without DAC */
 			mbhc->mbhc_cb->compute_impedance(mbhc, &mbhc->zl, &mbhc->zr);
 		}
