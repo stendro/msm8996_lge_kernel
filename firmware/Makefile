@@ -141,7 +141,7 @@ fw-shipped-$(CONFIG_YAM) += yam/1200.bin yam/9600.bin
 
 ifdef CONFIG_MACH_MSM8996_LUCYE
 fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
-#	touch/lucye/L1L57P1_8_23_SW49407_Lucy_VB.img \
+	touch/lucye/L1L57P1_8_23_SW49407_Lucy_VB.img \
 	touch/lucye/L1L57P2_1_03.img \
 	touch/lucye/L1L57P2_1_05.img \
 	touch/lucye/lucye_limit.txt \
