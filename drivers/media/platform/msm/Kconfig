@@ -38,15 +38,32 @@ menuconfig MSMB_CAMERA
 	  adds support for the camera driver stack including sensor, isp
 	  and postprocessing drivers.
 
+config OLD_LGE_CAMERA
+	bool "LG camera drivers"
+	depends on MSMB_CAMERA
+	default n
+	---help---
+	  LG G5 and V20 camera.
+
+config LUCYE_LGE_CAMERA
+	bool "LG camera drivers"
+	depends on MSMB_CAMERA
+	default n
+	---help---
+	  LG G6 camera.
+
 config MSMB_CAMERA_DEBUG
 	bool "Qualcomm MSM camera 2.0 debugging with printk"
 	depends on MSMB_CAMERA
 	---help---
 	  Enable printk() debug for msm camera 2.0
 
-if MSMB_CAMERA
+if OLD_LGE_CAMERA
 source "drivers/media/platform/msm/camera_v2/Kconfig"
-endif # MSMB_CAMERA
+endif # OLD_LGE_CAMERA
+if LUCYE_LGE_CAMERA
+source "drivers/media/platform/msm/camera_v2_lucye/Kconfig"
+endif # LUCYE_LGE_CAMERA
 source "drivers/media/platform/msm/dvb/Kconfig"
 source "drivers/media/platform/msm/broadcast/Kconfig"
 source "drivers/media/platform/msm/sde/Kconfig"

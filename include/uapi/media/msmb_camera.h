@@ -48,14 +48,24 @@
 #define MSM_CAMERA_SUBDEV_SENSOR_INIT  14
 #define MSM_CAMERA_SUBDEV_OIS          15
 #define MSM_CAMERA_SUBDEV_FLASH        16
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #define MSM_CAMERA_SUBDEV_IR_LED       17
 #define MSM_CAMERA_SUBDEV_IR_CUT       18
 #define MSM_CAMERA_SUBDEV_EXT          19
+#else
+#define MSM_CAMERA_SUBDEV_EXT          17
+#endif
 
 #if 1 /* CONFIG_MACH_LGE */
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #define MSM_CAMERA_SUBDEV_PROXY        20
 #define MSM_CAMERA_SUBDEV_TCS          21
 #define MSM_CAMERA_SUBDEV_IRIS         22
+#else
+#define MSM_CAMERA_SUBDEV_PROXY        18
+#define MSM_CAMERA_SUBDEV_TCS          19
+#define MSM_CAMERA_SUBDEV_IRIS         20
+#endif
 #endif
 
 #define MSM_MAX_CAMERA_SENSORS  5

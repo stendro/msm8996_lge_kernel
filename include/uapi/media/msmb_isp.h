@@ -18,8 +18,10 @@
 #define ISP_META_CHANNEL_BIT  (0x10000 << 3)
 #define ISP_SCRATCH_BUF_BIT   (0x10000 << 4)
 #define ISP_OFFLINE_STATS_BIT (0x10000 << 5)
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #define ISP_SVHDR_IN_BIT      (0x10000 << 6) /* RDI hw stream for SVHDR */
 #define ISP_SVHDR_OUT_BIT     (0x10000 << 7) /* SVHDR output bufq stream*/
+#endif
 
 #define ISP_STATS_STREAM_BIT  0x80000000
 
