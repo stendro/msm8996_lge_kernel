@@ -24,8 +24,8 @@ on property:sys.post_boot.parsed=1
     write /dev/cpuset/background/cpus 0-1
     write /dev/cpuset/system-background/cpus 0-1
 
-    # Set idle GPU to 133 Mhz
-    write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
+    # Set idle GPU to 133 Mhz --disabled for now--
+    # write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
 
     # Setting b.L scheduler parameters
     write /proc/sys/kernel/sched_upmigrate 95

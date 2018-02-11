@@ -24,8 +24,8 @@ on property:sys.post_boot.parsed=1
     write /dev/cpuset/background/cpus 0-1
     write /dev/cpuset/system-background/cpus 0-1
 
-    # Set idle GPU to 133 Mhz
-    write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
+    # Set idle GPU to 133 Mhz --disabled for now--
+    # write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
 
     # Setting b.L scheduler parameters
     write /proc/sys/kernel/sched_upmigrate 95
@@ -73,17 +73,17 @@ on property:sys.post_boot.parsed=1
     write /sys/devices/soc/soc:qcom,bcl/hotplug_soc_mask 0
     write /sys/devices/soc/soc:qcom,bcl/mode "enable"
 
-    # Tweak VM
-    write /proc/sys/vm/swappiness 100
-    write /proc/sys/vm/dirty_background_ratio 20
-    write /proc/sys/vm/dirty_ratio 40
-    write /proc/sys/vm/vfs_cache_pressure 50
-    write /proc/sys/vm/oom_dump_tasks 1
-    write /proc/sys/vm/oom_kill_allocating_task 0
-    write /proc/sys/vm/overcommit_ratio 50
-    write /proc/sys/vm/panic_on_oom 0
-    write /proc/sys/vm/swap_ratio 100
-    write /proc/sys/vm/dirty_expire_centisecs 400
-    write /proc/sys/vm/dirty_writeback_centisecs 1000
+    # Tweak VM --disabled for g6--
+    # write /proc/sys/vm/swappiness 100
+    # write /proc/sys/vm/dirty_background_ratio 20
+    # write /proc/sys/vm/dirty_ratio 40
+    # write /proc/sys/vm/vfs_cache_pressure 50
+    # write /proc/sys/vm/oom_dump_tasks 1
+    # write /proc/sys/vm/oom_kill_allocating_task 0
+    # write /proc/sys/vm/overcommit_ratio 50
+    # write /proc/sys/vm/panic_on_oom 0
+    # write /proc/sys/vm/swap_ratio 100
+    # write /proc/sys/vm/dirty_expire_centisecs 400
+    # write /proc/sys/vm/dirty_writeback_centisecs 1000
 
     write /dev/kmsg "Boot completed "
