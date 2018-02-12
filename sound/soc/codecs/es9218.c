@@ -1051,8 +1051,7 @@ static int es9218_sabre_bypass2hifi(void)
 	es9218_reset_gpio_H();
 	mdelay(1);
 
-    if (g_ess_rev == ESS_A) {
-		
+	if (g_ess_rev == ESS_A) {
 		if (g_dop_flag == 0) {
 			pr_info("%s() : ESS_A Running !! \n", __func__);
 			for (i = 0 ; i < sizeof(es9218_init_register) / sizeof(es9218_init_register[0]) ; i++) {

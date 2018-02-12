@@ -399,7 +399,9 @@ static int msm_afe_lb_vol_ctrl;
 static int msm_afe_sec_mi2s_lb_vol_ctrl;
 static int msm_afe_tert_mi2s_lb_vol_ctrl;
 static int msm_afe_quat_mi2s_lb_vol_ctrl;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int msm_afe_slimbus_3_lb_vol_ctrl;
+#endif
 static const DECLARE_TLV_DB_LINEAR(fm_rx_vol_gain, 0, INT_RX_VOL_MAX_STEPS);
 static const DECLARE_TLV_DB_LINEAR(afe_lb_vol_gain, 0, INT_RX_VOL_MAX_STEPS);
 
@@ -526,6 +528,7 @@ static int msm_qti_pp_set_quat_mi2s_fm_vol_mixer(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int msm_qti_pp_get_slimbus_3_lb_vol_mixer(struct snd_kcontrol *kcontrol,
                        struct snd_ctl_elem_value *ucontrol)
 {
@@ -549,7 +552,7 @@ static int msm_qti_pp_set_slimbus_3_lb_vol_mixer(struct snd_kcontrol *kcontrol,
 
     return ret;
 }
-
+#endif
 
 static int msm_qti_pp_get_hfp_vol_mixer(struct snd_kcontrol *kcontrol,
 					struct snd_ctl_elem_value *ucontrol)
@@ -843,12 +846,13 @@ static const struct snd_kcontrol_new quat_mi2s_lb_vol_mixer_controls[] = {
 };
 #endif
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static const struct snd_kcontrol_new slimbus_3_lb_vol_mixer_controls[] = {
     SOC_SINGLE_EXT_TLV("SLIMBUS_3 LOOPBACK Volume", SND_SOC_NOPM, 0,
     INT_RX_VOL_GAIN, 0, msm_qti_pp_get_slimbus_3_lb_vol_mixer,
     msm_qti_pp_set_slimbus_3_lb_vol_mixer, afe_lb_vol_gain),
 };
-
+#endif
 static const struct snd_kcontrol_new int_hfp_vol_mixer_controls[] = {
 	SOC_SINGLE_EXT_TLV("Internal HFP RX Volume", SND_SOC_NOPM, 0,
 	INT_RX_VOL_GAIN, 0, msm_qti_pp_get_hfp_vol_mixer,
@@ -1051,9 +1055,10 @@ void msm_qti_pp_add_controls(struct snd_soc_platform *platform)
 			ARRAY_SIZE(quat_mi2s_lb_vol_mixer_controls));
 #endif
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
     snd_soc_add_platform_controls(platform, slimbus_3_lb_vol_mixer_controls,
             ARRAY_SIZE(slimbus_3_lb_vol_mixer_controls));
-
+#endif
 	snd_soc_add_platform_controls(platform, int_hfp_vol_mixer_controls,
 			ARRAY_SIZE(int_hfp_vol_mixer_controls));
 

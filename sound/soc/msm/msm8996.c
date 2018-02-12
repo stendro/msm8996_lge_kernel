@@ -72,11 +72,15 @@
 static int slim0_rx_sample_rate = SAMPLING_RATE_48KHZ;
 static int slim0_tx_sample_rate = SAMPLING_RATE_48KHZ;
 static int slim1_tx_sample_rate = SAMPLING_RATE_48KHZ;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int slim3_tx_sample_rate = SAMPLING_RATE_48KHZ;
+#endif
 static int slim0_rx_bit_format = SNDRV_PCM_FORMAT_S16_LE;
 static int slim0_tx_bit_format = SNDRV_PCM_FORMAT_S16_LE;
 static int slim1_tx_bit_format = SNDRV_PCM_FORMAT_S16_LE;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int slim3_tx_bit_format = SNDRV_PCM_FORMAT_S16_LE;
+#endif
 static int hdmi_rx_bit_format = SNDRV_PCM_FORMAT_S16_LE;
 static int msm8996_auxpcm_rate = SAMPLING_RATE_8KHZ;
 static int slim5_rx_sample_rate = SAMPLING_RATE_48KHZ;
@@ -90,7 +94,9 @@ static int msm8996_spk_control = 1;
 static int msm_slim_0_rx_ch = 1;
 static int msm_slim_0_tx_ch = 1;
 static int msm_slim_1_tx_ch = 1;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int msm_slim_3_tx_ch = 1;
+#endif
 static int msm_slim_5_rx_ch = 1;
 static int msm_slim_6_rx_ch = 1;
 static int msm_hifi_control;
@@ -925,6 +931,9 @@ static int slim0_rx_sample_rate_put(struct snd_kcontrol *kcontrol,
 	default:
 		slim0_rx_sample_rate = SAMPLING_RATE_48KHZ;
 	}
+#if defined(CONFIG_SND_USE_SEC_MI2S) && defined(CONFIG_MACH_MSM8996_ELSA)
+	sec_mi2s_sample_rate = slim0_rx_sample_rate;
+#endif
 	pr_debug("%s: slim0_rx_sample_rate = %d\n", __func__,
 		 slim0_rx_sample_rate);
 
@@ -1116,6 +1125,9 @@ static int slim0_rx_bit_format_put(struct snd_kcontrol *kcontrol,
 		slim0_rx_bit_format = SNDRV_PCM_FORMAT_S16_LE;
 		break;
 	}
+#if defined(CONFIG_SND_USE_SEC_MI2S) && defined(CONFIG_MACH_MSM8996_ELSA)
+	sec_mi2s_bit_format = slim0_rx_bit_format;
+#endif
 	return 0;
 }
 
@@ -1208,6 +1220,7 @@ static int msm_slim_1_tx_ch_put(struct snd_kcontrol *kcontrol,
 	return 1;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int msm_slim_3_tx_ch_get(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
@@ -1225,6 +1238,7 @@ static int msm_slim_3_tx_ch_put(struct snd_kcontrol *kcontrol,
 	pr_debug("%s: msm_slim_3_tx_ch = %d\n", __func__, msm_slim_3_tx_ch);
 	return 1;
 }
+#endif
 
 static int msm_vi_feed_tx_ch_get(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
@@ -1899,6 +1913,7 @@ static int msm_slim_1_tx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int msm_slim_3_tx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 					    struct snd_pcm_hw_params *params)
 {
@@ -1914,6 +1929,7 @@ static int msm_slim_3_tx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 
 	return 0;
 }
+#endif
 
 static int msm_slim_4_tx_be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 					    struct snd_pcm_hw_params *params)
@@ -2013,8 +2029,10 @@ static const struct snd_kcontrol_new msm_snd_controls[] = {
 			msm_slim_0_tx_ch_get, msm_slim_0_tx_ch_put),
 	SOC_ENUM_EXT("SLIM_1_TX Channels", msm_snd_enum[2],
 			msm_slim_1_tx_ch_get, msm_slim_1_tx_ch_put),
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	SOC_ENUM_EXT("SLIM_3_TX Channels", msm_snd_enum[2],
 			msm_slim_3_tx_ch_get, msm_slim_3_tx_ch_put),
+#endif
 	SOC_ENUM_EXT("AUX PCM SampleRate", msm8996_auxpcm_enum[0],
 			msm8996_auxpcm_rate_get,
 			msm8996_auxpcm_rate_put),
@@ -2369,7 +2387,7 @@ static int msm_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	}
 	/* Start mbhc */
 #if defined(CONFIG_SND_SOC_ES9218P)
-	if(enable_es9218p) {
+	if (enable_es9218p) {
 		wcd_mbhc_cfg.moist_cfg.m_vref_ctl = V_OFF;
 		wcd_mbhc_cfg.moist_cfg.m_iref_ctl = I_OFF;
 		pr_info("%s : set moist_cfg installed es9218p chip : m_vref_ctl %d, m_iref_ctl %d",__func__,wcd_mbhc_cfg.moist_cfg.m_vref_ctl,wcd_mbhc_cfg.moist_cfg.m_iref_ctl);
@@ -2549,7 +2567,11 @@ static int msm_snd_hw_params(struct snd_pcm_substream *substream,
 			 * Since Rx is fed as reference for EC, the config of
 			 * this DAI is based on that of the Rx path.
 			 */
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 			user_set_tx_ch = msm_slim_3_tx_ch;
+#else
+			user_set_tx_ch = msm_slim_0_rx_ch;
+#endif
 		else if (dai_link->be_id == MSM_BACKEND_DAI_SLIMBUS_4_TX)
 			user_set_tx_ch = msm_vi_feed_tx_ch;
 		else
@@ -3723,11 +3745,19 @@ static struct snd_soc_dai_link msm8996_tasha_be_dai_links[] = {
 		.cpu_dai_name = "msm-dai-q6-dev.16391",
 		.platform_name = "msm-pcm-routing",
 		.codec_name = "tasha_codec",
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		.codec_dai_name = "tasha_tx3",
+#else
+		.codec_dai_name = "tasha_tx1",
+#endif
 		.no_pcm = 1,
 		.dpcm_capture = 1,
 		.be_id = MSM_BACKEND_DAI_SLIMBUS_3_TX,
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		.be_hw_params_fixup = msm_slim_3_tx_be_hw_params_fixup,
+#else
+		.be_hw_params_fixup = msm_slim_0_tx_be_hw_params_fixup,
+#endif
 		.ops = &msm8996_be_ops,
 		.ignore_suspend = 1,
 	},
@@ -3962,7 +3992,7 @@ static struct snd_soc_dai_link msm8996_lge_dai_links[] = {
 		.ignore_pmdown_time = 1,
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA2,
 	},
-#endif
+#endif /* CONFIG_SND_USE_SEC_MI2S */
 #ifdef CONFIG_SND_USE_TERT_MI2S
 	{
 		.name = LPASS_BE_TERT_MI2S_RX,
@@ -3998,7 +4028,7 @@ static struct snd_soc_dai_link msm8996_lge_dai_links[] = {
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA2,
 	},
 #endif /* CONFIG_SND_USE_TERT_MI2S */
-	/* SLIMBUS_3 Hostless Capture */
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	{
 		.name = "SLIMBUS_3 Hostless Capture",
 		.stream_name = "SLIMBUS3_HOSTLESS Capture",
@@ -4014,7 +4044,7 @@ static struct snd_soc_dai_link msm8996_lge_dai_links[] = {
 		.codec_dai_name = "snd-soc-dummy-dai",
 		.codec_name = "snd-soc-dummy",
 	},
-
+#endif
 };
 
 static struct snd_soc_dai_link msm8996_dummy_dai_link[] = {

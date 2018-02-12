@@ -44,7 +44,7 @@
 #include "wcd9xxx-resmgr-v2.h"
 #include "wcd_cpe_core.h"
 #include "wcdcal-hwdep.h"
-#ifdef CONFIG_MACH_LGE // add switch dev for SAR backoff
+#ifdef CONFIG_MACH_MSM8996_LUCYE // add switch dev for SAR backoff
 #include <linux/switch.h>
 #endif
 
@@ -817,7 +817,7 @@ struct tasha_priv {
 #ifdef CONFIG_SND_USE_KNOWLES_DMIC_DELAY
 	bool dmic_delay;
 #endif
-#ifdef CONFIG_MACH_LGE // add switch dev for SAR backoff
+#ifdef CONFIG_MACH_MSM8996_LUCYE // add switch dev for SAR backoff
 	struct switch_dev sar;
 #endif
 };
@@ -1481,13 +1481,15 @@ static int tasha_micbias_control(struct snd_soc_codec *codec,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int micb_ena_status;
 static int micb_pullup_status;
+#endif
 static int tasha_mbhc_request_micbias(struct snd_soc_codec *codec,
 				      int micb_num, int req)
 {
 	int ret;
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	pr_info("[LGE MBHC] enter en_status=%d, pullup_status=%d, req=%d \n", micb_ena_status, micb_pullup_status, req);
 	if((req == MICB_ENABLE) || (req == MICB_DISABLE)) {
 		if(micb_ena_status == req)
@@ -1520,7 +1522,7 @@ static int tasha_mbhc_request_micbias(struct snd_soc_codec *codec,
 	 */
 	if (req == MICB_DISABLE)
 		tasha_cdc_mclk_enable(codec, false, false);
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	if((req == MICB_ENABLE) || (req == MICB_DISABLE))
 		micb_ena_status = req;//2, 3
 	else if((req == MICB_PULLUP_ENABLE) || (req == MICB_PULLUP_DISABLE))
@@ -4141,7 +4143,7 @@ static int tasha_codec_enable_ear_pa(struct snd_soc_dapm_widget *w,
 {
 	struct snd_soc_codec *codec = w->codec;
 	int ret = 0;
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	struct tasha_priv *tasha = snd_soc_codec_get_drvdata(codec);
 #endif
 	dev_dbg(codec->dev, "%s %s %d\n", __func__, w->name, event);
@@ -4151,7 +4153,7 @@ static int tasha_codec_enable_ear_pa(struct snd_soc_dapm_widget *w,
 		/* 5ms sleep is required after PA is enabled as per
 		 * HW requirement
 		 */
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		pr_info("%s : enable SAR backoff\n", __func__);
 		switch_set_state(&tasha->sar, 1);
 #endif
@@ -4169,7 +4171,7 @@ static int tasha_codec_enable_ear_pa(struct snd_soc_dapm_widget *w,
 		/* 5ms sleep is required after PA is disabled as per
 		 * HW requirement
 		 */
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		pr_info("%s : disable SAR backoff\n", __func__);
 		switch_set_state(&tasha->sar, 0);
 #endif
@@ -11835,7 +11837,7 @@ static int tasha_dig_core_power_collapse(struct tasha_priv *tasha,
 		return 0;
 
 	mutex_lock(&tasha->power_lock);
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	if (req_state == POWER_COLLAPSE)
 	{
 		if (tasha->power_active_ref <= 0) {
@@ -12407,7 +12409,7 @@ static void tasha_codec_init_reg(struct snd_soc_codec *codec)
 					tasha_codec_reg_init_val_2_0[i].mask,
 					tasha_codec_reg_init_val_2_0[i].val);
 	}
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	micb_ena_status = 3;
 	micb_pullup_status = 1;
 #endif
@@ -14067,7 +14069,7 @@ static int tasha_probe(struct platform_device *pdev)
 	schedule_work(&tasha->swr_add_devices_work);
 	tasha_get_codec_ver(tasha);
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	tasha->sar.name = "sar_backoff";
 	ret = switch_dev_register(&tasha->sar);
 	if (ret < 0) {
