@@ -830,7 +830,11 @@ static const struct tasha_reg_mask_val tasha_spkr_default[] = {
 	{WCD9335_CDC_COMPANDER8_CTL3, 0x80, 0x80},
 	{WCD9335_CDC_COMPANDER7_CTL7, 0x01, 0x01},
 	{WCD9335_CDC_COMPANDER8_CTL7, 0x01, 0x01},
+#ifdef CONFIG_MACH_MSM8996_H1
+	{WCD9335_CDC_BOOST0_BOOST_CTL, 0x7C, 0x58},
+#else
 	{WCD9335_CDC_BOOST0_BOOST_CTL, 0x7C, 0x50},
+#endif
 	{WCD9335_CDC_BOOST1_BOOST_CTL, 0x7C, 0x50},
 };
 
@@ -1813,12 +1817,21 @@ static void tasha_wcd_mbhc_calc_impedance(struct wcd_mbhc *mbhc, uint32_t *zl,
 	bool is_fsm_disable = false;
 	bool is_change = false;
 
+#if defined(CONFIG_MACH_MSM8996_H1) || defined(CONFIG_MACH_MSM8996_ELSA)
+	struct tasha_mbhc_zdet_param zdet_param[] = {
+		{4, 0, 4, 0x08, 0x14, 0x18}, /* < 32ohm */
+		{2, 0, 3, 0x18, 0x7C, 0x90}, /* 32ohm < Z < 400ohm */
+		{1, 4, 5, 0x18, 0x7C, 0x90}, /* 400ohm < Z < 1200ohm */
+		{1, 6, 7, 0x18, 0x7C, 0x90}, /* >1200ohm */
+	};
+#else
 	struct tasha_mbhc_zdet_param zdet_param[] = {
 		{4, 0, 4, 0x08, 0x14, 0x18}, /* < 32ohm */
 		{2, 0, 3, 0x18, 0x7C, 0x90}, /* 32ohm < Z < 400ohm */
 		{3, 4, 3, 0x18, 0x7C, 0x90}, /* 400ohm < Z < 1200ohm */
 		{3, 6, 6, 0x18, 0x7C, 0x90}, /* >1200ohm */
 	};
+#endif
 	struct tasha_mbhc_zdet_param *zdet_param_ptr = NULL;
 	s16 d1_a[][4] = {
 		{0, 30, 90, 30},
@@ -7615,7 +7628,7 @@ static int tasha_rx_hph_mode_put(struct snd_kcontrol *kcontrol,
 		__func__, mode_val);
 
 	if (mode_val == 0) {
-#if 0 //qct org
+#ifdef CONFIG_MACH_MSM8996_H1 //qct org
 		dev_warn(codec->dev, "%s:Invalid HPH Mode, default to Cls-H HiFi\n",
 			__func__);
 		mode_val = CLS_H_HIFI;
@@ -13190,7 +13203,7 @@ static int tasha_post_reset_cb(struct wcd9xxx *wcd9xxx)
 
 	/* Class-H Init*/
 	wcd_clsh_init(&tasha->clsh_d);
-#if 0
+#ifdef CONFIG_MACH_MSM8996_H1
 	/* Default HPH Mode to Class-H HiFi */
 	tasha->hph_mode = CLS_H_HIFI;
 #else //LG modification, LG default mode is set to CLS_H_LP
@@ -13308,7 +13321,7 @@ static int tasha_codec_probe(struct snd_soc_codec *codec)
 	}
 	/* Class-H Init*/
 	wcd_clsh_init(&tasha->clsh_d);
-#if 0
+#ifdef CONFIG_MACH_MSM8996_H1
 	/* Default HPH Mode to Class-H HiFi */
 	tasha->hph_mode = CLS_H_HIFI;
 #else //LG modification, LG default mode is set to CLS_H_LP

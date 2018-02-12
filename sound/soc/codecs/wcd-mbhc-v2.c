@@ -38,9 +38,8 @@ struct power_supply *usb_psy;
 union power_supply_propval value;
 #endif
 
-#define HDSET_FACTORY
-
 #ifdef CONFIG_MACH_MSM8996_LUCYE
+#define HDSET_FACTORY
 #define SKIP_RECALC_IMPED
 #if defined(SKIP_RECALC_IMPED)  // defensive code
 static bool skip_recalc_imped = false;
@@ -161,10 +160,10 @@ enum {
 void touch_notify_earjack(int value);
 #endif
 
+#ifdef CONFIG_SND_SOC_ES9218P
 /* z floating defined in ohms */
 #define TASHA_ZDET_FLOATING_IMPEDANCE 0x0FFFFFFE // aleady defined in wcd9335.h
 
-#ifdef CONFIG_SND_SOC_ES9218P
 static void wcd_mbhc_hs_elec_irq(struct wcd_mbhc *mbhc, int irq_type, bool enable);
 static void wcd_enable_curr_micbias(const struct wcd_mbhc *mbhc, const enum wcd_mbhc_cs_mb_en_flag cs_mb_en);
 #define MOISTURE_Z_MIN 650
@@ -393,7 +392,7 @@ static int lge_set_switch_device(struct wcd_mbhc *mbhc, int status)
 #if defined(CONFIG_SND_SOC_ES9218P)
 						(mbhc->zr < (enable_es9218p?LGE_ADVANCED_HEADSET_THRESHOLD-220:LGE_ADVANCED_HEADSET_THRESHOLD))?"Headset":"AUX Cable",
 #else
-                        (mbhc->zr < LGE_ADVANCED_HEADSET_THRESHOLD)?"Headset":"AUX Cable",
+						(mbhc->zr < LGE_ADVANCED_HEADSET_THRESHOLD)?"Headset":"AUX Cable",
 #endif
 						status);
 
@@ -464,7 +463,7 @@ static void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 #endif
 		switch_set_state(&mbhc->sdev, switch_device);
 #if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
-		if(enable_es9218p) {
+		if (enable_es9218p) {
 			if (status == 0)
 				es9218_sabre_headphone_off();
 			else if (status == SND_JACK_HEADPHONE
@@ -472,7 +471,7 @@ static void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 				|| status == SND_JACK_LINEOUT) {
 				pr_info("[LGE MBHC] %s: call #1 es9218_sabre_headphone_on()\n", __func__);
 				es9218_sabre_headphone_on();
-            }
+				}
 			else
 				pr_debug("%s: not reported to switch_dev\n", __func__);
 		}
@@ -2414,7 +2413,7 @@ determine_plug:
 	mbhc->btn_press_intr = false;
 	mbhc->is_btn_press = false;
 #ifdef CONFIG_MACH_LGE
-        msleep(500);
+	msleep(500);
 #endif
 #ifdef CONFIG_SND_SOC_ES9218P
 	if (mbhc->lge_moist_det_en) {
@@ -2882,8 +2881,8 @@ static int wcd_mbhc_initialise(struct wcd_mbhc *mbhc)
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_DBNC, 3);
 	}
 #else
-		/* Button Debounce set to 32ms */
-		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_DBNC, 3);
+	/* Button Debounce set to 16ms */
+	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_DBNC, 2);
 #endif
 	/* enable bias */
 	mbhc->mbhc_cb->mbhc_bias(codec, true);

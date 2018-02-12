@@ -2448,7 +2448,7 @@ static void *def_tasha_mbhc_cal(void)
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(tasha_wcd_cal)->X) = (Y))
 	S(v_hs_max, 1500);
 #if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
-	if(enable_es9218p){
+	if (enable_es9218p) {
 		S(v_hs_max, 2800);
 		pr_info("%s: set v_hs_max as 2800 installed es9218p chip\n", __func__);
 	}
@@ -3998,20 +3998,21 @@ static struct snd_soc_dai_link msm8996_lge_dai_links[] = {
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA2,
 	},
 #endif /* CONFIG_SND_USE_TERT_MI2S */
+	/* SLIMBUS_3 Hostless Capture */
 	{
-        .name = "SLIMBUS_3 Hostless Capture",
-        .stream_name = "SLIMBUS3_HOSTLESS Capture",
-        .cpu_dai_name = "SLIMBUS3_HOSTLESS",
-        .platform_name = "msm-pcm-hostless",
-        .dynamic = 1,
-        .dpcm_capture = 1,
-        .trigger = {SND_SOC_DPCM_TRIGGER_POST,
-                SND_SOC_DPCM_TRIGGER_POST},
-        .no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
-        .ignore_suspend = 1,
-        .ignore_pmdown_time = 1,
-        .codec_dai_name = "snd-soc-dummy-dai",
-        .codec_name = "snd-soc-dummy",
+		.name = "SLIMBUS_3 Hostless Capture",
+		.stream_name = "SLIMBUS3_HOSTLESS Capture",
+		.cpu_dai_name = "SLIMBUS3_HOSTLESS",
+		.platform_name = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
 	},
 
 };
