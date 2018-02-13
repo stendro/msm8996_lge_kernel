@@ -2798,7 +2798,8 @@ static void smbchg_parallel_usb_taper_work(struct work_struct *work)
 		parallel_fcc_ma = pval.intval / 1000;
 	}
 	else {
-		schedule_delayed_work(&chip->parallel_usb_taper_work,
+		queue_delayed_work(system_power_efficient_wq,
+			&chip->parallel_usb_taper_work,
 			msecs_to_jiffies(2000));
 		return;
 	}

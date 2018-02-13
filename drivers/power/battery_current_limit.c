@@ -317,7 +317,7 @@ static void power_supply_callback(struct power_supply *psy)
 				POWER_SUPPLY_PROP_CAPACITY, &ret);
 		battery_percentage = ret.intval;
 		battery_soc_val = battery_percentage;
-		pr_debug("Battery SOC reported:%d", battery_soc_val);
+		pr_debug("Battery SOC reported:%d\n", battery_soc_val);
 		trace_bcl_sw_mitigation("SoC reported", battery_soc_val);
 		prev_soc_state = bcl_soc_state;
 		bcl_soc_state = (battery_soc_val <= soc_low_threshold) ?
