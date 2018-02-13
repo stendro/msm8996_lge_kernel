@@ -734,7 +734,6 @@ struct fg_chip {
 	bool		use_last_cc_soc;
 	int64_t 	last_cc_soc;
         /* Sanity check */
-
 	struct delayed_work	check_sanity_work;
 	struct fg_wakeup_source	sanity_wakeup_source;
 	u8			last_beat_count;

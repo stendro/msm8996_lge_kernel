@@ -5,7 +5,11 @@ obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER)		+= lge_power_class_cha
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER)		+= lge_power_class_battery_id_checker.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_DOCK)		+= lge_power_class_dock.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_UEVENT)		+= lge_power_class_uevent.o
+ifndef CONFIG_MACH_MSM8996_LUCYE
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_VZW_REQ)		+= lge_power_class_vzw_req.o
+else
+obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_VZW_REQ)		+= lge_power_class_vzw_req_lucye.o
+endif
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION) += lge_power_class_board_revision.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_STORE_MODE) += lge_power_class_store_mode.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_PSEUDO_BATTERY) += lge_power_class_pseudo_battery.o

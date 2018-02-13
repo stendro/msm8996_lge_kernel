@@ -143,14 +143,18 @@ enum lge_power_property {
 #ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
 	LGE_POWER_PROP_USB_CURRENT_MAX_MODE,
 #endif
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	LGE_POWER_PROP_CHECK_ONLY_USB_ID,
+#endif
 	LGE_POWER_PROP_QC_IBAT_CURRENT,
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TDMB_MODE
 	LGE_POWER_PROP_TDMB_MODE_ON,
 #endif
 	LGE_POWER_PROP_CHARGE_DONE,
 	LGE_POWER_PROP_VOLTAGE_NOW,
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	LGE_POWER_PROP_USB_CHARGING_ENABLED,
+#endif
 };
 enum lge_power_type {
 	LGE_POWER_TYPE_UNKNOWN = 0,
@@ -251,7 +255,9 @@ extern struct lge_power *lge_power_get_by_name(const char *name);
 extern void lge_power_changed(struct lge_power *lpc);
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 extern int lgcc_get_effective_icl_id(void);
+#endif
 extern int lgcc_get_effective_fcc_result(void);
 #endif
 

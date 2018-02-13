@@ -143,7 +143,9 @@ static void lge_sm_external_lge_power_changed(struct lge_power *lpc)
 static enum lge_power_property lge_power_lge_sm_properties[] = {
 	LGE_POWER_PROP_STORE_DEMO_ENABLED,
 	LGE_POWER_PROP_CHARGING_ENABLED,
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	LGE_POWER_PROP_USB_CHARGING_ENABLED,
+#endif
 };
 
 static int
@@ -206,9 +208,11 @@ static int lge_power_lge_sm_get_property(struct lge_power *lpc,
 		val->intval = chip->charging_enable;
 		break;
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	case LGE_POWER_PROP_USB_CHARGING_ENABLED:
 		val->intval = chip->iusb_enable;
 		break;
+#endif
 
 	default:
 		ret_val = -EINVAL;

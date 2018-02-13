@@ -346,7 +346,9 @@ lge_power_property lge_power_cable_detect_properties[] = {
 #ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
 	LGE_POWER_PROP_USB_CURRENT_MAX_MODE,
 #endif
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	LGE_POWER_PROP_CHECK_ONLY_USB_ID,
+#endif
 	LGE_POWER_PROP_CHARGE_DONE,
 };
 
@@ -466,8 +468,10 @@ lge_power_lge_cable_detect_get_property(struct lge_power *lpc,
 	struct cable_detect *cd
 			= container_of(lpc, struct cable_detect, lge_cd_lpc);
 	int batt_id = lge_check_battery_id_info(cd);
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	struct cable_info_table *cable_info_table;
 	int adc = 0;
+#endif
 
 	switch (lpp) {
 	case LGE_POWER_PROP_IS_FACTORY_CABLE:
@@ -579,6 +583,8 @@ lge_power_lge_cable_detect_get_property(struct lge_power *lpc,
 		val->intval = cd->usb_current_max_mode;
 		break;
 #endif
+
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	case LGE_POWER_PROP_CHECK_ONLY_USB_ID:
 		adc = cable_detect_get_usb_id_adc(cd);
 		list_for_each_entry(cable_info_table, &cd->cable_data_list, list) {
@@ -598,6 +604,8 @@ lge_power_lge_cable_detect_get_property(struct lge_power *lpc,
 			}
 		}
 		break;
+#endif
+
 	default:
 		pr_err("Invalid cable detect property value(%d)\n",
 			(int)lpp);
