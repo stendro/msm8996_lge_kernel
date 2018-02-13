@@ -9,7 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#define DEBUG
+// #define DEBUG
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -30,9 +30,9 @@
 #include <sound/jack.h>
 #include "wcd-mbhc-v2.h"
 #include "wcdcal-hwdep.h"
+#ifdef CONFIG_SND_SOC_ES9218P
 #include <linux/syscalls.h>
 #include <linux/fs.h>
-#ifdef CONFIG_SND_SOC_ES9218P
 #include <linux/power_supply.h>
 struct power_supply *usb_psy;
 union power_supply_propval value;
@@ -51,7 +51,9 @@ extern int es9218_sabre_headphone_on(void);
 extern int es9218_sabre_headphone_off(void);
 extern int es9218_get_power_state(void);
 #endif
+#ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
+#endif
 
 #ifdef HDSET_FACTORY
 #include <soc/qcom/lge/board_lge.h>
