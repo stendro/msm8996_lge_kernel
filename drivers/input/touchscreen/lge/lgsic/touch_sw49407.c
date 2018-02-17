@@ -555,7 +555,7 @@ static int sw49407_get_swipe_data(struct device *dev)
 
 	ts->lpwg.code_num = count;
 	ts->lpwg.code[0].x = rdata[1] & 0xffff;
-	ts->lpwg.code[0].y = rdata[1]  >> 16;
+	ts->lpwg.code[0].x = rdata[1]  >> 16;
 
 	ts->lpwg.code[count].x = -1;
 	ts->lpwg.code[count].y = -1;
@@ -1155,7 +1155,6 @@ static int sw49407_lpwg_mode(struct device *dev)
 		/* normal */
 		TOUCH_I("resume ts->lpwg.screen on\n");
 		sw49407_lpwg_control(dev, LPWG_NONE);
-		atomic_set(&d->global_reset, GLOBAL_RESET_DONE);
 		if (ts->lpwg.qcover == HALL_NEAR)
 			sw49407_tc_driving(dev, LCD_MODE_U3_QUICKCOVER);
 		else
@@ -1165,20 +1164,13 @@ static int sw49407_lpwg_mode(struct device *dev)
 		sw49407_deep_sleep(dev);
 	} else {
 		/* partial */
+		TOUCH_I("resume Partial\n");
 		if (ts->lpwg.qcover == HALL_NEAR)
 			sw49407_tci_area_set(dev, QUICKCOVER_CLOSE);
 		else
 			sw49407_tci_area_set(dev, QUICKCOVER_OPEN);
 		sw49407_lpwg_control(dev, ts->lpwg.mode);
-
-		if (atomic_read(&d->global_reset) == GLOBAL_RESETING) {
-			TOUCH_I("SKIP resume Partial\n");
-			atomic_set(&d->global_reset, GLOBAL_RESET_DONE);
-			sw49407_tc_driving(dev, d->lcd_mode);
-		} else {
-			TOUCH_I("resume Partial\n");
-			sw49407_tc_driving(dev, LCD_MODE_U3_PARTIAL);
-		}
+		sw49407_tc_driving(dev, LCD_MODE_U3_PARTIAL);
 	}
 
 	return 0;
@@ -1292,7 +1284,7 @@ static void sw49407_lcd_mode(struct device *dev, u32 mode)
 	d->prev_lcd_mode = d->lcd_mode;
 	d->lcd_mode = mode;
 	if (d->lcd_mode == LCD_MODE_U3)
-		atomic_set(&d->global_reset, GLOBAL_RESETING);
+		atomic_set(&d->global_reset, GLOBAL_RESET_DONE);
 	TOUCH_I("lcd_mode: %d (prev: %d)\n", d->lcd_mode, d->prev_lcd_mode);
 }
 
@@ -2209,8 +2201,7 @@ static int sw49407_upgrade(struct device *dev)
 		TOUCH_I("get fwpath from test_fwpath:%s\n",
 			&ts->test_fwpath[0]);
 	} else if (ts->def_fwcnt) {
-		if (!strcmp(d->ic_info.product_id, "L1L57P1") ||
-				!strcmp(d->ic_info.product_id, "L1L52P1")) {
+		if (!strcmp(d->ic_info.product_id, "L1L57P1")) {
 			memcpy(fwpath, ts->def_fwpath[0], sizeof(fwpath));
 			TOUCH_I("get fwpath from def_fwpath : rev:%d\n",
 			d->ic_info.revision);

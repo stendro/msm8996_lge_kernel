@@ -182,6 +182,7 @@ static void write_file(struct device *dev, char *data, int write_time)
 		sys_chmod(fname, 0666);
 	} else {
 		TOUCH_E("%s : fname is NULL, can not open FILE\n", __func__);
+		set_fs(old_fs);
 		return;
 	}
 

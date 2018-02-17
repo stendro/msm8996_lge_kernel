@@ -246,7 +246,6 @@ enum {
 
 enum {
 	GLOBAL_RESET_START = 0,
-	GLOBAL_RESETING,
 	GLOBAL_RESET_DONE,
 };
 
