@@ -324,7 +324,7 @@ static int msm_pcm_playback_prepare(struct snd_pcm_substream *substream)
 	}
 
 	ret = q6asm_open_write_v3(prtd->audio_client,
-#ifdef CONFIG_MACH_MSM8996_LUCYE // 24bit ASM patch
+#ifdef CONFIG_MACH_LGE // 24bit ASM patch
 				  FORMAT_LINEAR_PCM, 24);
 #else
 				  FORMAT_LINEAR_PCM, bits_per_sample);
