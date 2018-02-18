@@ -147,7 +147,7 @@
 #define QPNP_TEST_TIMER_MS		5
 
 #ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
-#if defined(CONFIG_MACH_MSM8996_H1) || defined(CONFIG_MACH_MSM8996_ELSA)
+#ifndef CONFIG_MACH_MSM8996_LUCYE
 #define QPNP_HAP_OV_RB_MV 3016
 #else
 #define QPNP_HAP_OV_RB_MV 3596
@@ -347,7 +347,9 @@ struct qpnp_hap {
 	u32 vmax_mv;
 #ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
 	u32 vmax_mv_orig;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	bool bSkipOv;
+#endif
 #endif
 	u32 ilim_ma;
 	u32 sc_deb_cycles;
@@ -409,7 +411,6 @@ static u8 rb_pattern[] = {
 #ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
 /* LGE add qpnp_hap_vmax_config function for Overdrive and reverse braking in Direct MODE */
 static int qpnp_hap_vmax_config(struct qpnp_hap *hap, int odrb);
-bool elt_state;
 #endif
 #ifdef CONFIG_TSPDRV
 static int qpnp_hap_vmax_config(struct qpnp_hap *hap);
@@ -543,12 +544,18 @@ static int qpnp_hap_play(struct qpnp_hap *hap, int on)
 			hap->vmax_mv = hap->vmax_mv_orig * 2;
 #endif
 			/* LGE set Reverse braking tunning voltage */
+#ifndef CONFIG_MACH_MSM8996_LUCYE
+			hap->vmax_mv = QPNP_HAP_OV_RB_MV;
+#else
 			if(elt_state)
 				hap->vmax_mv = QPNP_HAP_VMAX_MAX_MV;
 			else
 				hap->vmax_mv = QPNP_HAP_OV_RB_MV;
+#endif
 			qpnp_hap_vmax_config(hap,1);
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 			hap->bSkipOv = 0;
+#endif
 		}
 	}
 #endif
@@ -567,8 +574,6 @@ static int qpnp_hap_play(struct qpnp_hap *hap, int on)
 	if (rc < 0)
 		return rc;
 #ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
-	dev_info(&hap->spmi->dev, "qpnp_hap_play: on = %d, voltage = %d \n", on, hap->vmax_mv);
-#else
 	dev_info(&hap->spmi->dev, "qpnp_hap_play: on = %d, voltage = %d \n", on, hap->vmax_mv);
 #endif
 	hap->reg_play = val;
@@ -1393,6 +1398,9 @@ static ssize_t qpnp_hap_amp_store(struct device *dev,
 
 	return count;
 }
+#endif
+
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static ssize_t qpnp_hap_elt_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -1630,9 +1638,11 @@ static struct device_attribute qpnp_hap_attrs[] = {
 	__ATTR(amp, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_hap_amp_show,
 			qpnp_hap_amp_store),
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	__ATTR(elt, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_hap_elt_show,
 			qpnp_hap_elt_store),
+#endif
 #endif
 	__ATTR(ramp_test, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_hap_ramp_test_data_show,
@@ -1935,14 +1945,14 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int value)
 			mutex_unlock(&hap->lock);
 			return;
 		}
-#ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
+#if defined(CONFIG_LGE_QPNP_HAPTIC_OV_RB) && defined (CONFIG_MACH_MSM8996_LUCYE)
 		hap->bSkipOv = 0;
 #endif
 		hap->state = 0;
 	} else {
 		value = (value > hap->timeout_ms ?
 				 hap->timeout_ms : value);
-#ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
+#if defined(CONFIG_LGE_QPNP_HAPTIC_OV_RB) && defined (CONFIG_MACH_MSM8996_LUCYE)
 		if (value > 810 && elt_state){
 			hap->bSkipOv = 1;
 		} else {
@@ -2034,7 +2044,9 @@ static void qpnp_hap_worker(struct work_struct *work)
 				return;
 
 			if ((reg & QPNP_HAP_STATUS_BUSY) == 0) {
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 				if (!hap->bSkipOv) {
+#endif
 				/* LGE add Over Drive time rate*/
 				unsigned long sleep_time;
 				/* LGE don't use 2 x VMAX */
@@ -2049,10 +2061,16 @@ static void qpnp_hap_worker(struct work_struct *work)
 
 				qpnp_hap_set(hap, 1);
 				/* LGE add Over Drive time rate*/
+#ifndef CONFIG_MACH_MSM8996_LUCYE
+				sleep_time = hap->wave_play_rate_us * 2;
+#else
 				sleep_time = hap->wave_play_rate_us * 4;
 				dev_dbg(&hap->spmi->dev, "qpnp_hap_worker: Sleep %lu us \n", sleep_time);
+#endif
 				usleep_range(sleep_time, sleep_time);
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 				}
+#endif
 				/* recover original vmax */
 				hap->vmax_mv = hap->vmax_mv_orig;
 				qpnp_hap_vmax_config(hap ,0 );
@@ -2391,7 +2409,7 @@ static int qpnp_hap_config(struct qpnp_hap *hap)
 			temp = i << 1;
 			reg |= hap->brake_pat[i] << temp;
 		}
-#ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
+#if defined(CONFIG_LGE_QPNP_HAPTIC_OV_RB) && defined(CONFIG_MACH_MSM8996_LUCYE)
 		reg=0x0f;
 #endif
 		rc = qpnp_hap_write_reg(hap, &reg,
@@ -2591,8 +2609,10 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 		hap->vmax_mv = temp;
 #ifdef CONFIG_LGE_QPNP_HAPTIC_OV_RB
 		hap->vmax_mv_orig = hap->vmax_mv;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		hap->bSkipOv = 0;
 		elt_state =0;
+#endif
 #endif
 	} else if (rc != -EINVAL) {
 		dev_err(&spmi->dev, "Unable to read vmax\n");
@@ -2699,6 +2719,7 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 	return 0;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 /* set vmax from other kernel module through opaque device struct */
 int qpnp_haptic_timed_vmax(struct timed_output_dev *timed, int value, int duration)
 {
@@ -2723,6 +2744,7 @@ int qpnp_haptic_timed_vmax(struct timed_output_dev *timed, int value, int durati
     return prev_vmax_mv;
 }
 EXPORT_SYMBOL_GPL(qpnp_haptic_timed_vmax);
+#endif
 
 static int qpnp_haptic_probe(struct spmi_device *spmi)
 {
