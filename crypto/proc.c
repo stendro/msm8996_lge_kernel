@@ -26,7 +26,7 @@
 #include <linux/cc_mode.h>
 #endif
 
-#if defined (CONFIG_CRYPTO_FIPS) || (CONFIG_CRYPTO_CCMODE)
+#if defined(CONFIG_CRYPTO_FIPS) || defined(CONFIG_CRYPTO_CCMODE)
 static struct ctl_table crypto_sysctl_table[] = {
 #ifdef CONFIG_CRYPTO_FIPS
 	{
