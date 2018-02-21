@@ -2219,8 +2219,9 @@ extern void do_set_cpus_allowed(struct task_struct *p,
 
 extern int set_cpus_allowed_ptr(struct task_struct *p,
 				const struct cpumask *new_mask);
-/* ADAPT_LGE_BMC */
+#ifdef CONFIG_LGE_PM_TRITON /* ADAPT_LGE_BMC */
 extern int sched_get_cpu_cstate(int cpu);
+#endif
 #else
 static inline void do_set_cpus_allowed(struct task_struct *p,
 				      const struct cpumask *new_mask)
@@ -2234,10 +2235,11 @@ static inline int set_cpus_allowed_ptr(struct task_struct *p,
 	return 0;
 }
 
-/* ADAPT_LGE_BMC */
+#ifdef CONFIG_LGE_PM_TRITON /* ADAPT_LGE_BMC */
 static inline int sched_get_cpu_cstate(int cpu)
 {
 }
+#endif
 #endif
 
 extern int sched_set_wake_up_idle(struct task_struct *p, int wake_up_idle);
