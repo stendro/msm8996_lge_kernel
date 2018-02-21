@@ -57,6 +57,9 @@ Currently I'm working on the mk2k-platinum branch, this is a rebase onto the v11
 The mk2k-gold branch has some problems with usb. I reverted few CAF patches and took gadget.c (drivers/usb/dwc3) up to linux stable.
 This seemed to have fixed a fast-charging issue that caused it to drop out randomly, but introduced a mtp/pc connection bug.
 
+G6: On this (platinum) branch, G6 will not boot for some unknown reason. To build for G6 see my [G6 Kernel] repository.
+
 [LG G5]: <https://forum.xda-developers.com/lg-g5/development/h850-mk2000-kernel-t3707822>
 [LG V20]: <https://forum.xda-developers.com/v20/development/h918-h910-us996-ucl-mk2000-kernel-t3708330>
 [LG G6]: <https://forum.xda-developers.com/lg-g6/development/us997-h870-mk2000-kernel-t3739494>
+[G6 Kernel]: <https://github.com/stendro/lge_g6_kernel/tree/mk2k-g6>
