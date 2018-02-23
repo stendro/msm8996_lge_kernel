@@ -42,7 +42,9 @@
 #endif
 #endif
 #if defined(CONFIG_LGE_HANDLE_PANIC)
+#if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_LUCYE)
 #include <soc/qcom/lge/lge_handle_panic.h>
+#endif
 #endif
 
 #define CREATE_MASK(NUM_BITS, POS) \
@@ -894,8 +896,10 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 	input_sync(pon->pon_input);
 
 #if defined(CONFIG_LGE_HANDLE_PANIC)
+#if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_LUCYE)
 	if(!!key_status)
 		lge_gen_key_panic(cfg->key_code);
+#endif
 #endif
 
 	cfg->old_state = !!key_status;

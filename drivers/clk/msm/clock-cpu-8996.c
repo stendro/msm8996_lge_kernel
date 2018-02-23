@@ -41,7 +41,7 @@
 #include "clock.h"
 #include "vdd-level-8994.h"
 
-#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #include <soc/qcom/lge/board_lge.h>
 #include <soc/qcom/socinfo.h>
 #include <soc/qcom/smem.h>
@@ -1264,7 +1264,7 @@ static void populate_opp_table(struct platform_device *pdev)
 	perfcl_fmax = perfcl_clk.c.fmax[perfcl_clk.c.num_fmax - 1];
 	cbf_fmax = cbf_clk.c.fmax[cbf_clk.c.num_fmax - 1];
 
-#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	pr_err("pwrcl_fmax, perfcl_fmax, cbf_fmax : %lu %lu %lu\n",
 			pwrcl_fmax, perfcl_fmax, cbf_fmax);
 #endif
@@ -1313,7 +1313,7 @@ unsigned long perfcl_early_boot_rate = 883200000;
 unsigned long cbf_early_boot_rate = 614400000;
 unsigned long alt_pll_early_boot_rate = 307200000;
 
-#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #define BUILD_ID_LENGTH 32
 
 struct socinfo_v0_1 {
@@ -1359,7 +1359,7 @@ static int cpu_clock_8996_driver_probe(struct platform_device *pdev)
 
 	snprintf(perfclspeedbinstr, ARRAY_SIZE(perfclspeedbinstr),
 			"qcom,perfcl-speedbin%d-v%d", perfclspeedbin, pvs_ver);
-#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	_socinfo = smem_get_entry(SMEM_HW_SW_BUILD_ID, &size, 0, SMEM_ANY_HOST_FLAG);
 
 	if (_socinfo != NULL) {
@@ -1388,7 +1388,7 @@ static int cpu_clock_8996_driver_probe(struct platform_device *pdev)
 	snprintf(pwrclspeedbinstr, ARRAY_SIZE(pwrclspeedbinstr),
 			"qcom,pwrcl-speedbin%d-v%d", perfclspeedbin, pvs_ver);
 
-#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	if (_socinfo != NULL) {
 		if (_socinfo->v0_1.id == 305 &&
 				(lge_get_factory_boot()

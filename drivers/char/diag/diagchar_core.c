@@ -3336,8 +3336,13 @@ static int diagchar_setup_cdev(dev_t devno)
 		return -1;
 	}
 
+#ifndef CONFIG_MACH_MSM8996_LUCYE
+	driver->diag_dev = device_create(driver->diagchar_class, NULL, devno,
+					 (void *)driver, "diag_lge");
+#else
 	driver->diag_dev = device_create(driver->diagchar_class, NULL, devno,
 					 (void *)driver, "diag");
+#endif
 
 	if (!driver->diag_dev)
 		return -EIO;

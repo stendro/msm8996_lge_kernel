@@ -422,14 +422,18 @@ arch_initcall(lge_add_qfprom_devices);
 
 #ifdef CONFIG_LGE_USB_G_LAF
 static enum lge_laf_mode_type lge_laf_mode = LGE_LAF_MODE_NORMAL;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static enum lge_laf_mode_type lge_laf_mid = LGE_LAF_MODE_NORMAL;
+#endif
 
 int __init lge_laf_mode_init(char *s)
 {
 	if (strcmp(s, "") && strcmp(s, "MID"))
 		lge_laf_mode = LGE_LAF_MODE_LAF;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	if (!strcmp(s, "MID"))
 		lge_laf_mid = LGE_LAF_MODE_MID;
+#endif
 
 	return 1;
 }
@@ -440,10 +444,12 @@ enum lge_laf_mode_type lge_get_laf_mode(void)
 	return lge_laf_mode;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 enum lge_laf_mode_type lge_get_laf_mid(void)
 {
 	return lge_laf_mid;
 }
+#endif
 #endif
 
 static int lge_boot_reason = -1;
@@ -575,6 +581,7 @@ enum lge_alice_friends lge_get_alice_friends(void)
 }
 #endif
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 static int android_fota = 0;
 
 int lge_get_fota_mode(void)
@@ -619,3 +626,4 @@ int __init lge_boot_partition(char *s)
 	return 1;
 }
 __setup("lge.boot.partition=", lge_boot_partition);
+#endif

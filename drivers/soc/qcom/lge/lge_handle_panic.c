@@ -34,7 +34,9 @@
 #include <soc/qcom/lge/lge_handle_panic.h>
 #include <soc/qcom/lge/board_lge.h>
 
+#ifndef CONFIG_MACH_MSM8996_H1
 #include <linux/input.h>
+#endif
 
 #define PANIC_HANDLER_NAME        "panic-handler"
 
@@ -58,10 +60,12 @@ static int subsys_crash_magic;
 
 static struct panic_handler_data *panic_handler;
 
+#ifndef CONFIG_MACH_MSM8996_H1
 #define KEY_CRASH_TIMEOUT 3000
 static int gen_key_panic = 0;
 static int key_crash_cnt = 0;
 static unsigned long key_crash_last_time = 0;
+#endif
 
 void lge_set_subsys_crash_reason(const char *name, int type)
 {
@@ -100,11 +104,12 @@ void lge_set_restart_reason(unsigned int reason)
 
 void lge_set_panic_reason(void)
 {
+#ifndef CONFIG_MACH_MSM8996_H1
 	if (lge_get_download_mode() && gen_key_panic) {
 		lge_set_restart_reason(LGE_RB_MAGIC | LGE_ERR_KERN | LGE_ERR_KEY);
 		return;
 	}
-
+#endif
 	if (subsys_crash_magic == 0)
 		lge_set_restart_reason(LGE_RB_MAGIC | LGE_ERR_KERN);
 	else
@@ -119,6 +124,7 @@ int lge_get_restart_reason(void)
 		return 0;
 }
 
+#ifndef CONFIG_MACH_MSM8996_H1
 inline static void lge_set_key_crash_cnt(int key, int* clear)
 {
 	unsigned long cur_time = 0;
@@ -163,6 +169,7 @@ void lge_gen_key_panic(int key)
 		panic("%s: Generate panic by key!\n", __func__);
 	}
 }
+#endif
 
 static int gen_bug(const char *val, struct kernel_param *kp)
 {
@@ -609,7 +616,6 @@ static int pause_boot_lockup_detect(const char *val, struct kernel_param *kp)
     return 0;
 }
 module_param_call(pause_boot_lockup_detect, pause_boot_lockup_detect, NULL, NULL, S_IWUSR);
-#endif
 
 #define REBOOT_DEADLINE msecs_to_jiffies(30 * 1000)
 
@@ -618,7 +624,7 @@ static struct delayed_work lge_panic_reboot_work;
 static void lge_panic_reboot_work_func(struct work_struct *work)
 {
 
-    pr_emerg("==========================================================\n");
+	pr_emerg("==========================================================\n");
 	pr_emerg("WARNING: detecting lockup during reboot! forcing panic....\n");
 	pr_emerg("==========================================================\n");
 
@@ -642,11 +648,14 @@ static struct notifier_block lge_panic_reboot_notifier = {
 	NULL,
 	0
 };
+#endif
 
 static int __init lge_panic_handler_early_init(void)
 {
 	struct device_node *np;
+#ifdef CONFIG_LGE_BOOT_LOCKUP_DETECT
 	int ret = 0;
+#endif
 
 	panic_handler = kzalloc(sizeof(*panic_handler), GFP_KERNEL);
 	if (!panic_handler) {
@@ -691,7 +700,6 @@ static int __init lge_panic_handler_early_init(void)
 
 #ifdef CONFIG_LGE_BOOT_LOCKUP_DETECT
 	lge_init_boot_lockup_detect();
-#endif
 
 	/* register reboot notifier for detecting reboot lockup */
 	ret = register_reboot_notifier(&lge_panic_reboot_notifier);
@@ -699,6 +707,7 @@ static int __init lge_panic_handler_early_init(void)
 		pr_err("%s: Failed to register reboot notifier\n", __func__);
 		return ret;
 	}
+#endif
 
 	return 0;
 }

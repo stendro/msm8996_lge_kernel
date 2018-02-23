@@ -6059,6 +6059,7 @@ static void __setup_per_zone_wmarks(void)
 
 	for_each_zone(zone) {
 		u64 min, low;
+
 		spin_lock_irqsave(&zone->lock, flags);
 		min = (u64)pages_min * zone->managed_pages;
 		do_div(min, lowmem_pages);
@@ -6087,7 +6088,6 @@ static void __setup_per_zone_wmarks(void)
 			 */
 			zone->watermark[WMARK_MIN] = min;
 		}
-
 
 #ifdef CONFIG_HSWAP
 		if (!is_highmem(zone)) {
