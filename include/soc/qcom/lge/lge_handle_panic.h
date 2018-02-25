@@ -26,7 +26,7 @@
 #define LGE_ERR_LAF               0x0500
 #define LGE_ERR_LK                0x0600
 
-#ifndef CONFIG_MACH_MSM8996_H1
+#if defined(CONFIG_LGE_HANDLE_PANIC) && !defined(CONFIG_MACH_MSM8996_H1)
 #define LGE_ERR_KEY               0x004B
 #endif
 

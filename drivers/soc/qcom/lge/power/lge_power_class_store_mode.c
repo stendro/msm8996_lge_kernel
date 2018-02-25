@@ -40,7 +40,9 @@ struct lge_store_mode {
 	int capacity;
 	int llk_max_thr_soc;
 	int llk_min_thr_soc;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	int iusb_enable;
+#endif
 #ifdef CONFIG_LGE_PM_ONLY_STORE_MODE
 	int default_set;
 #endif
@@ -52,15 +54,19 @@ static void lge_sm_llk_work(struct work_struct *work)
 	struct lge_store_mode *chip = container_of(work, struct lge_store_mode,
 						llk_work);
 	int prev_chg_enable = chip->charging_enable;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	int prev_iusb_enable = chip->iusb_enable;
+#endif
 
 	if (chip->chg_present) {
 		if (chip->capacity > chip->llk_max_thr_soc) {
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 			chip->iusb_enable = 0;
 		} else {
 			chip->iusb_enable = 1;
 		}
 		if (chip->capacity >= chip->llk_max_thr_soc) {
+#endif
 			chip->charging_enable = 0;
 			pr_info("Stop charging by LLK_mode.\n");
 		}
@@ -68,8 +74,12 @@ static void lge_sm_llk_work(struct work_struct *work)
 			chip->charging_enable = 1;
 			pr_info("Start Charging by LLK_mode.\n");
 		}
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 		if ((chip->charging_enable != prev_chg_enable)
 			|| (chip->iusb_enable != prev_iusb_enable)) {
+#else
+		if (chip->charging_enable != prev_chg_enable) {
+#endif
 			pr_info("lge_power_changed in LLK_mode.\n");
 			lge_power_changed(&chip->lge_sm_lpc);
 		}
@@ -238,7 +248,9 @@ static int lge_store_mode_probe(struct platform_device *pdev)
 	chip->store_demo_enabled = 0;
 	lge_power_sm = &chip->lge_sm_lpc;
 	lge_power_sm->name = "lge_sm";
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	chip->iusb_enable = 1;
+#endif
 
 #ifdef CONFIG_LGE_PM_ONLY_STORE_MODE
 	ret = of_property_read_u32(pdev->dev.of_node, "lge,default-set",

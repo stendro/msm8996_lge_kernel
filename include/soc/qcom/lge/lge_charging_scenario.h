@@ -27,7 +27,7 @@
 #define DC_IUSB_CURRENT  450
 #define DC_CURRENT_DEF   -1
 
-#ifndef CONFIG_MACH_MSM8996_H1
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 #define HIGH_VBAT_THREHSOLD	3980000 // 4000 mV - float voltage margin 20 mV
 
 #define DECCUR_FLOAT_VOLTAGE	4000 // Warm & Cool float voltage 4000 mV
@@ -37,7 +37,7 @@
 /* Battery temperature states */
 
 #ifdef CONFIG_LGE_PM_OTP_SCENARIO_FOR_SPRINT
-#ifdef CONFIG_MACH_MSM8996_H1
+#ifndef CONFIG_MACH_MSM8996_LUCYE
 enum lge_battemp_states {
 	CHG_BATTEMP_BL_UT,
 	CHG_BATTEMP_M5_M3,
@@ -61,7 +61,7 @@ enum lge_battemp_states {
 };
 #endif
 #else
-#ifdef CONFIG_MACH_MSM8996_H1
+#ifndef CONFIG_MACH_MSM8996_LUCYE
 enum lge_battemp_states {
 	CHG_BATTEMP_BL_UT,
 	CHG_BATTEMP_M10_M5,
@@ -117,7 +117,7 @@ struct charging_info {
 	int     batt_temp;
 	int     is_charger;
 	int     current_now;
-#ifndef CONFIG_MACH_MSM8996_H1
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	int	max_chg_volt;
 #endif
 #ifdef CONFIG_LGE_THERMALE_CHG_CONTROL
@@ -134,7 +134,7 @@ struct charging_rsp {
 	bool                        disable_chg;
 /*	int                         dc_current; */ // Original g5/v20, substituted with chg_current.
 	int                         chg_current;
-#ifndef CONFIG_MACH_MSM8996_H1
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	int                         float_voltage;
 #endif
 	enum lge_btm_states         btm_state;

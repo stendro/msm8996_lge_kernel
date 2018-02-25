@@ -1,13 +1,14 @@
 obj-$(CONFIG_LGE_PM_LGE_POWER_CORE)		+= lge_power_class_core.o lge_power_class_sysfs.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_ADC_QCT)		+= lge_power_class_adc_qct.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT)		+= lge_power_class_cable_detect.o
-obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER)		+= lge_power_class_charging_controller.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER)		+= lge_power_class_battery_id_checker.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_DOCK)		+= lge_power_class_dock.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_UEVENT)		+= lge_power_class_uevent.o
 ifndef CONFIG_MACH_MSM8996_LUCYE
+obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER)		+= lge_power_class_charging_controller.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_VZW_REQ)		+= lge_power_class_vzw_req.o
 else
+obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER)		+= lge_power_class_charging_controller_lucye.o
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_VZW_REQ)		+= lge_power_class_vzw_req_lucye.o
 endif
 obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION) += lge_power_class_board_revision.o

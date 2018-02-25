@@ -38,7 +38,8 @@
 #define BTM_ALARM_PERIOD BTM_ALARM_TIME(60) /* 60sec */
 #endif
 #define RESTRICTED_CHG_CURRENT_500  500
-#define CHG_CURRENT_MAX 3100
+#define RESTRICTED_CHG_CURRENT_300  300
+#define CHG_CURRENT_MAX 3200
 
 struct lge_charging_controller {
 	struct device 			*dev;
@@ -47,7 +48,12 @@ struct lge_charging_controller {
 	struct power_supply		*bms_psy;
 	struct lge_power 		lge_cc_lpc;
 	struct lge_power 		*lge_cd_lpc;
-
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_PSEUDO_BATTERY
+	struct lge_power *lge_pb_lpc;
+#endif
+#ifdef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
+	struct delayed_work		batt_cap_fcc_work;
+#endif
 	struct delayed_work 	battemp_work;
 	struct wake_lock 		lcs_wake_lock;
 #ifndef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
@@ -70,6 +76,9 @@ struct lge_charging_controller {
 	int start_batt_temp;
 	int stop_batt_temp;
 	int chg_enable;
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	int before_chg_enable;
+#endif
 	int test_chg_scenario;
 	int test_batt_therm_value;
 	int is_usb_present;
@@ -102,6 +111,10 @@ struct lge_charging_controller {
 	int tdmb_mode_on;
 #endif
 	int chg_done;
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	int before_chg_type;
+	int before_ctype_type;
+#endif
 };
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
@@ -150,6 +163,7 @@ enum lgcc_vote_reason {
 	LGCC_REASON_CALL,
 	LGCC_REASON_THERMAL,
 	LGCC_REASON_THERMAL_HVDCP,
+	LGCC_REASON_THERMAL_SCHG,
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TDMB_MODE
 	LGCC_REASON_TDMB,
 #endif
@@ -170,6 +184,7 @@ static int lgcc_vote_fcc_table[LGCC_REASON_MAX] = {
 	-EINVAL,
 	-EINVAL,
 	-EINVAL,
+	-EINVAL,
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TDMB_MODE
 	-EINVAL,
 #endif
@@ -183,6 +198,7 @@ static int lgcc_vote_fcc_table[LGCC_REASON_MAX] = {
 };
 
 static int lgcc_vote_fcc_reason = -EINVAL;
+static int lgcc_vote_fcc_value = -EINVAL;
 static void lgcc_vote_fcc_update(void)
 {
 	int fcc = INT_MAX;
@@ -202,8 +218,9 @@ static void lgcc_vote_fcc_update(void)
 	if (!the_cc)
 		return;
 
-	if (reason != lgcc_vote_fcc_reason) {
+	if (reason != lgcc_vote_fcc_reason  || fcc != lgcc_vote_fcc_value) {
 		lgcc_vote_fcc_reason = reason;
+		lgcc_vote_fcc_value = fcc;
 		pr_info("lgcc_vote: vote id[%d], set cur[%d]\n",
 				reason, fcc);
 		lge_power_changed(&the_cc->lge_cc_lpc);
@@ -267,7 +284,12 @@ static int lgcc_set_thermal_chg_current(const char *val,
 		lgcc_vote_fcc(LGCC_REASON_THERMAL, lgcc_thermal_mitigation);
 	} else {
 		pr_info("Released thermal mitigation\n");
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+		the_cc->chg_current_te
+			= lgcc_vote_fcc_table[LGCC_REASON_DEFAULT];
+#else
 		the_cc->chg_current_te = CHG_CURRENT_MAX;
+#endif
 		lgcc_vote_fcc(LGCC_REASON_THERMAL, -EINVAL);
 	}
 
@@ -359,7 +381,11 @@ module_param_call(lgcc_iusb_control, lgcc_set_iusb_control,
 		param_get_int, &lgcc_iusb_control, 0644);
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
-#define NORMAL_CHG_CURRENT_MAX 3100
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#define NORMAL_CHG_CURRENT_MAX 2000
+#else
+#define NORMAL_CHG_CURRENT_MAX 3200
+#endif
 #define RESTRICTED_CALL_STATE 500
 #define RESTRICTED_LCD_STATE 1000
 static int quick_charging_state;
@@ -418,6 +444,41 @@ module_param_call(quick_charging_state, set_quick_charging_state,
 		param_get_int, &quick_charging_state, 0644);
 #endif
 
+static int lgcc_schg_thermal_mitigation;
+static int lgcc_set_schg_thermal_chg_current(const char *val,
+		struct kernel_param *kp) {
+
+	int ret;
+
+	ret = param_set_int(val, kp);
+	if (ret) {
+		pr_err("error setting value %d\n", ret);
+		return ret;
+	}
+
+	if (!the_cc) {
+		pr_err("lgcc is not ready\n");
+		return 0;
+	}
+
+	if ((lgcc_schg_thermal_mitigation > 0) &&
+		(lgcc_schg_thermal_mitigation <= RESTRICTED_LCD_STATE)) {
+		lgcc_vote_fcc(LGCC_REASON_THERMAL_SCHG,
+				lgcc_schg_thermal_mitigation);
+	} else {
+		pr_info("Release schg thermal mitigation\n");
+		lgcc_vote_fcc(LGCC_REASON_THERMAL_SCHG, -EINVAL);
+	}
+	pr_err("schg_thermal_mitigation = %d, chg_current_te = %d\n",
+			lgcc_schg_thermal_mitigation,
+			the_cc->chg_current_te);
+	return 0;
+}
+module_param_call(lgcc_schg_thermal_mitigation,
+		lgcc_set_schg_thermal_chg_current,
+		param_get_int, &lgcc_schg_thermal_mitigation, 0644);
+
+
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
 static void lgcc_btm_set_polling_alarm(struct lge_charging_controller *cc, u64 delay)
 {
@@ -441,14 +502,61 @@ static enum alarmtimer_restart lgcc_btm_alarm(struct alarm *alarm, ktime_t kt)
 }
 #endif
 
+#ifdef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
+static void lge_batt_cap_fcc_work(struct work_struct *work) {
+
+	int new_fcc = CHG_CURRENT_MAX;
+	union power_supply_propval ret = {0,};
+	struct lge_charging_controller *cc =
+		container_of(work, struct lge_charging_controller,
+			batt_cap_fcc_work.work);
+
+	cc->bms_psy = power_supply_get_by_name("bms");
+
+	if(!cc->bms_psy){
+		pr_err("bms power_supply not found deferring probe\n");
+		goto reschedule;
+	}
+
+	cc->bms_psy->get_property(cc->bms_psy,
+			POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN, &ret);
+
+	new_fcc = ret.intval/1000;
+	if(!new_fcc) {
+		pr_info("battery profile not loaded\n");
+		goto reschedule;
+	}
+
+	if(new_fcc < CHG_CURRENT_MAX) {
+		lgcc_vote_fcc(LGCC_REASON_DEFAULT,new_fcc);
+		pr_info("Set default charging current to %d", new_fcc);
+	}
+
+	pr_info("lge_battery_id_fcc_work done\n");
+	return;
+
+reschedule:
+	schedule_delayed_work(&cc->batt_cap_fcc_work, msecs_to_jiffies(1000));
+	return;
+}
+
+#endif
+
+#define DECCUR_FLOAT_VOLTAGE_IN_WARM 4000
 static void lge_monitor_batt_temp_work(struct work_struct *work){
 
 	struct charging_info req;
 	struct charging_rsp res;
 	bool is_changed = false;
 	union power_supply_propval ret = {0,};
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+// do nothing
+#else
 #if 0//def CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
 	union lge_power_propval lge_val = {0,};
+#endif
+#endif
 #endif
 	struct lge_charging_controller *cc =
 		container_of(work, struct lge_charging_controller,
@@ -486,7 +594,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 	if (cc->test_chg_scenario == 1)
 		req.batt_temp = cc->test_batt_therm_value;
 	else
-		req.batt_temp = ret.intval / 10;
+		req.batt_temp = ret.intval;
 	cc->batt_temp = req.batt_temp;
 
 	cc->batt_psy->get_property(cc->batt_psy,
@@ -494,13 +602,19 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 	req.batt_volt = ret.intval;
 
 	cc->batt_psy->get_property(cc->batt_psy,
+			POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret);
+	req.max_chg_volt = ret.intval;
+
+	cc->batt_psy->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_CURRENT_NOW, &ret);
 	req.current_now = ret.intval / 1000;
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-//	cc->lge_cd_lpc->get_property(cc->lge_cd_lpc,
-//			LGE_POWER_PROP_CHARGING_CURRENT_MAX, &lge_val);
-//	cc->chg_current_max = lge_val.intval / 1000;
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	cc->chg_current_max = cc->ibat_current;
+	pr_info("chg_current_max : %d\n", cc->chg_current_max);
+#else
 	cc->chg_current_max = cc->ibat_current / 1000;
+#endif
 #else
 	cc->usb_psy->get_property(
 			cc->usb_psy, POWER_SUPPLY_PROP_CURRENT_MAX, &ret);
@@ -518,6 +632,15 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 			POWER_SUPPLY_PROP_PRESENT, &ret);
 	req.is_charger = ret.intval;
 
+#ifdef CONFIG_IDTP9223_CHARGER
+{	/* Update the presence of wireless charging */
+	struct power_supply* dc_wireless = power_supply_get_by_name("dc-wireless");
+	if (dc_wireless && dc_wireless->get_property &&
+		!dc_wireless->get_property(dc_wireless, POWER_SUPPLY_PROP_ONLINE, &ret)) {
+		req.is_charger = (!!req.is_charger) || (!!ret.intval);
+	}
+}
+#endif
 	lge_monitor_batt_temp(req, &res);
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
@@ -539,68 +662,82 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 	if (((res.change_lvl != STS_CHE_NONE) && req.is_charger) ||
 			(res.force_update == true)) {
 		if (res.change_lvl == STS_CHE_NORMAL_TO_DECCUR ||
+			res.change_lvl == STS_CHE_STPCHG_TO_DECCUR ||
 				(res.state == CHG_BATT_DECCUR_STATE &&
 				 res.chg_current != DC_CURRENT_DEF &&
-				 res.change_lvl != STS_CHE_STPCHG_TO_DECCUR)) {
-			pr_info("ibatmax_set STS_CHE_NORMAL_TO_DECCUR\n");
+				 res.change_lvl == STS_CHE_NONE )) {
+			pr_info("DECCUR state, 0.3C Chg Current, 4.0V Float Voltage\n");
+			//Float Voltage Change.
+			ret.intval = res.float_voltage;
+			cc->batt_psy->set_property(cc->batt_psy,
+				POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret);
+			//Charge Current Change
 			cc->otp_ibat_current = res.chg_current;
 			cc->chg_enable = 1;
 			lgcc_vote_fcc(LGCC_REASON_OTP, res.chg_current);
+			// control wake lock in DECCUR status
+			if (res.float_voltage == DECCUR_FLOAT_VOLTAGE_IN_WARM) {
+				/* acquire wake_lock when vfloat is set to 4000mV (in warm status) */
+				if (!wake_lock_active(&cc->lcs_wake_lock))
+					wake_lock(&cc->lcs_wake_lock);
+			}
+			else {
+				/* release wake_lock in cool status */
+				if (wake_lock_active(&cc->lcs_wake_lock))
+					wake_unlock(&cc->lcs_wake_lock);
+			}
 		} else if (res.change_lvl == STS_CHE_NORMAL_TO_STPCHG ||
-				(res.state == CHG_BATT_STPCHG_STATE)) {
-			pr_info("ibatmax_set STS_CHE_NORMAL_TO_STPCHG\n");
+				res.change_lvl == STS_CHE_DECCUR_TO_STPCHG ||
+				(res.state == CHG_BATT_STPCHG_STATE &&
+				res.change_lvl == STS_CHE_NONE)) {
+			pr_info("STPCHG state, Stop Charging.\n");
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
 			if (!cc->btm_alarm_enable)
 				wake_lock(&cc->lcs_wake_lock);
 #else
 			wake_lock(&cc->lcs_wake_lock);
 #endif
+			//Charge Current Change to 0mA
 			cc->otp_ibat_current = 0;
 			cc->chg_enable = 0;
 			lgcc_vote_fcc(LGCC_REASON_OTP, 0);
-		} else if (res.change_lvl == STS_CHE_DECCUR_TO_NORMAL) {
-			pr_info("ibatmax_set STS_CHE_DECCUR_TO_NORMAL\n");
-			cc->otp_ibat_current = res.chg_current;
-			cc->chg_enable = 1;
-			lgcc_vote_fcc(LGCC_REASON_OTP, -EINVAL);
-		} else if (res.change_lvl == STS_CHE_DECCUR_TO_STPCHG) {
-			pr_info("ibatmax_set STS_CHE_DECCUR_TO_STPCHG\n");
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
-			if (!cc->btm_alarm_enable)
-				wake_lock(&cc->lcs_wake_lock);
-#else
-			wake_lock(&cc->lcs_wake_lock);
-#endif
-			cc->otp_ibat_current = 0;
-			cc->chg_enable = 0;
-			lgcc_vote_fcc(LGCC_REASON_OTP, 0);
-		} else if (res.change_lvl == STS_CHE_STPCHG_TO_NORMAL) {
-			pr_info("ibatmax_set STS_CHE_STPCHG_TO_NORMAL\n");
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
-			if (!cc->btm_alarm_enable)
-				wake_unlock(&cc->lcs_wake_lock);
-#else
-			wake_unlock(&cc->lcs_wake_lock);
-#endif
-			cc->otp_ibat_current = res.chg_current;
-			cc->chg_enable = 1;
-			lgcc_vote_fcc(LGCC_REASON_OTP, -EINVAL);
-		} else if (res.change_lvl == STS_CHE_STPCHG_TO_DECCUR) {
-			pr_info("ibatmax_set STS_CHE_STPCHG_TO_DECCUR\n");
-			cc->otp_ibat_current = res.chg_current;
-			cc->chg_enable = 1;
-			lgcc_vote_fcc(LGCC_REASON_OTP, res.chg_current);
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
-			if (!cc->btm_alarm_enable)
-				wake_unlock(&cc->lcs_wake_lock);
-#else
-			wake_unlock(&cc->lcs_wake_lock);
-#endif
+		}else if (res.change_lvl == STS_CHE_DECCUR_TO_NORMAL ||
+					res.change_lvl == STS_CHE_STPCHG_TO_NORMAL ||
+					(res.state == CHG_BATT_NORMAL_STATE &&
+				res.change_lvl == STS_CHE_NONE)) {
+			pr_info("NORMAL state, Restore to all.\n");
+			//Float Voltage Restore.
+			ret.intval = res.float_voltage;
+			if (!cc->batt_psy->set_property(cc->batt_psy,
+				POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret)) {
 
-		} else if (res.force_update == true &&
-				res.state == CHG_BATT_NORMAL_STATE &&
-				res.chg_current != DC_CURRENT_DEF) {
-			pr_info("ibatmax_set CHG_BATT_NORMAL_STATE\n");
+				ret.intval = 0;
+				if (cc->bms_psy && cc->bms_psy->set_property &&
+					!cc->bms_psy->set_property(cc->bms_psy,
+						POWER_SUPPLY_PROP_CHARGE_DONE, &ret)) {
+						pr_info("vfloat is restored to %d\n", res.float_voltage);
+				}
+				else
+					pr_err("Failed to notify restoring vfloat to fg psy.\n");
+			}
+			else
+				pr_err("Failed to set vfloat to battery psy.\n");
+
+			cc->otp_ibat_current = res.chg_current;
+			cc->chg_enable = 1;
+			lgcc_vote_fcc(LGCC_REASON_OTP, -EINVAL);
+			//Check Wakelock
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
+			if (!cc->btm_alarm_enable){
+				if (wake_lock_active(&cc->lcs_wake_lock))
+					wake_unlock(&cc->lcs_wake_lock);
+				}
+#else
+			if (wake_lock_active(&cc->lcs_wake_lock))
+					wake_unlock(&cc->lcs_wake_lock);
+#endif
+		}  else {
+			pr_info("Undefined State.\n");
 			cc->otp_ibat_current = res.chg_current;
 			cc->chg_enable = 1;
 			lgcc_vote_fcc(LGCC_REASON_OTP, -EINVAL);
@@ -623,6 +760,14 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 		lgcc_vote_fcc(LGCC_REASON_LCD, -EINVAL);
 		lgcc_vote_fcc(LGCC_REASON_CALL, -EINVAL);
 	}
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TDMB_MODE
+	if (cc->tdmb_mode_on == 1)
+		lgcc_vote_fcc(LGCC_REASON_TDMB, RESTRICTED_CHG_CURRENT_500);
+	else if (cc->tdmb_mode_on == 2)
+		lgcc_vote_fcc(LGCC_REASON_TDMB, RESTRICTED_CHG_CURRENT_300);
+	else if (cc->tdmb_mode_on == 0)
+		lgcc_vote_fcc(LGCC_REASON_TDMB, -EINVAL);
+#endif
 
 	pr_info("otp_ibat_current=%d\n", cc->otp_ibat_current);
 
@@ -645,7 +790,12 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 		is_changed = true;
 		cc->before_battemp = req.batt_temp;
 	}
-
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	if (cc->before_chg_enable != cc->chg_enable){
+		is_changed = true;
+		cc->before_chg_enable = cc->chg_enable;
+	}
+#endif
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
 	if (cc->update_hvdcp_state == 1){
 		is_changed = true;
@@ -665,7 +815,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 	pr_debug("cap : %d, hvdcp : %d, usb : %d\n",
 			ret.intval, cc->is_hvdcp_present, cc->is_usb_present);
 
-	if (!cc->is_usb_present	||
+	if (!cc->is_usb_present ||
 			(cc->is_usb_present && cc->chg_done)) {
 		if (wake_lock_active(&cc->chg_wake_lock)) {
 			pr_info("chg_wake_unlocked\n");
@@ -819,6 +969,10 @@ static int lge_power_lge_cc_set_property(struct lge_power *lpc,
 
 		case LGE_POWER_PROP_TEST_BATT_THERM_VALUE:
 			cc->test_batt_therm_value = val->intval;
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+			lg_cc_stop_battemp_work(cc);
+			lg_cc_start_battemp_work(cc,2);
+#endif
 			break;
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TDMB_MODE
@@ -828,6 +982,8 @@ static int lge_power_lge_cc_set_property(struct lge_power *lpc,
 
 			if (cc->tdmb_mode_on == 1)
 				lgcc_vote_fcc(LGCC_REASON_TDMB, RESTRICTED_CHG_CURRENT_500);
+			else if (cc->tdmb_mode_on == 2)
+				lgcc_vote_fcc(LGCC_REASON_TDMB, RESTRICTED_CHG_CURRENT_300);
 			else if (cc->tdmb_mode_on == 0)
 				lgcc_vote_fcc(LGCC_REASON_TDMB, -EINVAL);
 			break;
@@ -841,8 +997,10 @@ static int lge_power_lge_cc_set_property(struct lge_power *lpc,
 			if (cc->chg_done) {
 				if (delayed_work_pending(&cc->hvdcp_set_cur_work))
 					cancel_delayed_work_sync(&cc->hvdcp_set_cur_work);
+#ifdef CONFIG_LGE_USB_TYPE_C
 				if (delayed_work_pending(&cc->ctype_detect_work))
 					cancel_delayed_work_sync(&cc->ctype_detect_work);
+#endif
 			}
 			break;
 
@@ -930,14 +1088,24 @@ static void lge_check_typec_work(struct work_struct *work) {
 		container_of(work, struct lge_charging_controller,
 				ctype_detect_work.work);
 	union power_supply_propval pval = {0, };
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	// do nothing
+#else
 	union lge_power_propval lge_val = {0, };
+#endif
 	int rc = 0;
 	static int counter;
 	static int ibat_temp;
 
 	pr_info("Check c-type cable\n");
-
-   cc->lge_cd_lpc->get_property(cc->lge_cd_lpc,
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	if (!cc->is_usb_present) {
+		counter = 0;
+		ibat_temp = 0;
+		lgcc_vote_fcc(LGCC_REASON_CTYPE, -EINVAL);
+	}
+#else
+	cc->lge_cd_lpc->get_property(cc->lge_cd_lpc,
 		   LGE_POWER_PROP_CHARGING_CURRENT_MAX, &lge_val);
    ibat_temp = lge_val.intval;
 
@@ -949,6 +1117,7 @@ static void lge_check_typec_work(struct work_struct *work) {
 		ibat_temp = 0;
 		lgcc_vote_fcc(LGCC_REASON_CTYPE, -EINVAL);
 	}
+#endif
 	if (!cc->ctype_psy) {
 		cc->ctype_psy = power_supply_get_by_name("usb_pd");
 		cc->ctype_type = 0;
@@ -962,7 +1131,25 @@ static void lge_check_typec_work(struct work_struct *work) {
 		else
 			pr_err("Failed to get usb_pd property\n");
 	}
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	if (!(cc->ctype_type == POWER_SUPPLY_TYPE_CTYPE_PD ||
+				cc->ctype_type == POWER_SUPPLY_TYPE_CTYPE)) {
+		lgcc_vote_fcc(LGCC_REASON_CTYPE, -EINVAL);
+		pr_err("Not type-C\n");
+	} else {
+		cc->ctype_present = 1;
+		if (delayed_work_pending(&cc->hvdcp_set_cur_work))
+			cancel_delayed_work_sync(&cc->hvdcp_set_cur_work);
+		pr_info("Detect c-type cable\n");
+		cc->otp_ibat_current = cc->ibat_current;
+		lgcc_vote_fcc(LGCC_REASON_CTYPE, cc->ibat_current);
 
+		lge_power_changed(&cc->lge_cc_lpc);
+	}
+
+skip_ctype:
+	return;
+#else
 	if (!(cc->ctype_type == POWER_SUPPLY_TYPE_CTYPE_PD ||
 				cc->ctype_type == POWER_SUPPLY_TYPE_CTYPE)) {
 		counter++;
@@ -1004,12 +1191,17 @@ skip_ctype:
 		&& cc->is_usb_present)
 		schedule_delayed_work(&cc->ctype_detect_work,
 				CTYPE_CHECK_DELAY);
+#endif
 }
 #endif
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
 #define HVDCP_IUSB_MAX 3000
+#if defined (CONFIG_MACH_MSM8996_LUCYE)
+#define HVDCP_IUSB_MIN 1900
+#else
 #define HVDCP_IUSB_MIN 1800   /* Because of charging for ieee1725 at ocp part on datesheet */
+#endif
 #define HVDCP_IBAT_MIN 2000
 #define HVDCP_SET_CUR_DELAY	msecs_to_jiffies(5 * 1000)
 static void lge_hvdcp_set_ibat_work(struct work_struct *work){
@@ -1022,9 +1214,17 @@ static void lge_hvdcp_set_ibat_work(struct work_struct *work){
 	union power_supply_propval pval = {0, };
 	int rc;
 	bool taper_charging;
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	// do nothing
+#else
 	union lge_power_propval lge_val = {0,};
+#endif
 	static int ibat_temp;
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	// do nothing
+#else
 	static int first_time = true;
+#endif
 	int start_set_current = 0;
 
 	pr_err("Check HVDCP\n");
@@ -1041,7 +1241,17 @@ static void lge_hvdcp_set_ibat_work(struct work_struct *work){
 		taper_charging = false;
 		goto skip_setting;
 	}
-
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	if (!cc->is_usb_present) {
+		delay_counter = 0;
+		ibat_temp = 0;
+		start_set_current = 0;
+		cc->ibat_current = 0;
+		cc->finish_hvdcp_set_cur = 0;
+		lgcc_vote_fcc(LGCC_REASON_HVDCP, -EINVAL);
+		return;
+	}
+#else
 	if (!cc->is_usb_present) {
 		delay_counter = 0;
 		ibat_temp = 0;
@@ -1052,15 +1262,37 @@ static void lge_hvdcp_set_ibat_work(struct work_struct *work){
 		return;
 	} else
 		cc->ibat_current = HVDCP_IBAT_MIN;
-
+#endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+// do nothing
+#else
 	cc->lge_cd_lpc->get_property(cc->lge_cd_lpc,
 			LGE_POWER_PROP_CHARGING_CURRENT_MAX, &lge_val);
 	ibat_temp = lge_val.intval;
 	pr_debug("ibat_temp %d\n", ibat_temp);
-
+#endif
+#ifdef CONFIG_LGE_USB_TYPE_C
 	if (delayed_work_pending(&cc->ctype_detect_work))
 		cancel_delayed_work_sync(&cc->ctype_detect_work);
+#endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	if (cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP_3) {
+		cc->iusb_current = HVDCP_IUSB_MIN * 1000;
+		cc->otp_ibat_current = cc->ibat_current;
+		pr_info("QC3.0 ibat %d\n", cc->otp_ibat_current);
+	} else if (cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP) {
+		cc->iusb_current = HVDCP_IUSB_MIN * 1000;
+		cc->otp_ibat_current = cc->ibat_current;
+		pr_info("QC2.0 ibat %d\n", cc->otp_ibat_current);
 
+		cc->finish_hvdcp_set_cur = 1;
+		pr_err("Finish set hvdcp current\n");
+	} else {
+		cc->iusb_current = HVDCP_IUSB_MIN * 1000;
+		cc->otp_ibat_current = cc->ibat_current;
+	}
+	lgcc_vote_fcc(LGCC_REASON_HVDCP, cc->otp_ibat_current);
+#else
 	if (!cc->finish_hvdcp_set_cur && !taper_charging) {
 		delay_counter++;
 
@@ -1103,6 +1335,7 @@ static void lge_hvdcp_set_ibat_work(struct work_struct *work){
 	}
 
 	lgcc_vote_fcc(LGCC_REASON_HVDCP, cc->otp_ibat_current / 1000);
+#endif
 
 	if (before_iusb != cc->iusb_current ||
 			before_ibat != cc->otp_ibat_current) {
@@ -1114,12 +1347,20 @@ static void lge_hvdcp_set_ibat_work(struct work_struct *work){
 	lge_power_changed(&cc->lge_cc_lpc);
 	before_iusb = cc->iusb_current;
 	before_ibat = cc->otp_ibat_current;
-
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
 skip_setting:
-	if (!cc->finish_hvdcp_set_cur && cc->is_usb_present
-			&& !taper_charging && !cc->ctype_present)
+	return;
+#else
+skip_setting:
+	if (!cc->finish_hvdcp_set_cur
+	    && cc->is_usb_present
+#ifdef CONFIG_LGE_USB_TYPE_C
+	    && !cc->ctype_present
+#endif
+	    && !taper_charging)
 		schedule_delayed_work(&cc->hvdcp_set_cur_work,
 				HVDCP_SET_CUR_DELAY);
+#endif
 }
 #endif
 
@@ -1127,6 +1368,9 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 	union lge_power_propval lge_val = {0,};
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
 	union power_supply_propval value = {0,};
+#endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	union power_supply_propval prop = {0,};
 #endif
 	int rc = 0;
 	static int before_usb_present;
@@ -1191,12 +1435,12 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 				cc->ta_current = lge_val.intval;
 
 			rc |= cc->lge_cd_lpc->get_property(cc->lge_cd_lpc,
-					LGE_POWER_PROP_USB_CURRENT, &lge_val);
+					LGE_POWER_PROP_CURRENT_MAX, &lge_val);
 			if (rc < 0) {
 				pr_err("Failed to get type\n");
 				cc->usb_current = 0;
 			} else
-				cc->usb_current = lge_val.intval;
+				cc->usb_current = lge_val.intval/1000;
 
 			rc |= cc->lge_cd_lpc->get_property(cc->lge_cd_lpc,
 					LGE_POWER_PROP_CHARGING_CURRENT_MAX, &lge_val);
@@ -1205,14 +1449,26 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 				ibat = 0;
 			} else
 				ibat = lge_val.intval;
-
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+			pr_info("charing_current_max is %d\n", lge_val.intval);
+			cc->ibat_current = ibat / 1000;
+			if (cc->is_usb_present)
+				lgcc_vote_fcc(LGCC_REASON_DEFAULT,
+						cc->ibat_current);
+#endif
 			if (!cc->is_usb_present) {
 				cc->ibat_current = 0;
+#ifdef CONFIG_LGE_USB_TYPE_C
 				cc->finish_check_ctype = 0;
 				schedule_delayed_work(&cc->ctype_detect_work, 0);
+#endif
 				schedule_delayed_work(&cc->hvdcp_set_cur_work, 0);
 				for (i = 1; i < LGCC_REASON_MAX; i++) {
-					lgcc_vote_fcc(i, -EINVAL);
+					/* Do not clear voting values from thermal_engine */
+					if (i != LGCC_REASON_THERMAL &&
+						i != LGCC_REASON_THERMAL_HVDCP &&
+						i != LGCC_REASON_THERMAL_SCHG)
+						lgcc_vote_fcc(i, -EINVAL);
 				}
 			} else {
 				if (ibat <= 0)
@@ -1223,6 +1479,37 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 					cc->chg_type, cc->ta_current, cc->usb_current, ibat,
 					cc->is_usb_present);
 
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+#ifdef CONFIG_LGE_USB_TYPE_C
+			if (!cc->ctype_psy)
+				cc->ctype_psy = power_supply_get_by_name("usb_pd");
+			if (cc->ctype_psy) {
+				rc = cc->ctype_psy->get_property(cc->ctype_psy,
+					POWER_SUPPLY_PROP_TYPE, &prop);
+				if (rc == 0)
+					cc->ctype_type = lge_val.intval;
+				pr_info("chg_type:%d, ctype_type:%d, before_ctype_type:%d\n",
+						cc->chg_type, cc->ctype_type,
+						cc->before_ctype_type);
+				if (cc->chg_type == POWER_SUPPLY_TYPE_USB_DCP) {
+					if (cc->ctype_type != cc->before_ctype_type)
+						if (!delayed_work_pending(&cc->ctype_detect_work))
+							schedule_delayed_work(&cc->ctype_detect_work, 0);
+				}
+			}
+#endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
+			else if (cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP ||
+					cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP_3) {
+				cc->is_hvdcp_present = 1;
+				if (!delayed_work_pending(&cc->hvdcp_set_cur_work)
+						&& (cc->before_chg_type != cc->chg_type))
+					schedule_delayed_work(&cc->hvdcp_set_cur_work, 0);
+			}
+#endif
+			cc->before_chg_type = cc->chg_type;
+			cc->before_ctype_type = cc->ctype_type;
+#else
 #ifdef CONFIG_LGE_USB_TYPE_C
 			if (cc->chg_type == POWER_SUPPLY_TYPE_USB_DCP) {
 				if (!cc->ctype_present && !cc->finish_check_ctype) {
@@ -1231,9 +1518,10 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 						schedule_delayed_work(&cc->ctype_detect_work, 0);
 				}
 			}
+			else
 #endif
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
-			else if (cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP ||
+			if (cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP ||
 					cc->chg_type == POWER_SUPPLY_TYPE_USB_HVDCP_3) {
 				cc->is_hvdcp_present = 1;
 				if (!delayed_work_pending(&cc->hvdcp_set_cur_work) &&
@@ -1241,8 +1529,28 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 					schedule_delayed_work(&cc->hvdcp_set_cur_work, 0);
 			}
 #endif
+#endif
 		}
 	}
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_PSEUDO_BATTERY
+	if (!cc->lge_pb_lpc) {
+		cc->lge_pb_lpc = lge_power_get_by_name("pseudo_battery");
+	}
+	if(!cc->lge_pb_lpc){
+		pr_err("pseudo battery not found deferring probe\n");
+	} else {
+		rc = cc->lge_pb_lpc->get_property(cc->lge_pb_lpc,
+				LGE_POWER_PROP_PSEUDO_BATT, &lge_val);
+		if (rc == 0)
+			cc->test_chg_scenario = lge_val.intval;
+		if (cc->test_chg_scenario) {
+			rc = cc->lge_pb_lpc->get_property(cc->lge_pb_lpc,
+				LGE_POWER_PROPS_PSEUDO_BATT_TEMP, &lge_val);
+			if (rc == 0)
+				cc->test_batt_therm_value = lge_val.intval;
+		}
+	}
+#endif
 }
 
 static int lge_charging_controller_probe(struct platform_device *pdev) {
@@ -1260,7 +1568,11 @@ static int lge_charging_controller_probe(struct platform_device *pdev) {
 	cc->dev = &pdev->dev;
 	the_cc = cc;
 	cc->chg_enable = -1;
-
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
+	cc->before_chg_enable = -2;
+	cc->before_chg_type = 0;
+	cc->before_ctype_type = 0;
+#endif
 	platform_set_drvdata(pdev, cc);
 
 	wake_lock_init(&cc->lcs_wake_lock,
@@ -1271,6 +1583,10 @@ static int lge_charging_controller_probe(struct platform_device *pdev) {
 #endif
 	INIT_DELAYED_WORK(&cc->battemp_work,
 			lge_monitor_batt_temp_work);
+#ifdef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
+	INIT_DELAYED_WORK(&cc->batt_cap_fcc_work,
+			lge_batt_cap_fcc_work);
+#endif
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
 	alarm_init(&cc->btm_polling_alarm, ALARM_REALTIME,
 			lgcc_btm_alarm);
@@ -1321,7 +1637,7 @@ static int lge_charging_controller_probe(struct platform_device *pdev) {
 #ifdef CONFIG_LGE_USB_TYPE_C
 	cc->update_ctype_state = 0;
 #endif
-
+	schedule_delayed_work(&cc->batt_cap_fcc_work, 0);
 	pr_info("LG Charging controller probe done~!!\n");
 
 	return 0;

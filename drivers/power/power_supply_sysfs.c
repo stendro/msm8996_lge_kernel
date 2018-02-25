@@ -405,7 +405,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(soc_reporting_ready),
 	POWER_SUPPLY_ATTR(ignore_false_negative_isense),
 	POWER_SUPPLY_ATTR(enable_jeita_detection),
-#ifdef CONFIG_LGE_PM_CHARGING_SCENARIO
+#if defined(CONFIG_LGE_PM_CHARGING_SCENARIO) && defined(CONFIG_MACH_MSM8996_LUCYE)
 	POWER_SUPPLY_ATTR(jeita_charging_enabled),
 #endif
 #ifdef CONFIG_LGE_PM_RESTORE_BATT_INFO
