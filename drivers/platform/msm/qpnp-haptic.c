@@ -1400,7 +1400,7 @@ static ssize_t qpnp_hap_amp_store(struct device *dev,
 }
 #endif
 
-#ifdef CONFIG_MACH_MSM8996_LUCYE
+#if 0 // CONFIG_LGE_QPNP_HAPTIC_OV_RB /* Elt state on G5/V20 ? */
 static ssize_t qpnp_hap_elt_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
