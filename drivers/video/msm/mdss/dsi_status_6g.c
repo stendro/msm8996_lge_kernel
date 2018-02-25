@@ -15,7 +15,11 @@
 #include <linux/kobject.h>
 #include <linux/sysfs.h>
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_mdp.h"
 
 /*

@@ -49,7 +49,7 @@ void mdss_fb_set_backlight_ex(struct msm_fb_data_type *mfd, u32 bkl_lvl);
 void mdss_fb_update_backlight_ex(struct msm_fb_data_type *mfd);
 #endif
 #endif
-#if defined(CONFIG_LGE_PANEL_RECOVERY)
+#if defined(CONFIG_LGE_PANEL_RECOVERY) && defined(CONFIG_MACH_MSM8996_LUCYE)
 bool lge_panel_recovery_mode(void);
 #endif
 #ifdef CONFIG_MACH_MSM8996_LUCYE

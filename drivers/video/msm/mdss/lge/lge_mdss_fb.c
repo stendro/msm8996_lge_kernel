@@ -23,20 +23,22 @@
 #else
 #include <soc/qcom/lge/lge_cable_detection.h>
 #endif
-#include <linux/module.h>
 #include <linux/power/lge_battery_id.h>
 #include <linux/lge_display_debug.h>
 #include "lge_mdss_display.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include <linux/module.h>
 
 extern int get_factory_cable(void);
 #define LGEUSB_FACTORY_56K 1
 #define LGEUSB_FACTORY_130K 2
 #define LGEUSB_FACTORY_910K 3
+#endif
 
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_BL_EXTENDED)
 extern int mdss_fb_mode_switch(struct msm_fb_data_type *mfd, u32 mode);
 #endif
-#if defined(CONFIG_LGE_PANEL_RECOVERY)
+#if defined(CONFIG_LGE_PANEL_RECOVERY) && defined(CONFIG_MACH_MSM8996_LUCYE)
 struct msm_fb_data_type *mfd_recovery = NULL;
 #endif
 
@@ -67,7 +69,7 @@ void lge_mdss_fb_init(struct msm_fb_data_type *mfd)
 #if defined(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI)
 	mutex_init(&mfd->watch_lock);
 #endif
-#if defined(CONFIG_LGE_PANEL_RECOVERY)
+#if defined(CONFIG_LGE_PANEL_RECOVERY) && defined(CONFIG_MACH_MSM8996_LUCYE)
 	mfd_recovery = mfd;
 #endif
 #ifdef CONFIG_LGE_DP_UNSUPPORT_NOTIFY
@@ -89,6 +91,7 @@ static inline bool is_factory_cable(void)
 {
 	unsigned int cable_info;
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
+#ifdef CONFIG_MACH_MSM8996_LUCYE
 	cable_info = get_factory_cable();
 #if !defined(CONFIG_LGE_PM_EMBEDDED_BATTERY)
 		if (cable_info == LGEUSB_FACTORY_56K ||
@@ -107,6 +110,40 @@ static inline bool is_factory_cable(void)
 		} else {
 			return false;
 		}
+#endif
+#endif
+#ifndef CONFIG_MACH_MSM8996_LUCYE
+	struct lge_power *lge_cd_lpc;
+	union lge_power_propval lge_val = {0,};
+	int rc;
+	unsigned int *p_cable_type = NULL;
+	unsigned int cable_smem_size = 0;
+
+	lge_cd_lpc = lge_power_get_by_name("lge_cable_detect");
+	if (!lge_cd_lpc) {
+		pr_err("[MDSS] lge_cd_lpc is not yet ready\n");
+		p_cable_type = smem_get_entry(SMEM_ID_VENDOR1,
+					&cable_smem_size, 0, 0);
+		if (p_cable_type)
+			cable_info = *p_cable_type;
+		else
+			return  false;
+
+		pr_err("[MDSS] cable %d\n", cable_info);
+		if (cable_info == LT_CABLE_56K ||
+			cable_info == LT_CABLE_130K ||
+			cable_info == LT_CABLE_910K)
+			return true;
+	} else {
+		rc = lge_cd_lpc->get_property(lge_cd_lpc,
+				LGE_POWER_PROP_CABLE_TYPE, &lge_val);
+		cable_info = lge_val.intval;
+
+		if (cable_info == CABLE_ADC_56K ||
+			cable_info == CABLE_ADC_130K ||
+			cable_info == CABLE_ADC_910K)
+				return true;
+	}
 #endif
 #elif defined (CONFIG_LGE_PM_CABLE_DETECTION)
 	cable_info = lge_pm_get_cable_type();
@@ -415,7 +452,7 @@ static DEVICE_ATTR(sp_link_backlight_off, S_IRUGO | S_IWUSR,
 /*---------------------------------------------------------------------------*/
 /* Recovery Mode - To recovery when screen crack occured					 */
 /*---------------------------------------------------------------------------*/
-#if defined(CONFIG_LGE_PANEL_RECOVERY)
+#if defined(CONFIG_LGE_PANEL_RECOVERY) && defined(CONFIG_MACH_MSM8996_LUCYE)
 int recovery_val;
 ssize_t get_recovery_mode(struct device *dev,
                 struct device_attribute *attr, char *buf)
@@ -1414,7 +1451,7 @@ static struct attribute *lge_mdss_fb_attrs[] = {
 #if defined(CONFIG_LGE_HIGH_LUMINANCE_MODE)
 	&dev_attr_hl_mode.attr,
 #endif
-#if defined(CONFIG_LGE_PANEL_RECOVERY)
+#if defined(CONFIG_LGE_PANEL_RECOVERY) && defined(CONFIG_MACH_MSM8996_LUCYE)
 	&dev_attr_recovery_mode.attr,
 #endif
 #if defined(CONFIG_LGE_DISPLAY_AOD_SUPPORTED)

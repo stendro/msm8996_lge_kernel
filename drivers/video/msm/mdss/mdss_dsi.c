@@ -32,7 +32,11 @@
 
 #include "mdss.h"
 #include "mdss_panel.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_debug.h"
 #include "mdss_dsi_phy.h"
 #include "mdss_dba_utils.h"

@@ -16,7 +16,11 @@
 #include "lge_mdss_watch.h"
 #include "lge_mdss_aod.h"
 #include "../mdss_fb.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "../mdss_dsi_lucye.h"
+#else
 #include "../mdss_dsi.h"
+#endif
 #include "../mdss_panel.h"
 
 

@@ -251,50 +251,6 @@ int lge_is_valid_U2_FTRIM_reg(void)
 	return ret;
 }
 EXPORT_SYMBOL(lge_is_valid_U2_FTRIM_reg);
-#if defined(CONFIG_LGE_DISPLAY_BL_EXTENDED)
-int lge_set_validate_lcd_reg(void)
-{
-	int i = 0;
-	int ret = 0;
-	int cnt = 13;
-	char ret_buf[13] = {0x0};
-	char cmd_addr[1] = {0xC7};
-	struct mdss_dsi_ctrl_pdata *ctrl;
-
-	ctrl = container_of(pdata_base, struct mdss_dsi_ctrl_pdata,
-						panel_data);
-	if(pdata_base->panel_info.panel_power_state == 0){
-		pr_err("%s: Cannot check TRIM reg because panel is off state.\n", __func__);
-		return -ENODEV;
-	}
-
-	lge_force_mdss_dsi_panel_cmd_read(cmd_addr[0], cnt, ret_buf);
-
-	memcpy(&(ctrl->screen_cmds.cmds[0].payload[1]), ret_buf, cnt);
-
-	pr_info("trim reg before writing: ");
-	for ( i = 0; i < cnt + 1; i++) {
-		pr_debug("0x%x ", ctrl->screen_cmds.cmds[0].payload[i]);
-	}
-	pr_debug("\n");
-
-	ctrl->screen_cmds.cmds[0].payload[9] += 0x22;
-
-	mdss_dsi_panel_cmds_send(ctrl, &ctrl->screen_cmds, CMD_REQ_COMMIT);
-	lge_force_mdss_dsi_panel_cmd_read(cmd_addr[0], cnt, ret_buf);
-
-	memcpy(&(ctrl->screen_cmds.cmds[0].payload[1]), ret_buf, cnt);
-
-	pr_info("trim reg after writing: ");
-	for ( i = 0; i < cnt + 1; i++) {
-		pr_debug("0x%x ", ctrl->screen_cmds.cmds[0].payload[i]);
-	}
-	pr_debug("\n");
-
-	return ret;
-}
-EXPORT_SYMBOL(lge_set_validate_lcd_reg);
-#endif
 #endif
 
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
@@ -2156,6 +2112,7 @@ static void mdss_dsi_parse_dms_config(struct device_node *np,
 		"qcom,mdss-dsi-post-mode-switch-on-command",
 		"qcom,mdss-dsi-post-mode-switch-on-command-state");
 
+#if !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	if (pinfo->mipi.dms_mode == DYNAMIC_MODE_SWITCH_IMMEDIATE &&
 		!ctrl->post_dms_on_cmds.cmd_cnt) {
 		pr_warn("%s: No post dms on cmd specified\n", __func__);
@@ -2167,6 +2124,7 @@ static void mdss_dsi_parse_dms_config(struct device_node *np,
 			__func__);
 		pinfo->mipi.dms_mode = DYNAMIC_MODE_SWITCH_DISABLED;
 	}
+#endif
 exit:
 	pr_info("%s: dynamic switch feature enabled: %d\n", __func__,
 		pinfo->mipi.dms_mode);
@@ -2351,7 +2309,11 @@ static int mdss_dsi_parse_panel_features(struct device_node *np,
 
 	pinfo->partial_update_supported = of_property_read_bool(np,
 		"qcom,partial-update-enabled");
+#if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	{ // partial update and mdss_dsi_set_col_page_addr enable
+#else
 	if (pinfo->mipi.mode == DSI_CMD_MODE) {
+#endif
 		pinfo->partial_update_enabled = pinfo->partial_update_supported;
 		pr_info("%s: partial_update_enabled=%d\n", __func__,
 					pinfo->partial_update_enabled);
@@ -2646,6 +2608,10 @@ int mdss_dsi_panel_timing_switch(struct mdss_dsi_ctrl_pdata *ctrl,
 	ctrl->display_on_cmds = pt -> display_on_cmds;
 	ctrl->screen_cmds= pt->screen_cmds;
 #endif
+#if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	ctrl->v_to_c_on_cmds= pt->v_to_c_on_cmds;
+	ctrl->c_to_v_on_cmds= pt->c_to_v_on_cmds;
+#endif
 #if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
 	ctrl->sharpness_on_cmds = pt->sharpness_on_cmds;
 	ctrl->ce_on_cmds = pt->ce_on_cmds;
@@ -2811,21 +2777,29 @@ static int  mdss_dsi_panel_config_res_properties(struct device_node *np,
 		"qcom,mdss-dsi-screen-command",
 		"qcom,mdss-dsi-screen-command-state");
 #endif
+#if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	mdss_dsi_parse_dcs_cmds(np, &pt->v_to_c_on_cmds,
+		"qcom,v-to-c-on-command",
+		"qcom,mdss-dsi-on-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &pt->c_to_v_on_cmds,
+		"qcom,c-to-v-on-command",
+		"qcom,mdss-dsi-on-command-state");
+#endif
 #if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
 	mdss_dsi_parse_dcs_cmds(np, &pt->sharpness_on_cmds,
 		"qcom,mdss-dsi-sharpness-on-command",
-		"qcom,mdss-dsi-on-command-state");
+		"qcom,mdss-dsi-common-hs-command-state");
 	mdss_dsi_parse_dcs_cmds(np, &pt->ce_on_cmds,
 		"qcom,mdss-dsi-ce-on-command",
-		"qcom,mdss-dsi-on-command-state");
+		"qcom,mdss-dsi-common-hs-command-state");
 #endif
 #if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
 	mdss_dsi_parse_dcs_cmds(np, &pt->ie_on_cmds,
 		"qcom,mdss-dsi-ie-on-command",
-		"qcom,mdss-dsi-on-command-state");
+		"qcom,mdss-dsi-common-hs-command-state");
 	mdss_dsi_parse_dcs_cmds(np, &pt->ie_off_cmds,
 		"qcom,mdss-dsi-ie-off-command",
-		"qcom,mdss-dsi-on-command-state");
+		"qcom,mdss-dsi-common-hs-command-state");
 	mdss_dsi_parse_dcs_cmds(np, &pt->cabc_20_cmds,
 		"qcom,mdss-dsi-cabc-20-command",
 		"qcom,mdss-dsi-on-command-state");
@@ -2840,6 +2814,9 @@ static int  mdss_dsi_panel_config_res_properties(struct device_node *np,
 		"qcom,mdss-dsi-timing-switch-command",
 		"qcom,mdss-dsi-timing-switch-command-state");
 
+#if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	pt->on_cmds = pt->v_to_c_on_cmds;
+#endif
 	rc = mdss_dsi_parse_topology_config(np, pt, panel_data, default_timing);
 	if (rc) {
 		pr_err("%s: parsing compression params failed. rc:%d\n",
@@ -3224,6 +3201,10 @@ int mdss_dsi_panel_init(struct device_node *node,
 			pr_err("%s: panel_type is LGD_SW49407_CMD_DSC_PANEL\n",
 					__func__);
 			pinfo->panel_type = LGD_SIC_LG49407_INCELL_CMD_PANEL;
+		} else if (strncmp(panel_name, "SW49407 video mode", 18)==0) {
+			pr_err("%s: panel_type is LGD_SW49407_VIDEO_DSC_PANEL\n",
+					__func__);
+			pinfo->panel_type = LGD_SIC_LG49407_INCELL_VIDEO_PANEL;
 		} else {
 			pr_err("%s: Invalid panel type\n", __func__);
 		}

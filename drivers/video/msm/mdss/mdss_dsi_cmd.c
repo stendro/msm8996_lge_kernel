@@ -22,7 +22,11 @@
 #include <linux/kthread.h>
 
 #include "mdss_dsi_cmd.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_smmu.h"
 
 /*

@@ -23,11 +23,7 @@
 #include <linux/err.h>
 #include <linux/string.h>
 
-#ifdef CONFIG_MACH_MSM8996_LUCYE
 #include "mdss_dsi_lucye.h"
-#else
-#include "mdss_dsi.h"
-#endif
 #include "mdss_dba_utils.h"
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_READER_MODE)
 #include "lge/lge_reader_mode.h"

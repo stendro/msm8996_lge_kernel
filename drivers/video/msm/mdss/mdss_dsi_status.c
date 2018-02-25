@@ -27,7 +27,11 @@
 #include <linux/interrupt.h>
 
 #include "mdss_fb.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_panel.h"
 #include "mdss_mdp.h"
 

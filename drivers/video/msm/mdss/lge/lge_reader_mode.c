@@ -30,7 +30,11 @@
 #include <linux/of_platform.h>
 #include "../mdss_fb.h"
 #include "../mdss_mdp.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "../mdss_dsi_lucye.h"
+#else
 #include "../mdss_dsi.h"
+#endif
 
 extern void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl, struct dsi_panel_cmds *pcmds, u32 flags);
 

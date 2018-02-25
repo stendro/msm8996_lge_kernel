@@ -17,7 +17,11 @@
 #include <linux/list.h>
 
 #include "mdss_dsi_clk.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_debug.h"
 
 #define MAX_CLIENT_NAME_LEN 20

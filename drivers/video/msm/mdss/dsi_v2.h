@@ -17,7 +17,11 @@
 #include <linux/list.h>
 #include <mach/scm-io.h>
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_panel.h"
 
 #define DSI_BUF_SIZE	1024

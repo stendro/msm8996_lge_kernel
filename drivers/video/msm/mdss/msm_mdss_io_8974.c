@@ -19,7 +19,11 @@
 #include <linux/iopoll.h>
 #include <linux/kthread.h>
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_edp.h"
 #include "mdss_debug.h"
 #include "mdss_dsi_phy.h"

@@ -24,7 +24,11 @@
 #include <linux/msm-bus.h>
 
 #include "mdss.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 #include "mdss_panel.h"
 #include "mdss_debug.h"
 #include "mdss_smmu.h"

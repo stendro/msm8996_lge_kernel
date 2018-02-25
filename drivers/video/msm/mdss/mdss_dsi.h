@@ -350,6 +350,10 @@ struct dsi_panel_timing {
 	struct dsi_panel_cmds display_on_cmds;
 	struct dsi_panel_cmds screen_cmds;
 #endif
+#if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	struct dsi_panel_cmds v_to_c_on_cmds;
+	struct dsi_panel_cmds c_to_v_on_cmds;
+#endif
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 	struct dsi_panel_cmds vcom_cmds;
 #endif
@@ -500,6 +504,10 @@ struct mdss_dsi_ctrl_pdata {
 #if defined(CONFIG_LGE_DISPLAY_BL_EXTENDED)
 	struct dsi_panel_cmds display_on_cmds;
 	struct dsi_panel_cmds screen_cmds;
+#endif
+#if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	struct dsi_panel_cmds v_to_c_on_cmds;
+	struct dsi_panel_cmds c_to_v_on_cmds;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 	struct dsi_panel_cmds vcom_cmds;

@@ -13,7 +13,11 @@
  */
 
 #include <linux/of_gpio.h>
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "../mdss_dsi_lucye.h"
+#else
 #include "../mdss_dsi.h"
+#endif
 #include "lge_mdss_dsi.h"
 
 static int lge_mdss_dsi_parse_gpio_params(struct platform_device *ctrl_pdev,

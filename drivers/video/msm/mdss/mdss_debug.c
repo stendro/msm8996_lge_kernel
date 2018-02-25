@@ -25,7 +25,11 @@
 #include "mdss_mdp.h"
 #include "mdss_mdp_hwio.h"
 #include "mdss_debug.h"
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#include "mdss_dsi_lucye.h"
+#else
 #include "mdss_dsi.h"
+#endif
 
 #define DEFAULT_BASE_REG_CNT 0x100
 #define GROUP_BYTES 4
