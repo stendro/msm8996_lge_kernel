@@ -63,8 +63,8 @@ RDIR=$(pwd)
 VER=$(cat "$RDIR/VERSION")
 
 # directory containing cross-compile arm64 toolchain
-TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
-# TOOLCHAIN=$HOME/build/toolchain/gcc7/bin/aarch64-linux-gnu-
+# TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+TOOLCHAIN=$HOME/build/toolchain/gcc7/bin/aarch64-linux-gnu-
 
 CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
 # amount of cpu threads to use in kernel make process

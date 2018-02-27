@@ -388,12 +388,9 @@ CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im
 # with -mcpu and -mtune
 ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto -mtune=cortex-a57
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a) \
- -g0 \
- -DNDEBUG \
+ -g0 -DNDEBUG \
  -fomit-frame-pointer \
- -fmodulo-sched \
- -fmodulo-sched-allow-regmoves \
- -fivopts
+ -fivopts -fipa-pta -fipa-cp-clone
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
@@ -644,6 +641,11 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, int-in-bool-context)
 KBUILD_CFLAGS	+= $(call cc-option,-fno-PIE)
 KBUILD_AFLAGS	+= $(call cc-option,-fno-PIE)
+
+# Needed flag for GCC 7
+ifneq ($(COMPILER),clang)
+KBUILD_CFLAGS	+= $(call cc-ifversion, -ge, 0700, -fno-store-merging)
+endif
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
