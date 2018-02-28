@@ -50,6 +50,10 @@
 #define LGE_PM_DIS_AICL_IRQ_WAKE
 #endif
 
+#if IS_ENABLED(CONFIG_FORCE_FAST_CHARGE)
+extern int force_fast_charge;
+#endif
+
 #ifdef CONFIG_QPNP_SMBCHARGER_EXTENSION
 #define WAIT_TO_READ_DPDM_AT_PROBE_MS	50
 #include "qpnp-smbcharger_extension_param.h"
@@ -1865,9 +1869,16 @@ static int smbchg_set_usb_current_max(struct smbchg_chip *chip,
 	switch (chip->usb_supply_type) {
 	case POWER_SUPPLY_TYPE_USB:
 #ifdef CONFIG_QPNP_SMBCHARGER_EXTENSION
+#if IS_ENABLED(CONFIG_FORCE_FAST_CHARGE)
+		if (force_fast_charge > 0)
+			current_ma = CURRENT_900_MA;
+		else if (current_ma > CURRENT_400_MA)
+			current_ma = CURRENT_400_MA;
+#else
 		if (current_ma > CURRENT_400_MA)
 			current_ma = CURRENT_400_MA;
 		/* fall through */
+#endif
 #else
 		if ((current_ma < CURRENT_150_MA) &&
 				(chip->wa_flags & SMBCHG_USB100_WA))
@@ -4843,7 +4854,7 @@ static int smbchg_set_optimal_charging_mode(struct smbchg_chip *chip, int type)
 	return 0;
 }
 
-#define DEFAULT_SDP_MA		100
+#define DEFAULT_SDP_MA		400
 #define DEFAULT_CDP_MA		1500
 static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 						enum power_supply_type type)
