@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() {
-kernel.string=US997 mk2000 v1.1
+kernel.string=US997 mk2000
 do.devicecheck=1
 do.postboot=1
 do.modules=1
@@ -32,11 +32,11 @@ chown -R root:root $ramdisk/*;
 
 ## MK2000 begin
 ui_print " ";
-ui_print "  ___   ___  __  ___     ____   ___   ___   ___    ";
-ui_print " |   \_/   ||  |/  /    / _  \ / _ \ / _ \ / _ \   ";
-ui_print " |         ||     ‹    |_/ / // / \ | / \ | / \ \  ";
-ui_print " |  |\_/|  ||  |\  \    __/ /_\ \_/ | \_/ | \_/ /  ";
-ui_print " |__|   |__||__| \__\  |______|\___/ \___/ \___/   ";
+ui_print "  ___   ___  __  ___     ____   ___   ___   ___   ";
+ui_print " |   \_/   ||  |/  /    / _  \ / _ \ / _ \ / _ \  ";
+ui_print " |         ||     ‹    |_/ / // / \ | / \ | / \ \ ";
+ui_print " |  |\_/|  ||  |\  \    __/ /_\ \_/ | \_/ | \_/ / ";
+ui_print " |__|   |__||__| \__\  |______|\___/ \___/ \___/  ";
 ui_print " ";
 
 ## AnyKernel install

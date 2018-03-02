@@ -43,7 +43,7 @@
 #		LGH990   (LG V20)
 #
 # LS997		= Sprint (US)
-#		LGLS997  (LG V20) (Not yet prepared for build)
+#		LGLS997  (LG V20)
 #
 #   ************************
 #
