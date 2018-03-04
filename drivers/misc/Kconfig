@@ -593,6 +593,12 @@ config FORCE_FAST_CHARGE
 	help
 	  This allows users to override default charge rate for USB
 
+config ENABLE_HIFI_MODE
+	bool "Enable Class-H HiFi"
+	default n
+	help
+	  Enable HiFi Mode on WCD9335 Codec.
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
