@@ -39,22 +39,24 @@ SETUP_DIR() {
 }
 
 COPY_AK() {
-	echo "Copying AnyKernel2 file..."
-	if ! grep -q 'BETA' $RDIR/VERSION; then
-	  cp ramdisk/$DEVICE/anykernel.sh $DEVICE_FOLDER \
+	if grep -q 'BETA' $RDIR/VERSION; then
+	  echo "Copying AnyKernel2 file (BETA)..."
+	  cp ramdisk/$DEVICE/anykernel-beta.sh $DEVICE_FOLDER/anykernel.sh \
 		|| ABORT "Failed to copy *anykernel.sh*"
 	else
-	  cp ramdisk/$DEVICE/anykernel-beta.sh $DEVICE_FOLDER/anykernel.sh \
+	  echo "Copying AnyKernel2 file..."
+	  cp ramdisk/$DEVICE/anykernel.sh $DEVICE_FOLDER \
 		|| ABORT "Failed to copy *anykernel.sh*"
 	fi
 }
 
 COPY_INIT() {
-	echo "Copying init file..."
 	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ]; then
+	  echo "Copying init file (G6)..."
 	  cp $INIT_FILE_G6 $DEVICE_FOLDER/ramdisk/init.blu_active.rc \
 		|| ABORT "Failed to copy init file"
 	else
+	  echo "Copying init file..."
 	  cp $INIT_FILE $DEVICE_FOLDER/ramdisk/init.blu_active.rc \
 		|| ABORT "Failed to copy init file"
 	fi
