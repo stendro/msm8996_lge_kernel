@@ -102,7 +102,7 @@ ABORT "Config $DEFCONFIG not found in $ARCH configs!"
 ABORT "Device config $DEVICE_DEFCONFIG not found in $ARCH configs!"
 
 KDIR="$RDIR/build/arch/$ARCH/boot"
-export LOCALVERSION=$DEVICE$VER
+export LOCALVERSION=${DEVICE}_${VER}-mk2000
 
 CLEAN_BUILD() {
 	echo "Cleaning build..."
@@ -141,7 +141,7 @@ INSTALL_MODULES() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
-echo "Starting build for $LOCALVERSION"
+echo "Starting build for ${DEVICE} ${VER}"
 
 CLEAN_BUILD &&
 SETUP_BUILD &&

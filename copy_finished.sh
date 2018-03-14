@@ -33,7 +33,7 @@ BANNER=${RDISK}/banner
 CLEAN_DIR() {
 	echo "Cleaning folder..."
 	rm -rf $DDIR
-	rm -f $RDIR/out/$DEVICE$VER.zip
+	rm -f $RDIR/out/${DEVICE}_${VER}-mk2000.zip
 }
 
 SETUP_DIR() {
@@ -89,12 +89,12 @@ COPY_KERNEL() {
 ZIP_UP() {
 	echo "Creating AnyKernel2 archive..."
 	cd $DDIR
-	zip -7qr $RDIR/out/$DEVICE$VER.zip * \
+	zip -7qr $RDIR/out/${DEVICE}_${VER}-mk2000.zip * \
 		|| ABORT "Failed to create zip archive"
 }
 
 cd "$RDIR" || ABORT "Failed to enter ${RDIR}"
-echo "Preparing $DEVICE$VER"
+echo "Preparing ${DEVICE} ${VER}"
 
 CLEAN_DIR &&
 SETUP_DIR &&
