@@ -4,15 +4,15 @@
 ## AnyKernel setup
 # begin properties
 properties() {
-kernel.string=H830 mk2000 BETA
+kernel.string=H850 mk2000
 do.devicecheck=1
 do.postboot=1
 do.modules=1
 do.cleanup=1
 do.cleanuponabort=0
-device.name1=h830
+device.name1=h850
 device.name2=h1
-device.name3=H830
+device.name3=H850
 device.name4=H1
 } # end properties
 
@@ -30,25 +30,17 @@ ramdisk_compression=auto;
 chmod -R 750 $ramdisk/*;
 chown -R root:root $ramdisk/*;
 
-## MK2000 begin
-ui_print " ";
-ui_print "  ___   ___  __  ___     ____   ___   ___   ___   ";
-ui_print " |   \_/   ||  |/  /    / _  \ / _ \ / _ \ / _ \  ";
-ui_print " |         ||     ‹    |_/ / // / \ | / \ | / \ \ ";
-ui_print " |  |\_/|  ||  |\  \    __/ /_\ \_/ | \_/ | \_/ / ";
-ui_print " |__|   |__||__| \__\  |______|\___/ \___/ \___/  ";
-ui_print "                                           BETA   ";
-ui_print " ";
-
 ## AnyKernel install
 dump_boot;
 
 ## Ramdisk modifications
 # prop - make sure adb is working, enable blu_active tweaks, disable rctd & triton
+ui_print " ";
+ui_print "Patching Ramdisk...";
 patch_prop default.prop "ro.secure" "1";
 patch_prop default.prop "ro.adb.secure" "1";
+append_file init.rc blu_active "init_rc-mod";
 remove_section init.lge.rc "service rctd" " ";
-insert_line init.rc blu_active after "import /init.lge.rc" "import /init.blu_active.rc";
 replace_section init.h1.power.rc "service triton" " " "service triton /system/bin/triton\n   class main\n   user root\n   group system\n   socket triton-client stream 660 system system\n   disabled\n   oneshot\n";
 
 write_boot;

@@ -63,7 +63,7 @@ RDIR=$(pwd)
 VER=$(cat "$RDIR/VERSION")
 
 # directory containing cross-compile arm64 toolchain
-# TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+# TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linaro-linux-android-
 TOOLCHAIN=$HOME/build/toolchain/gcc7/bin/aarch64-linux-gnu-
 
 CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
@@ -110,7 +110,7 @@ CLEAN_BUILD() {
 }
 
 SETUP_BUILD() {
-	echo "Creating kernel config for $LOCALVERSION..."
+	echo "Creating kernel config..."
 	mkdir -p build
 	echo "$DEVICE" > build/DEVICE \
 		|| ABORT "Failed to reflect device"
@@ -141,6 +141,7 @@ INSTALL_MODULES() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
+echo "Starting build for $LOCALVERSION"
 
 CLEAN_BUILD &&
 SETUP_BUILD &&
