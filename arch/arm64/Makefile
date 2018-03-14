@@ -17,12 +17,7 @@ GZFLAGS		:=-9
 
 KBUILD_DEFCONFIG := defconfig
 
-ARM_ARCH_OPT := -mcpu=cortex-a57 -mtune=cortex-a57
-GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a) \
- -g0 -DNDEBUG \
- -fomit-frame-pointer \
- -fivopts -fipa-pta -fipa-cp-clone
-
+KBUILD_CFLAGS	+= -march=armv8-a+crc+crypto
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 KBUILD_CFLAGS	+= -fno-pic
