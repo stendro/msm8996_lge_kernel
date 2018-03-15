@@ -38,7 +38,11 @@ static char *aod_mode_cmd_dt[] = {
 	"lge,mode-change-cmds-u0-to-u2",
 	"lge,mode-change-cmds-u2-to-u0",
 	"lge,fps-change-to-30",
-        "lge,fps-change-to-60",
+	"lge,fps-change-to-60",
+#if !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	"lge,mode-change-cmds-u3-ready",
+	"lge,mode-change-cmds-u2-ready",
+#endif
 #endif
 #if defined(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI)
 	"lge,mdss-dsi-display-on-command",

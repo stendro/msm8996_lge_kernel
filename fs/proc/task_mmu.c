@@ -1532,6 +1532,7 @@ out:
 	return rp;
 }
 
+#if defined(CONFIG_HSWAP) || defined(CONFIG_PROCESS_RECLAIM)
 struct reclaim_param reclaim_task_file_anon(struct task_struct *task,
 		int nr_to_reclaim)
 {
@@ -1573,6 +1574,7 @@ out:
 	put_task_struct(task);
 	return rp;
 }
+#endif
 
 static ssize_t reclaim_write(struct file *file, const char __user *buf,
 				size_t count, loff_t *ppos)
