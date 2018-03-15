@@ -61,6 +61,8 @@ ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
+ui_print " ";
+
 umount /system 2>/dev/null;
 mount -o ro -t auto /system;
 mount /data 2>/dev/null;
@@ -85,6 +87,11 @@ if [ -f /tmp/anykernel/banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
   done < /tmp/anykernel/banner;
+  ui_print " ";
+fi;
+
+if [ -f /tmp/anykernel/version ]; then
+  ui_print "$(cat /tmp/anykernel/version)";
   ui_print " ";
   ui_print " ";
 fi;
@@ -129,5 +136,6 @@ fi;
 
 umount /system;
 umount /data 2>/dev/null;
+ui_print " ";
 ui_print " ";
 ui_print "Done!";
