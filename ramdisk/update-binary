@@ -87,11 +87,11 @@ if [ -f /tmp/anykernel/banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
   done < /tmp/anykernel/banner;
-  ui_print " ";
 fi;
 
 if [ -f /tmp/anykernel/version ]; then
   ui_print "$(cat /tmp/anykernel/version)";
+  ui_print " ";
   ui_print " ";
   ui_print " ";
 fi;
