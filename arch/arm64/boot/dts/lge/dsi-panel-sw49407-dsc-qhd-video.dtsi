@@ -133,7 +133,7 @@
 			/* Power Control 4 */
 			39 01 00 00 00 00 08 C3 35 44 22 26 21 35 DD
 			/* Power Control 5 */
-			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 12
+			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 10
 			/* Power Sequence Option Configuration */
 			39 01 00 00 00 00 06 C9 05 5D 03 04 01
 			/* APO Control */
@@ -145,15 +145,15 @@
 			/* U2 Control */
 			39 01 00 00 00 00 04 CD 86 40 07
 			/* Positive Gamma Curve for Red */
-			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Red */
 			39 01 00 00 00 00 0E D1 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Positive Gamma Curve for Green */
-			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
+			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 04 03
 			/* Negative Gamma Curve for Green */
 			39 01 00 00 00 00 0E D3 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
 			/* Positive Gamma Curve for Blue */
-			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Blue */
 			39 01 00 00 00 00 0E D5 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Test1 */
@@ -231,7 +231,7 @@
 			/* Power Control 4 */
 			39 01 00 00 00 00 08 C3 35 44 22 26 21 35 DD
 			/* Power Control 5 */
-			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 12
+			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 10
 			/* Power Sequence Option Configuration */
 			39 01 00 00 00 00 06 C9 05 5D 03 04 01
 			/* APO Control */
@@ -243,15 +243,15 @@
 			/* U2 Control */
 			39 01 00 00 00 00 04 CD 86 40 07
 			/* Positive Gamma Curve for Red */
-			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Red */
 			39 01 00 00 00 00 0E D1 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Positive Gamma Curve for Green */
-			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
+			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 04 03
 			/* Negative Gamma Curve for Green */
 			39 01 00 00 00 00 0E D3 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
 			/* Positive Gamma Curve for Blue */
-			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Blue */
 			39 01 00 00 00 00 0E D5 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Test1 */

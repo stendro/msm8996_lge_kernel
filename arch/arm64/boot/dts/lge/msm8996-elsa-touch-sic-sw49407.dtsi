@@ -123,8 +123,8 @@
 				hide_coordinate = <1>;
 
 				/* Firmware */
-				fw_image = "touch/elsa/L1L57P1_1_13.img",
-						"touch/elsa/L1L57P1_1_13.img";
+				fw_image = "touch/elsa/L1L57P1_1_14.img",
+						"touch/elsa/L1L57P1_1_14.img";
 
 				panel_spec = "touch/elsa/elsa_limit.txt";
 				panel_spec_mfts_folder = "touch/elsa/elsa_limit_mfts.txt";
