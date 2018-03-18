@@ -22,6 +22,7 @@
 #include <asm/arch_timer.h>
 #include <asm/io.h>
 #include <linux/uaccess.h>
+#include <asm/io.h>
 
 #include <linux/kernel.h>
 #include <linux/err.h>
