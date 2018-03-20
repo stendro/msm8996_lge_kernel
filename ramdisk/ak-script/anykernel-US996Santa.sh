@@ -35,8 +35,6 @@ dump_boot;
 
 ## Ramdisk modifications
 # prop - make sure adb is working, enable blu_active tweaks, disable rctd & triton
-ui_print " ";
-ui_print "Patching Ramdisk...";
 patch_prop default.prop "ro.secure" "1";
 patch_prop default.prop "ro.adb.secure" "1";
 append_file init.rc blu_active "init_rc-mod";
