@@ -21,7 +21,7 @@ VER=$(cat "${RDIR}/VERSION") \
 
 BVER=$(cat ${RDIR}/VERSION | cut -f1 -d'-')
 
-RDISK=${RDIR}/ramdisk
+RDISK=${RDIR}/mk2000
 AK_DIR=${RDISK}/ak-script
 BANNER_BETA=${RDISK}/banner-beta
 INIT_FILE_G6=${RDISK}/init-g6

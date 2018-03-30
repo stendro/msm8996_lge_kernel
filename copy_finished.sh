@@ -22,7 +22,7 @@ VER=$(cat "${RDIR}/VERSION") \
 
 BVER=$(cat ${RDIR}/VERSION | cut -f1 -d'-')
 
-RDISK=${RDIR}/ramdisk
+RDISK=${RDIR}/mk2000
 AK_DIR=${RDISK}/ak-script
 MOD_DIR=${BDIR}/lib/modules
 KERN_DIR=${BDIR}/arch/arm64/boot

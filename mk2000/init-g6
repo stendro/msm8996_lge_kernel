@@ -1,22 +1,6 @@
 # enable blu_active & tweaks
 
-on boot
-
-    # Set foreground and background cpusets
-    write /dev/cpuset/top-app/cpus 0-3
-    write /dev/cpuset/foreground/boost/cpus 0-3
-    write /dev/cpuset/foreground/cpus 0-3
-    write /dev/cpuset/background/cpus 0-3
-    write /dev/cpuset/system-background/cpus 0-3
-
 on property:sys.post_boot.parsed=1
-
-    # Update foreground and background cpusets
-    write /dev/cpuset/top-app/cpus 0-3
-    write /dev/cpuset/foreground/boost/cpus 2-3
-    write /dev/cpuset/foreground/cpus 0-3
-    write /dev/cpuset/background/cpus 0-1
-    write /dev/cpuset/system-background/cpus 0-1
 
     # Set idle GPU to 133 Mhz --disabled for now--
     # write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
