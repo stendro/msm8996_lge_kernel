@@ -290,7 +290,9 @@ static int disconnect_rx_endpoint(struct msm_hs_port *msm_uport);
 static int msm_hs_pm_resume(struct device *dev);
 
 //BT_S : [CONBT-1572] LGC_BT_COMMON_IMP_KERNEL_UART_SHUTDOWN_EXCEPTION_HANDLING
+#ifdef CONFIG_MSM_BT_POWER
 extern void bluetooth_pm_sleep_stop_by_uart(void);
+#endif
 //BT_E : [CONBT-1572] LGC_BT_COMMON_IMP_KERNEL_UART_SHUTDOWN_EXCEPTION_HANDLING
 
 #define UARTDM_TO_MSM(uart_port) \
@@ -3627,8 +3629,10 @@ static void msm_hs_shutdown(struct uart_port *uport)
 	msm_hs_unconfig_uart_gpios(uport);
 
 //BT_S : [CONBT-1572] LGC_BT_COMMON_IMP_KERNEL_UART_SHUTDOWN_EXCEPTION_HANDLING
+#ifdef CONFIG_MSM_BT_POWER
 	MSM_HS_WARN("%s: Stop BT PROTO\n", __func__);
 	bluetooth_pm_sleep_stop_by_uart();
+#endif
 //BT_E : [CONBT-1572] LGC_BT_COMMON_IMP_KERNEL_UART_SHUTDOWN_EXCEPTION_HANDLING
 }
 
