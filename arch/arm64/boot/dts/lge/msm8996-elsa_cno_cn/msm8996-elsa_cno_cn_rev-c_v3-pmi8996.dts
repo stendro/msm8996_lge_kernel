@@ -18,7 +18,7 @@
 #include "msm8996-elsa_cno_cn.dtsi"
 #include "msm8996-elsa_cno_cn-touch.dtsi"
 #include "../msm8996-camera/msm8996-elsa-camera_rev-c.dtsi"
-#include "../msm8996-elsa_storage_type/current_storage_type.dtsi"
+#include "../msm8996-elsa-ufs.dtsi"
 #include "../msm8996-sound/msm8996-elsa-sound_rev-b.dtsi"
 
 / {

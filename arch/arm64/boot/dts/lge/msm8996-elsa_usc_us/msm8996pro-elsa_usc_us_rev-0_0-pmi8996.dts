@@ -18,7 +18,7 @@
 #include "msm8996-elsa_usc_us.dtsi"
 #include "msm8996-elsa_usc_us-touch.dtsi"
 #include "../msm8996-camera/msm8996-elsa-camera.dtsi"
-#include "../msm8996-elsa_storage_type/current_storage_type.dtsi"
+#include "../msm8996-elsa-ufs.dtsi"
 
 / {
 	model = "Qualcomm Technologies, Inc. MSM 8996pro + PMI8996 MTP";
