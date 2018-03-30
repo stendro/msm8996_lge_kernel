@@ -266,8 +266,10 @@ static ssize_t inst_info_read(struct file *file, char __user *buf,
 	struct msm_vidc_inst *inst = file->private_data;
 	struct msm_vidc_core *core = inst ? inst->core : NULL;
 	int i, j;
-	if (!inst) {
-		dprintk(VIDC_ERR, "Invalid params, core: %pK\n", inst);
+
+	if (!inst || !core) {
+		dprintk(VIDC_ERR, "Invalid params, core: %pK inst %pK\n",
+				core, inst);
 		return 0;
 	}
 	if (!get_inst(core, inst)) {
