@@ -80,4 +80,16 @@ on property:sys.post_boot.parsed=1
     # write /proc/sys/vm/dirty_expire_centisecs 400
     # write /proc/sys/vm/dirty_writeback_centisecs 1000
 
+    # Set Maple scheduler default
+    write /sys/block/mmcblk0/queue/scheduler "maple"
+    write /sys/block/dm-0/queue/scheduler "maple"
+    write /sys/block/dm-1/queue/scheduler "maple"
+    write /sys/block/sda/queue/scheduler "maple"
+    write /sys/block/sdb/queue/scheduler "maple"
+    write /sys/block/sdc/queue/scheduler "maple"
+    write /sys/block/sdd/queue/scheduler "maple"
+    write /sys/block/sde/queue/scheduler "maple"
+    write /sys/block/sdf/queue/scheduler "maple"
+    write /sys/block/sdg/queue/scheduler "maple"
+
     write /dev/kmsg "Boot completed "
