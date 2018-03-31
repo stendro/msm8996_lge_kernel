@@ -453,4 +453,55 @@ config LGE_PM_EMBEDDED_BATTERY
 	help
 		Enable embedded battery
 
+config LGE_PM_DEBUG
+        tristate "Support LGE PM Debug Feature"
+        default n
+        depends on MACH_LGE
+        help
+          LGE PM Debug Feature
+
+config LGE_PM_CABLE_DETECTION
+        tristate "Support LGE PM Cable Detection"
+        default n
+        depends on MACH_LGE
+        help
+          LGE PM Cable Detection
+
+config LGE_PM_SMPL_COUNTER
+        tristate "Support LGE SMPL COUNTER feature"
+        default n
+        depends on MACH_LGE
+        help
+          Say y to enable smpl_cnt module, that count when
+
+config LGE_PM_CHARGING_CONTROLLER
+        tristate "LGE Charging controller"
+        default n
+        depends on MACH_LGE
+        help
+          enable the LGE Charging controller
+
+config LGE_PM_CHARGING_SCENARIO
+        tristate "Support LGE PM Charging Scenario"
+        default n
+        depends on MACH_LGE
+        help
+          LGE PM Charging Scenario
+
+config LGE_PM_UNIFIED_NODE
+        bool "enable LGE PM Unified sysfs node"
+        default n
+        depends on MACH_LGE
+        help
+          Support LGE PM Unified sysfs node
+
+config LGE_PM_PSEUDO_BATTERY
+        tristate "Support pseudo battery mode"
+        depends on MACH_LGE
+        default n
+        help
+          Say Y here to enable pseudo mode setting
+
 endmenu
+
+source "drivers/soc/qcom/lge/power/Kconfig"

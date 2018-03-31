@@ -305,7 +305,7 @@ static void msm_restart_prepare(const char *cmd)
 #endif
 
 #if defined(CONFIG_LGE_HANDLE_PANIC) && !defined(CONFIG_LGE_DEFAULT_HARD_RESET)
-	if (!hard_reset)
+	if (in_panic || !hard_reset)
 		need_warm_reset = true;
 #elif defined(CONFIG_LGE_DEFAULT_HARD_RESET)
 	/* Set warm reset as true when device is in dload mode */
@@ -405,6 +405,10 @@ static void msm_restart_prepare(const char *cmd)
 		} else if (!strncmp(cmd, "edl", 3)) {
 			enable_emergency_dload_mode();
 #endif
+		} else if (!strncmp(cmd, "hardreset",9)) {
+			qpnp_pon_system_pwr_off(PON_POWER_OFF_HARD_RESET);
+			qpnp_pon_set_restart_reason(
+				PON_RESTART_REASON_NORMAL);
 		} else {
 			qpnp_pon_set_restart_reason(
 				PON_RESTART_REASON_NORMAL);
