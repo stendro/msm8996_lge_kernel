@@ -192,6 +192,25 @@ int mdss_dsi_panel_cmd_read(struct mdss_dsi_ctrl_pdata *ctrl, char cmd0,
 	return mdss_dsi_cmdlist_put(ctrl, &cmdreq);
 }
 
+static void mdss_dsi_panel_apply_settings(struct mdss_dsi_ctrl_pdata *ctrl,
+				struct dsi_panel_cmds *pcmds)
+{
+	struct dcs_cmd_req cmdreq;
+	struct mdss_panel_info *pinfo;
+
+	pinfo = &(ctrl->panel_data.panel_info);
+	if ((pinfo->dcs_cmd_by_left) && (ctrl->ndx != DSI_CTRL_LEFT))
+		return;
+
+	memset(&cmdreq, 0, sizeof(cmdreq));
+	cmdreq.cmds = pcmds->cmds;
+	cmdreq.cmds_cnt = pcmds->cmd_cnt;
+	cmdreq.flags = CMD_REQ_COMMIT;
+	cmdreq.rlen = 0;
+	cmdreq.cb = NULL;
+	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
+}
+
 /* TODO: check if it is valid for hplus */
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 char lge_dcs_cmd[1] = {0xD8}; /* DTYPE_DCS_READ */
@@ -1325,6 +1344,38 @@ int set_backlight_map(int bl_size, int *bl_map)
 
 #endif
 
+static int mdss_dsi_panel_apply_display_setting(struct mdss_panel_data *pdata,
+							u32 mode)
+{
+	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
+	struct dsi_panel_cmds *lp_on_cmds;
+	struct dsi_panel_cmds *lp_off_cmds;
+
+	if (pdata == NULL) {
+		pr_err("%s: Invalid input data\n", __func__);
+		return -EINVAL;
+	}
+
+	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
+				panel_data);
+
+	lp_on_cmds = &ctrl->lp_on_cmds;
+	lp_off_cmds = &ctrl->lp_off_cmds;
+
+	/* Apply display settings for low-persistence mode */
+	if ((mode == MDSS_PANEL_LOW_PERSIST_MODE_ON) &&
+				(lp_on_cmds->cmd_cnt))
+			mdss_dsi_panel_apply_settings(ctrl, lp_on_cmds);
+	else if ((mode == MDSS_PANEL_LOW_PERSIST_MODE_OFF) &&
+			(lp_off_cmds->cmd_cnt))
+		mdss_dsi_panel_apply_settings(ctrl, lp_off_cmds);
+	else
+		return -EINVAL;
+
+	pr_debug("%s: Persistence mode %d applied\n", __func__, mode);
+	return 0;
+}
+
 static void mdss_dsi_panel_switch_mode(struct mdss_panel_data *pdata,
 							int mode)
 {
@@ -1511,6 +1562,9 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
 
 	mdss_dsi_panel_on_hdmi(ctrl, pinfo);
+
+	/* Ensure low persistence mode is set as before */
+	mdss_dsi_panel_apply_display_setting(pdata, pinfo->persist_mode);
 
 end:
 	pr_debug("%s:-\n", __func__);
@@ -2712,6 +2766,12 @@ static int mdss_dsi_parse_panel_features(struct device_node *np,
 					__func__, __LINE__);
 	}
 
+	mdss_dsi_parse_dcs_cmds(np, &ctrl->lp_on_cmds,
+			"qcom,mdss-dsi-lp-mode-on", NULL);
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl->lp_off_cmds,
+			"qcom,mdss-dsi-lp-mode-off", NULL);
+
 	return 0;
 }
 
@@ -3639,6 +3699,7 @@ int mdss_dsi_panel_init(struct device_node *node,
 	pinfo->dynamic_switch_pending = false;
 	pinfo->is_lpm_mode = false;
 	pinfo->esd_rdy = false;
+	pinfo->persist_mode = false;
 #ifdef CONFIG_LGE_LCD_MFTS_MODE
 	if (lge_get_mfts_mode() || (detect_factory_cable() && panel_not_connected))
 		pinfo->power_ctrl = true;
@@ -3649,6 +3710,8 @@ int mdss_dsi_panel_init(struct device_node *node,
 	ctrl_pdata->off = mdss_dsi_panel_off;
 	ctrl_pdata->low_power_config = mdss_dsi_panel_low_power_config;
 	ctrl_pdata->panel_data.set_backlight = mdss_dsi_panel_bl_ctrl;
+	ctrl_pdata->panel_data.apply_display_setting =
+			mdss_dsi_panel_apply_display_setting;
 	ctrl_pdata->switch_mode = mdss_dsi_panel_switch_mode;
 	ctrl_pdata->panel_data.get_idle = mdss_dsi_panel_get_idle_mode;
 

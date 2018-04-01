@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -345,6 +345,7 @@ struct msm_fb_data_type {
 	bool keep_aod_pending;
 #endif
 	struct mutex bl_lock;
+	struct mutex mdss_sysfs_lock;
 	bool ipc_resume;
 
 #if defined(CONFIG_LGE_DISPLAY_AOD_SUPPORTED)

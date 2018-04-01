@@ -144,6 +144,11 @@ enum {
 };
 
 enum {
+	MDSS_PANEL_LOW_PERSIST_MODE_OFF = 0,
+	MDSS_PANEL_LOW_PERSIST_MODE_ON,
+};
+
+enum {
 	MODE_GPIO_NOT_VALID = 0,
 	MODE_GPIO_HIGH,
 	MODE_GPIO_LOW,
@@ -792,6 +797,9 @@ struct mdss_panel_info {
 	/* debugfs structure for the panel */
 	struct mdss_panel_debugfs_info *debugfs_info;
 
+	/* persistence mode on/off */
+	bool persist_mode;
+
 	/* HDR properties of display panel*/
 	struct mdss_panel_hdr_properties hdr_properties;
 
@@ -864,6 +872,7 @@ struct mdss_panel_timing {
 struct mdss_panel_data {
 	struct mdss_panel_info panel_info;
 	void (*set_backlight) (struct mdss_panel_data *pdata, u32 bl_level);
+	int (*apply_display_setting)(struct mdss_panel_data *pdata, u32 mode);
 	unsigned char *mmss_cc_base;
 
 	/**
@@ -889,6 +898,9 @@ struct mdss_panel_data {
 	/* To store dsc cfg name passed by bootloader */
 	char dsc_cfg_np_name[MDSS_MAX_PANEL_LEN];
 	struct mdss_panel_data *next;
+
+	int panel_te_gpio;
+	struct completion te_done;
 };
 
 struct mdss_panel_debugfs_info {
