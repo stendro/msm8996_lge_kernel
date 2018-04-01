@@ -35,9 +35,6 @@
 #include <linux/qcom/diag_dload.h>
 
 #include "gadget_chips.h"
-#ifdef CONFIG_MACH_LGE
-#include <soc/qcom/lge/board_lge.h>
-#endif
 
 #ifdef CONFIG_MEDIA_SUPPORT
 #include "f_uvc.h"

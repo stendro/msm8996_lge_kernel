@@ -221,9 +221,6 @@ struct dwc3_msm {
 	struct dbm		*dbm;
 
 	/* VBUS regulator for host mode */
-#ifndef CONFIG_LGE_USB_TYPE_C
-	struct regulator	*vbus_reg;
-#endif
 	struct regulator	*vbus_reg;
 	int			vbus_retry_count;
 	bool			resume_pending;
@@ -258,10 +255,6 @@ struct dwc3_msm {
 	unsigned int		health_status;
 	unsigned int		tx_fifo_size;
 	bool			vbus_active;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	bool			vbus_active_pending;
-	unsigned int		dp_dm;
-#endif
 	bool			suspend;
 	bool			disable_host_mode_pm;
 	enum dwc3_id_state	id_state;
@@ -2730,41 +2723,6 @@ static int dwc3_msm_gadget_func_io(struct power_supply *psy,
 }
 #endif
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-#define USB_INPUT_5P0_VOLTAGE 5000
-#define FAST_CHARGING_INPUT_POWER  15000000
-static int dwc3_msm_input_power_calc(void)
-{
-	struct power_supply *usbpd_psy;
-	union power_supply_propval currval = {0, };
-	union power_supply_propval voltval = {0, };
-	union power_supply_propval typeval = {0, };
-	int power;
-
-	usbpd_psy = power_supply_get_by_name("usb_pd");
-
-	if (!usbpd_psy)
-		return 0;
-
-	usbpd_psy->get_property(usbpd_psy,
-				POWER_SUPPLY_PROP_TYPE, &typeval);
-	if (typeval.intval == POWER_SUPPLY_TYPE_UNKNOWN)
-		return 0;
-
-	usbpd_psy->get_property(usbpd_psy,
-				POWER_SUPPLY_PROP_CURRENT_MAX, &currval);
-	usbpd_psy->get_property(usbpd_psy,
-				POWER_SUPPLY_PROP_VOLTAGE_MAX, &voltval);
-
-	power = currval.intval * voltval.intval;
-	if (voltval.intval > USB_INPUT_5P0_VOLTAGE &&
-			power >= FAST_CHARGING_INPUT_POWER)
-		return 1;
-
-	return 0;
-}
-#endif
-
 static int dwc3_msm_power_get_property_usb(struct power_supply *psy,
 				  enum power_supply_property psp,
 				  union power_supply_propval *val)
@@ -2804,23 +2762,6 @@ static int dwc3_msm_power_get_property_usb(struct power_supply *psy,
 #endif
 	case POWER_SUPPLY_PROP_HVDCP_TYPE:
 		val->intval = (int)mdwc->evp_sts;
-		break;
-#endif
-#ifdef CONFIG_LGE_USB_TYPE_C
-	case POWER_SUPPLY_PROP_DP_DM:
-		val->intval = mdwc->dp_dm;
-		break;
-#endif
-#ifdef CONFIG_LGE_PM
-	case POWER_SUPPLY_PROP_FASTCHG:
-		val->intval = 0;
-		if (psy->type == POWER_SUPPLY_TYPE_USB_HVDCP ||
-			psy->type == POWER_SUPPLY_TYPE_USB_HVDCP_3)
-			val->intval = 1;
-#ifdef CONFIG_LGE_USB_TYPE_C
-		else
-			val->intval = dwc3_msm_input_power_calc();
-#endif
 		break;
 #endif
 	default:
@@ -2866,9 +2807,6 @@ static int dwc3_msm_power_set_property_usb(struct power_supply *psy,
 		break;
 	/* PMIC notification for DP_DM state */
 	case POWER_SUPPLY_PROP_DP_DM:
-#ifdef CONFIG_LGE_USB_TYPE_C
-		mdwc->dp_dm = val->intval;
-#endif
 		ret = usb_phy_change_dpdm(mdwc->hs_phy, val->intval);
 		if (ret) {
 			dev_dbg(mdwc->dev, "%s: error in phy dpdm update :%d\n",
@@ -2878,14 +2816,6 @@ static int dwc3_msm_power_set_property_usb(struct power_supply *psy,
 		break;
 	/* Process PMIC notification in PRESENT prop */
 	case POWER_SUPPLY_PROP_PRESENT:
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (val->intval && psy->type == POWER_SUPPLY_TYPE_UNKNOWN) {
-			mdwc->vbus_active_pending = true;
-			break;
-		} else {
-			mdwc->vbus_active_pending = false;
-		}
-#endif
 		dev_dbg(mdwc->dev, "%s: notify xceiv event with val:%d\n",
 							__func__, val->intval);
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
@@ -2970,11 +2900,6 @@ static int dwc3_msm_power_set_property_usb(struct power_supply *psy,
 		dev_dbg(mdwc->dev, "%s: charger type: %s\n", __func__,
 				chg_to_string(mdwc->chg_type));
 		break;
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (mdwc->vbus_active_pending &&
-		    mdwc->chg_type != DWC3_INVALID_CHARGER)
-			power_supply_set_present(psy, true);
-#endif
 	case POWER_SUPPLY_PROP_HEALTH:
 		mdwc->health_status = val->intval;
 		break;
@@ -2994,12 +2919,6 @@ static int dwc3_msm_power_set_property_usb(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_EVP_VOL:
 		evp_vol = val->intval;
 		dwc3_msm_gadget_func_io(psy, &evp_vol, true);
-		break;
-#endif
-#if defined(CONFIG_LGE_USB_FLOATED_CHARGER_DETECT) && defined(CONFIG_LGE_USB_TYPE_C)
-	case POWER_SUPPLY_PROP_CTYPE_CHARGER:
-		dev_info(mdwc->dev, "%s: type-c charger detected.\n ", __func__);
-		cancel_delayed_work(&mdwc->floated_chg_notify_work);
 		break;
 #endif
 	default:
@@ -3730,10 +3649,8 @@ static int dwc3_msm_remove(struct platform_device *pdev)
 	if (mdwc->bus_perf_client)
 		msm_bus_scale_unregister_client(mdwc->bus_perf_client);
 
-#ifndef CONFIG_LGE_USB_TYPE_C
 	if (!IS_ERR_OR_NULL(mdwc->vbus_reg))
 		regulator_disable(mdwc->vbus_reg);
-#endif
 
 	disable_irq(mdwc->hs_phy_irq);
 	if (mdwc->ss_phy_irq)
@@ -3881,7 +3798,6 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 	if (!dwc->xhci)
 		return -EINVAL;
 
-#ifndef CONFIG_LGE_USB_TYPE_C
 	/*
 	 * The vbus_reg pointer could have multiple values
 	 * NULL: regulator_get() hasn't been called, or was previously deferred
@@ -3898,7 +3814,6 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 			return -EPROBE_DEFER;
 		}
 	}
-#endif
 
 	if (on) {
 		dev_dbg(mdwc->dev, "%s: turn on host\n", __func__);
@@ -3909,7 +3824,6 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 		mdwc->hs_phy->flags |= PHY_HOST_MODE;
 		mdwc->ss_phy->flags |= PHY_HOST_MODE;
 		usb_phy_notify_connect(mdwc->hs_phy, USB_SPEED_HIGH);
-#ifndef CONFIG_LGE_USB_TYPE_C
 		if (!IS_ERR(mdwc->vbus_reg))
 			ret = regulator_enable(mdwc->vbus_reg);
 		if (ret) {
@@ -3921,7 +3835,6 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 				atomic_read(&mdwc->dev->power.usage_count));
 			return ret;
 		}
-#endif
 
 		dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_HOST);
 
@@ -3940,10 +3853,8 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 			dev_err(mdwc->dev,
 				"%s: failed to add XHCI pdev ret=%d\n",
 				__func__, ret);
-#ifndef CONFIG_LGE_USB_TYPE_C
 			if (!IS_ERR(mdwc->vbus_reg))
 				regulator_disable(mdwc->vbus_reg);
-#endif
 			mdwc->hs_phy->flags &= ~PHY_HOST_MODE;
 			mdwc->ss_phy->flags &= ~PHY_HOST_MODE;
 			pm_runtime_put_sync(mdwc->dev);
@@ -3993,7 +3904,6 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 	} else {
 		dev_dbg(mdwc->dev, "%s: turn off host\n", __func__);
 
-#ifndef CONFIG_LGE_USB_TYPE_C
 		usb_unregister_atomic_notify(&mdwc->usbdev_nb);
 		if (!IS_ERR(mdwc->vbus_reg))
 			ret = regulator_disable(mdwc->vbus_reg);
@@ -4001,7 +3911,6 @@ static int dwc3_otg_start_host(struct dwc3_msm *mdwc, int on)
 			dev_err(mdwc->dev, "unable to disable vbus_reg\n");
 			return ret;
 		}
-#endif
 
 		cancel_delayed_work_sync(&mdwc->perf_vote_work);
 		dwc3_msm_perf_vote_update(mdwc, DWC3_PERF_OFF);
@@ -4188,17 +4097,6 @@ static void dwc3_check_float_lines(struct dwc3_msm *mdwc)
 {
 	int dpdm;
 	struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
-#ifdef CONFIG_LGE_USB_TYPE_C
-	struct power_supply *typec_psy;
-#endif
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-	typec_psy = power_supply_get_by_name("usb_pd");
-	if (typec_psy && typec_psy->type == POWER_SUPPLY_TYPE_TYPEC_PD) {
-		pr_info("%s: Type-C PD Charger connected.\n", __func__);
-		return;
-	}
-#endif
 
 	dev_dbg(mdwc->dev, "%s: Check linestate\n", __func__);
 	dwc3_msm_gadget_vbus_draw(mdwc, 0);
@@ -4377,9 +4275,7 @@ static void dwc3_msm_otg_sm_work(struct work_struct *w)
 			dbg_event(0xFF, "!id", 0);
 			mdwc->otg_state = OTG_STATE_A_IDLE;
 			work = 1;
-#ifndef CONFIG_LGE_USB_TYPE_C
 			mdwc->chg_type = DWC3_INVALID_CHARGER;
-#endif
 		} else if (test_bit(B_SESS_VLD, &mdwc->inputs)) {
 			dbg_event(0xFF, "b_sess_vld", 0);
 			switch (mdwc->chg_type) {
@@ -4446,9 +4342,7 @@ static void dwc3_msm_otg_sm_work(struct work_struct *w)
 			pm_runtime_put_sync(mdwc->dev);
 			dbg_event(0xFF, "BPER psync",
 				atomic_read(&mdwc->dev->power.usage_count));
-#ifndef CONFIG_LGE_USB_TYPE_C
 			mdwc->chg_type = DWC3_INVALID_CHARGER;
-#endif
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
 			mdwc->evp_sts = 0;
 			dwc->gadget.evp_sts = 0;
