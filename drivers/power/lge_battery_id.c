@@ -48,30 +48,7 @@ struct lge_battery_id_info {
 static enum power_supply_property lge_battery_id_battery_props[] = {
 	POWER_SUPPLY_PROP_BATTERY_ID,
 };
-#if defined (CONFIG_MACH_MSM8996_LUCYE)
-struct battery_id_type battery_id_list[] = {
-	{
-		.battery_id = BATT_ID_RA4301_VC0,
-		.battery_cell_type = BYD_YBY,
-		.battery_type_name = "LGE_BLT32_LGC_3300mAh",
-	},
-	{
-		.battery_id = BATT_ID_RA4301_VC1,
-		.battery_cell_type = LGC_LLL,
-		.battery_type_name = "LGE_BLT32_LGC_3300mAh",
-	},
-	{
-		.battery_id = BATT_ID_SW3800_VC0,
-		.battery_cell_type = LGC_LLL,
-		.battery_type_name = "LGE_BLT32_LGC_3300mAh",
-	},
-	{
-		.battery_id = BATT_ID_SW3800_VC1,
-		.battery_cell_type = TCD_AAC,
-		.battery_type_name = "LGE_BLT32_LGC_3300mAh",
-	},
-};
-#elif defined (CONFIG_MACH_MSM8996_ELSA)
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_LUCYE)
 struct battery_id_type battery_id_list[] = {
 	{
 		.battery_id = BATT_ID_RA4301_VC0,
