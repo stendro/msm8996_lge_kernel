@@ -660,13 +660,6 @@ config LGE_PM
 	  Power Management, Battery charging, Battery Monitoring System
 	  with battery FET and fuel gauge.
 
-config LGE_PM_PARALLEL_CHARGING
-	tristate "LGE parallel charging feature"
-	default n
-	depends on MACH_LGE
-	help
-	  lge parallel charging feature
-
 config LGE_PM_BATTERY_ID_CHECKER
 	tristate "Virtual Device for LGE Battery ID Checker"
 	depends on LGE_PM

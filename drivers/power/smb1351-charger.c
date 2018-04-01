@@ -2460,13 +2460,8 @@ static int smb1351_parallel_set_chg_present(struct smb1351_charger *chip,
 			}
 		}
 
-#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
-		/* set charging enable by I2C */
-		reg = EN_BY_I2C_0_ENABLE | USBCS_CTRL_BY_I2C;
-#else
 		/* set chg en by pin active low  */
 		reg = chip->parallel_pin_polarity_setting | USBCS_CTRL_BY_I2C;
-#endif
 		rc = smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG,
 					EN_PIN_CTRL_MASK | USBCS_CTRL_BIT, reg);
 		if (rc) {
@@ -2504,34 +2499,6 @@ static int smb1351_parallel_set_chg_present(struct smb1351_charger *chip,
 			pr_err("Couldn't set fastchg current rc=%d\n", rc);
 			return rc;
 		}
-
-#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
-		/* adapter allowance to 5~9V */
-		rc = smb1351_masked_write(chip, FLEXCHARGER_REG,
-				CHG_CONFIG_MASK, 0);
-
-		if (rc) {
-			pr_err("Couldn't set charger config adapter rc = %d\n", rc);
-			return rc;
-		}
-
-		/* jeita disable */
-		rc = smb1351_masked_write(chip, THERM_A_CTRL_REG,
-				SOFT_COLD_TEMP_LIMIT_MASK, 0);
-		if (rc) {
-			pr_err("Couldn't set soft cold limit rc = %d\n", rc);
-			return rc;
-		}
-
-		rc = smb1351_masked_write(chip, THERM_A_CTRL_REG,
-				SOFT_HOT_TEMP_LIMIT_MASK, 0);
-
-		if (rc) {
-			pr_err("Couldn't set soft hot limit rc = %d\n", rc);
-			return rc;
-		}
-#endif
-
 		/*
 		 * Suspend USB input (CURRENT reason) to avoid slave start
 		 * charging before any SW logic been run. USB input will be
@@ -2594,10 +2561,6 @@ static int smb1351_parallel_set_property(struct power_supply *psy,
 				pr_err("%suspend charger failed\n",
 						val->intval ? "Un-s" : "S");
 		}
-#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
-		else
-			chip->usb_suspended_status &= ~USER;
-#endif
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:
 		mutex_lock(&chip->parallel_config_lock);
