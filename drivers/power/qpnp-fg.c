@@ -2342,15 +2342,9 @@ static int get_sram_prop_now(struct fg_chip *chip, unsigned int type)
 			fg_data[type].address, fg_data[type].offset,
 			fg_data[type].value);
 
-	if (type == FG_DATA_BATT_ID) {
-#ifdef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
-		if (fg_data[FG_DATA_BATT_ID_INFO].value & 0x40)
-			return 0;
-		else
-#endif
-			return get_batt_id(fg_data[type].value,
-					 fg_data[FG_DATA_BATT_ID_INFO].value);
-	}
+	if (type == FG_DATA_BATT_ID)
+		return get_batt_id(fg_data[type].value,
+				fg_data[FG_DATA_BATT_ID_INFO].value);
 
 	return fg_data[type].value;
 }
@@ -6442,15 +6436,9 @@ wait:
 		pr_info("battery id = %d\n",
 				get_sram_prop_now(chip, FG_DATA_BATT_ID));
 
-#ifndef CONFIG_LGE_PM_EMBEDDED_BATT_ID_ADC
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER
-	if (!fg_batt_type)
-		update_battery_type();
-#elif defined (CONFIG_LGE_PM_BATTERY_ID_CHECKER)
+#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
 	if (!fg_batt_type)
 		update_battery_type(&fg_batt_type);
-	pr_info("will be load battery profile to %s\n", fg_batt_type);
-#endif
 #endif
 
 #if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_H1)
