@@ -36,10 +36,7 @@
 #include <linux/alarmtimer.h>
 #include <linux/qpnp/qpnp-revid.h>
 
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER
-#include <linux/power/lge_battery_id.h>
-#include <soc/qcom/lge/lge_power_class.h>
-#elif defined CONFIG_LGE_PM_BATTERY_ID_CHECKER
+#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
 #include <linux/power/lge_battery_id.h>
 #endif
 
@@ -3329,38 +3326,7 @@ static void battery_age_work(struct work_struct *work)
 	estimate_battery_age(chip, &chip->actual_cap_uah);
 }
 
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER
-void update_battery_type(void)
-{
-	struct lge_power *lge_batt_id_lpc;
-	union lge_power_propval lge_val = {0,};
-	int battery_id;
-	const char *battery_type;
-
-	lge_batt_id_lpc = lge_power_get_by_name("lge_batt_id");
-	if (lge_batt_id_lpc) {
-		lge_batt_id_lpc->get_property(lge_batt_id_lpc,
-				LGE_POWER_PROP_BATTERY_ID_CHECKER, &lge_val);
-		battery_id = lge_val.intval;
-	} else {
-		pr_info("Failed get batt_id property\n");
-		battery_id = BATT_ID_DEFAULT;
-	}
-	pr_info("battery_id : %d\n", battery_id);
-
-	if (lge_batt_id_lpc) {
-		lge_batt_id_lpc->get_property(lge_batt_id_lpc,
-				LGE_POWER_PROP_BATT_INFO, &lge_val);
-		battery_type = lge_val.strval;
-	} else {
-		battery_type = BATT_ID_DEFAULT_TYPE_NAME;
-		pr_err("Failed to get property use default battery \n");
-	}
-	fg_batt_type = (char *)battery_type;
-
-	return;
-}
-#elif defined (CONFIG_LGE_PM_BATTERY_ID_CHECKER)
+#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
 void update_battery_type(char **battery_type)
 {
 	struct power_supply *psy;
