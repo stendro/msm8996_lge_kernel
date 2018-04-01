@@ -920,31 +920,6 @@ static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
 	*usb_supply_type = get_usb_supply_type(type);
 }
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-static enum power_supply_type get_usb_pd_supply_type(struct smbchg_chip *chip)
-{
-   union power_supply_propval pval = {0, };
-   int rc;
-
-   if (!chip->typec_psy) {
-       chip->typec_psy = power_supply_get_by_name("usb_pd");
-       if (IS_ERR(chip->typec_psy))
-           chip->typec_psy = 0;
-   }
-   if (chip->typec_psy) {
-       rc = chip->typec_psy->get_property(chip->typec_psy,
-               POWER_SUPPLY_PROP_TYPE, &pval);
-   }
-
-   if (rc) {
-       pr_err("Couldn't get usb pd type = %d\n", rc);
-       return POWER_SUPPLY_TYPE_UNKNOWN;
-   } else {
-       return pval.intval;
-   }
-}
-#endif
-
 #define CHGR_STS			0x0E
 #define BATT_LESS_THAN_2V		BIT(4)
 #define CHG_HOLD_OFF_BIT		BIT(3)
@@ -2419,10 +2394,6 @@ static bool smbchg_is_parallel_usb_ok(struct smbchg_chip *chip,
 	int fcc_ma = get_effective_result_locked(chip->fcc_votable);
 	int usb_icl_ma = get_effective_result_locked(chip->usb_icl_votable);
 	const char *fcc_voter = get_effective_client_locked(chip->fcc_votable);
-#ifdef CONFIG_LGE_USB_TYPE_C
-	int c_type;
-	c_type = get_usb_pd_supply_type(chip);
-#endif
 
 	if (!parallel_psy || !smbchg_parallel_en
 			|| !chip->parallel_charger_detected) {
@@ -2483,12 +2454,7 @@ static bool smbchg_is_parallel_usb_ok(struct smbchg_chip *chip,
 		return false;
 	}
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-	if ((get_usb_supply_type(type) == POWER_SUPPLY_TYPE_USB) &&
-			 (c_type != POWER_SUPPLY_TYPE_CTYPE_PD)) {
-#else
 	if (get_usb_supply_type(type) == POWER_SUPPLY_TYPE_USB) {
-#endif
 		pr_smb(PR_STATUS, "SDP adapter, skipping\n");
 		return false;
 	}
@@ -4022,66 +3988,6 @@ static void check_battery_type(struct smbchg_chip *chip)
 	}
 }
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-#define MAX_ICL_MA    2000
-static void smbchg_usb_pd_en(struct smbchg_chip *chip)
-{
-	union power_supply_propval prop = {0, };
-	enum power_supply_type usb_supply_type;
-	char *usb_type_name = "null";
-	int c_type, c_mv, c_ma, target_icl_ma;
-	int rc;
-
-	c_type = get_usb_pd_supply_type(chip);
-
-	if (c_type == POWER_SUPPLY_TYPE_CTYPE ||
-			c_type == POWER_SUPPLY_TYPE_CTYPE_PD) {
-		rc = chip->typec_psy->get_property(chip->typec_psy,
-				POWER_SUPPLY_PROP_VOLTAGE_MAX, &prop);
-		c_mv = prop.intval;
-
-		rc = chip->typec_psy->get_property(chip->typec_psy,
-				POWER_SUPPLY_PROP_CURRENT_MAX, &prop);
-		c_ma = prop.intval;
-
-		target_icl_ma = get_effective_result_locked(chip->usb_icl_votable);
-
-		if (c_ma == 0 || c_ma == target_icl_ma || target_icl_ma == MAX_ICL_MA) {
-			pr_smb(PR_MISC, "skip current setting for C Type\n");
-		} else {
-			pr_smb(PR_MISC, "Type[%d], c_mV[%d], c_mA[%d], "
-					"target_icl_mA[%d]\n", c_type, c_mv, c_ma, target_icl_ma);
-			smbchg_parallel_usb_disable(chip);
-
-			read_usb_type(chip, &usb_type_name, &usb_supply_type);
-			if (usb_supply_type == POWER_SUPPLY_TYPE_USB) {
-				pr_smb(PR_MISC, "set HC mode\n");
-				rc = smbchg_masked_write(chip,
-						chip->usb_chgpth_base + CMD_IL,
-						ICL_OVERRIDE_BIT,
-						ICL_OVERRIDE_BIT);
-				if (rc < 0)
-					pr_err("Couldn't set override rc = %d\n", rc);
-
-				rc = smbchg_masked_write(chip,
-						chip->usb_chgpth_base + CMD_IL,
-						USBIN_MODE_CHG_BIT,
-						USBIN_HC_MODE);
-				if (rc < 0)
-					dev_err(chip->dev, "Couldn't write cfg 5 rc = %d\n", rc);
-			}
-			if (c_ma >= MAX_ICL_MA)
-				c_ma = MAX_ICL_MA;
-
-		rc = vote(chip->usb_icl_votable, PSY_ICL_VOTER, true, c_ma);
-			if (rc < 0)
-				pr_smb(PR_MISC, "Couldn't vote for "
-						"new USB ICL rc=%d\n", rc);
-		}
-	}
-}
-#endif
-
 static int smbchg_otg_regulator_enable(struct regulator_dev *rdev)
 {
 	int rc = 0;
@@ -5059,22 +4965,7 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	if (!chip->skip_usb_notification) {
 		pr_smb(PR_MISC, "setting usb psy present = %d\n",
 				chip->usb_present);
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (!chip->typec_psy) {
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-			if (IS_ERR(chip->typec_psy))
-				chip->typec_psy = 0;
-		}
-		if (!chip->typec_psy) {
-			power_supply_set_present(chip->usb_psy, chip->usb_present);
-		} else {
-			power_supply_set_supply_type(chip->typec_psy,
-					POWER_SUPPLY_TYPE_UNKNOWN);
-			power_supply_set_present(chip->typec_psy, 0);
-		}
-#else
 		power_supply_set_present(chip->usb_psy, chip->usb_present);
-#endif
 	}
 	set_usb_psy_dp_dm(chip, POWER_SUPPLY_DP_DM_DPR_DMR);
 	schedule_work(&chip->usb_set_online_work);
@@ -6189,17 +6080,6 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 	int rc, current_limit = 0, soc;
 	enum power_supply_type usb_supply_type;
 	char *usb_type_name = "null";
-#ifdef CONFIG_LGE_USB_TYPE_C
-	int c_type = 0;
-
-	c_type = get_usb_pd_supply_type(chip);
-
-	if (c_type == POWER_SUPPLY_TYPE_CTYPE ||
-		c_type == POWER_SUPPLY_TYPE_CTYPE_PD) {
-		smbchg_usb_pd_en(chip);
-		goto skip_current_for_non_sdp;
-	}
-#endif
 
 	if (chip->bms_psy_name)
 		chip->bms_psy =
@@ -8945,17 +8825,7 @@ static int smbchg_probe(struct spmi_device *spmi)
 	if (!chip->skip_usb_notification) {
 		pr_smb(PR_MISC, "setting usb psy present = %d\n",
 			chip->usb_present);
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (!chip->typec_psy) {
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-			if (IS_ERR(chip->typec_psy))
-				chip->typec_psy = 0;
-		}
-		if (!chip->typec_psy)
-			power_supply_set_present(chip->usb_psy, chip->usb_present);
-#else
 		power_supply_set_present(chip->usb_psy, chip->usb_present);
-#endif
 	}
 
 	rerun_hvdcp_det_if_necessary(chip);
