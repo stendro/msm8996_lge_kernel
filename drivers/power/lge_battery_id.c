@@ -52,7 +52,7 @@ static enum power_supply_property lge_battery_id_battery_props[] = {
 struct battery_id_type battery_id_list[] = {
 	{
 		.battery_id = BATT_ID_RA4301_VC0,
-		.battery_cell_type = TCD_AAC,
+		.battery_cell_type = BYD_YBY,
 		.battery_type_name = "LGE_BLT32_LGC_3300mAh",
 	},
 	{
