@@ -154,9 +154,6 @@ struct smbchg_chip {
 	struct delayed_work		parallel_en_work;
 	struct dentry			*debug_root;
 	struct smbchg_version_tables	tables;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	bool				dp_alt_mode;
-#endif
 
 	/* wipower params */
 	struct ilim_map			wipower_default;
@@ -288,14 +285,6 @@ struct smbchg_chip {
 	struct votable			*hw_aicl_rerun_enable_indirect_votable;
 	struct votable			*aicl_deglitch_short_votable;
 	struct votable			*hvdcp_enable_votable;
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	int				ctype_rp;
-	int				hvdcp_det_retry;
-	struct delayed_work		hvdcp_det_prepare_work;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	enum power_supply_type before_usb_supply_type;
-#endif
-#endif
 };
 
 enum qpnp_schg {
@@ -931,34 +920,6 @@ static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
 #define BATT_TAPER_CHG_VAL		0x3
 #define CHG_INHIBIT_BIT			BIT(1)
 #define BAT_TCC_REACHED_BIT		BIT(7)
-
-#ifdef CONFIG_MACH_MSM8996_LUCYE
-static bool is_usb_suspended_by_scenario(struct smbchg_chip *chip) {
-
-	bool usb_suspended = false;
-
-	/* Check suspended by user */
-	usb_suspended |= get_client_vote(chip->usb_suspend_votable,
-		USER_EN_VOTER);
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_STORE_MODE
-	/* Check suspended by storemode */
-	usb_suspended |= get_client_vote(chip->usb_suspend_votable,
-		STORE_MODE_USB_EN_VOTER);
-#endif
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_VZW_REQ
-	/* Check suspended by llk */
-	usb_suspended |= get_client_vote(chip->usb_suspend_votable,
-		VZW_REQ_USB_EN_VOTER);
-#endif
-#ifdef CONFIG_LGE_PM_WATERPROOF_PROTECTION
-	/* Check suspended by waterproof */
-	usb_suspended |= get_client_vote(chip->usb_suspend_votable,
-		WATERPROOF_EN_VOTER);
-#endif
-	return usb_suspended;
-}
-#endif
-
 static int get_prop_batt_status(struct smbchg_chip *chip)
 {
 	int rc, status = POWER_SUPPLY_STATUS_DISCHARGING;
@@ -1870,12 +1831,6 @@ out:
 #define USBIN_HVDCP_SEL_9V_BIT			BIT(1)
 #define SCHG_LITE_USBIN_HVDCP_SEL_9V_BIT	BIT(2)
 #define SCHG_LITE_USBIN_HVDCP_SEL_BIT		BIT(0)
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-#define RP_56K          56
-#define RP_22K          22
-#define RP_10K          10
-#define RP_NONE         0
-#endif
 static int smbchg_get_min_parallel_current_ma(struct smbchg_chip *chip)
 {
 	int rc;
@@ -6166,56 +6121,6 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 		pr_err("Couldn't update USB PSY ICL vote rc=%d\n", rc);
 
 skip_current_for_non_sdp:
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) && defined(CONFIG_LGE_USB_TYPE_C)
-		if (!chip->typec_psy) {
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-			if (IS_ERR(chip->typec_psy))
-				chip->typec_psy = 0;
-		}
-		if (chip->typec_psy) {
-			rc = chip->typec_psy->get_property(chip->typec_psy,
-					POWER_SUPPLY_PROP_CTYPE_RP ,&prop);
-			if (rc == 0) {
-				if ((chip->ctype_rp != prop.intval) ||
-						(chip->before_usb_supply_type !=
-						 usb_supply_type)) {
-					chip->ctype_rp = prop.intval;
-					if ((chip->ctype_rp == 1) &&
-						(usb_supply_type ==
-							 POWER_SUPPLY_TYPE_USB_DCP)) {
-						schedule_delayed_work(&chip->hvdcp_det_prepare_work,
-							msecs_to_jiffies(500));
-					}
-				}
-			}
-			rc = chip->typec_psy->get_property(chip->typec_psy,
-					POWER_SUPPLY_PROP_TYPE, &prop);
-			pr_info("usbc_type : %d, usb_supply_type : %d\n",
-					prop.intval, usb_supply_type);
-			if (rc == 0) {
-				if ((prop.intval != 0) && (usb_supply_type !=
-							POWER_SUPPLY_TYPE_USB)) {
-					pr_info ("cd_current_limit is %d\n", chip->cd_current_limit);
-					if (chip->cd_current_limit != 0){
-						rc = vote(chip->usb_icl_votable, PSY_ICL_VOTER, true,
-								chip->cd_current_limit);
-						if (rc < 0)
-							pr_err("Couldn't update USB PSY ICL vote rc=%d\n", rc);
-						}
-					}
-
-			}
-		}
-		chip->before_usb_supply_type = usb_supply_type;
-#endif
-
-#ifdef CONFIG_MACH_MSM8996_LUCYE
-	/* To make UI status correct, below update work should be invoked after USB's uevent.
-	 * In fact, below work has effect to OVERRIDE UI status after updated by USB
-	 */
-	if (is_usb_suspended_by_scenario(chip))
-		schedule_work(&chip->usb_set_online_work);
-#endif
 	smbchg_vfloat_adjust_check(chip);
 
 	power_supply_changed(&chip->batt_psy);
@@ -6324,18 +6229,10 @@ static int smbchg_battery_set_property(struct power_supply *psy,
 		rc = smbchg_restricted_charging(chip, val->intval);
 		break;
 	case POWER_SUPPLY_PROP_CURRENT_CAPABILITY:
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (!chip->typec_psy)
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-#endif
 		if (chip->typec_psy)
 			update_typec_capability_status(chip, val);
 		break;
 	case POWER_SUPPLY_PROP_TYPEC_MODE:
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (!chip->typec_psy)
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-#endif
 		if (chip->typec_psy)
 			update_typec_otg_status(chip, val->intval, false);
 		break;
@@ -6345,21 +6242,6 @@ static int smbchg_battery_set_property(struct power_supply *psy,
 			power_supply_changed(&chip->batt_psy);
 		}
 		break;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	case POWER_SUPPLY_PROP_DP_ALT_MODE:
-		chip->dp_alt_mode = val->intval;
-		break;
-#endif
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	case POWER_SUPPLY_PROP_CTYPE_RP:
-#ifndef CONFIG_LGE_USB_ANX7688_ADC
-		if (chip->ctype_rp != RP_NONE && val->intval != RP_NONE) {
-			break;
-		}
-#endif
-		chip->ctype_rp = val->intval;
-		break;
-#endif
 	default:
 		return -EINVAL;
 	}
@@ -6383,9 +6265,6 @@ static int smbchg_battery_is_writeable(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_DP_DM:
 	case POWER_SUPPLY_PROP_RERUN_AICL:
 	case POWER_SUPPLY_PROP_RESTRICTED_CHARGING:
-#ifdef CONFIG_LGE_USB_TYPE_C
-	case POWER_SUPPLY_PROP_DP_ALT_MODE:
-#endif
 	case POWER_SUPPLY_PROP_ALLOW_HVDCP3:
 		rc = 1;
 		break;
@@ -6503,16 +6382,6 @@ static int smbchg_battery_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_ALLOW_HVDCP3:
 		val->intval = chip->allow_hvdcp3_detection;
 		break;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	case POWER_SUPPLY_PROP_DP_ALT_MODE:
-		val->intval = chip->dp_alt_mode;
-		break;
-#endif
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	case POWER_SUPPLY_PROP_CTYPE_RP:
-		val->intval = chip->ctype_rp;
-		break;
-#endif
 	case POWER_SUPPLY_PROP_MAX_PULSE_ALLOWED:
 		val->intval = chip->max_pulse_allowed;
 		break;
