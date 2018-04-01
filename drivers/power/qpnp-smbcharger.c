@@ -154,10 +154,6 @@ struct smbchg_chip {
 	struct delayed_work		parallel_en_work;
 	struct dentry			*debug_root;
 	struct smbchg_version_tables	tables;
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	int 				is_evp_ta;
-	struct delayed_work             enable_evp_chg_work;
-#endif
 #ifdef CONFIG_LGE_USB_TYPE_C
 	bool				dp_alt_mode;
 #endif
@@ -4822,17 +4818,8 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 		current_limit_ma = DEFAULT_SDP_MA;
 	else if (type == POWER_SUPPLY_TYPE_USB_CDP)
 		current_limit_ma = DEFAULT_CDP_MA;
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	else if (type == POWER_SUPPLY_TYPE_USB_HVDCP) {
-		if (chip->is_evp_ta)
-			current_limit_ma = smbchg_default_dcp_icl_ma;
-		else
-			current_limit_ma = smbchg_default_hvdcp_icl_ma;
-	}
-#else
 	else if (type == POWER_SUPPLY_TYPE_USB_HVDCP)
 		current_limit_ma = smbchg_default_hvdcp_icl_ma;
-#endif
 	else if (type == POWER_SUPPLY_TYPE_USB_HVDCP_3)
 		current_limit_ma = smbchg_default_hvdcp3_icl_ma;
 	else
@@ -4915,21 +4902,6 @@ static int force_9v_hvdcp(struct smbchg_chip *chip)
 	return rc;
 }
 
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-static int smbchg_evp_det_start(struct smbchg_chip *chip, int start)
-{
-	union power_supply_propval val = {start, };
-	int rc;
-
-	if (start)
-		pr_smb(PR_MISC, "Start EVP detection\n");
-
-	rc = chip->usb_psy->set_property(chip->usb_psy,
-				POWER_SUPPLY_PROP_EVP_DETECT_START, &val);
-	return rc;
-}
-#endif
-
 static void smbchg_hvdcp_det_work(struct work_struct *work)
 {
 	struct smbchg_chip *chip = container_of(work,
@@ -4953,28 +4925,11 @@ static void smbchg_hvdcp_det_work(struct work_struct *work)
 				pr_err("could not force 9V HVDCP continuing rc=%d\n",
 						rc);
 		}
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-		smbchg_evp_det_start(chip, false);
-#endif
 		smbchg_change_usb_supply_type(chip,
 				POWER_SUPPLY_TYPE_USB_HVDCP);
 		if (chip->psy_registered)
 			power_supply_changed(&chip->batt_psy);
 		smbchg_aicl_deglitch_wa_check(chip);
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	} else if (is_usb_present(chip)) {
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if (!chip->typec_psy)
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-		if (chip->typec_psy) {
-			union power_supply_propval prop = {0, };
-			get_property_from_typec(chip, POWER_SUPPLY_PROP_TYPE, &prop);
-			if (prop.intval != POWER_SUPPLY_TYPE_TYPEC_PD)
-				smbchg_evp_det_start(chip, true);
-		} else
-#endif
-		  smbchg_evp_det_start(chip, true);
-#endif
 	}
 	smbchg_relax(chip, PM_DETECT_HVDCP);
 }
@@ -5078,35 +5033,6 @@ static int smbchg_restricted_charging(struct smbchg_chip *chip, bool enable)
 	return rc;
 }
 
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-static void enable_evp_chg_work(struct work_struct *work)
-{
-	struct smbchg_chip *chip = container_of(work,
-			struct smbchg_chip, enable_evp_chg_work.work);
-
-	if (chip->is_evp_ta) {
-		power_supply_set_supply_type(chip->usb_psy,
-				POWER_SUPPLY_TYPE_USB_HVDCP);
-		smbchg_aicl_deglitch_wa_check(chip);
-	} else {
-#ifdef CONFIG_LGE_PM_HVDCP_VDD_CX_VOTE
-		/* VOTE VDD_CX to HVDCP_VDD_CX_MIN for normal DCP */
-		rc = regulator_set_voltage(chip->vddcx,
-				HVDCP_VDD_CX_MIN, HVDCP_VDD_CX_MAX);
-		if (rc)
-			dev_err(chip->dev, "vddcx set level HVDCP_VDD_CX_MIN "
-					"for normal DCP failed\n");
-#endif
-#ifdef CONFIG_LGE_PM_HVDCP_WAKELOCK
-		if (wake_lock_active(&chip->hvdcp_lock)) {
-			mdelay(300);
-			wake_unlock(&chip->hvdcp_lock);
-		}
-#endif
-	}
-}
-#endif
-
 static void handle_usb_removal(struct smbchg_chip *chip)
 {
 	struct power_supply *parallel_psy = get_parallel_psy(chip);
@@ -5169,9 +5095,6 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	}
 	chip->parallel.enabled_once = false;
 	chip->vbat_above_headroom = false;
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	chip->is_evp_ta = 0;
-#endif
 	rc = smbchg_masked_write(chip, chip->usb_chgpth_base + CMD_IL,
 			ICL_OVERRIDE_BIT, 0);
 	if (rc < 0)
@@ -6542,13 +6465,6 @@ static int smbchg_battery_set_property(struct power_supply *psy,
 			power_supply_changed(&chip->batt_psy);
 		}
 		break;
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	case POWER_SUPPLY_PROP_ENABLE_EVP_CHG:
-		chip->is_evp_ta = val->intval;
-		pr_smb(PR_MISC, "is_evp_ta = %d\n", chip->is_evp_ta);
-		schedule_delayed_work(&chip->enable_evp_chg_work, 0);
-		break;
-#endif
 #ifdef CONFIG_LGE_USB_TYPE_C
 	case POWER_SUPPLY_PROP_DP_ALT_MODE:
 		chip->dp_alt_mode = val->intval;
@@ -6707,11 +6623,6 @@ static int smbchg_battery_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_ALLOW_HVDCP3:
 		val->intval = chip->allow_hvdcp3_detection;
 		break;
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	case POWER_SUPPLY_PROP_ENABLE_EVP_CHG:
-		val->intval = chip->is_evp_ta;
-		break;
-#endif
 #ifdef CONFIG_LGE_USB_TYPE_C
 	case POWER_SUPPLY_PROP_DP_ALT_MODE:
 		val->intval = chip->dp_alt_mode;
@@ -8910,9 +8821,6 @@ static int smbchg_probe(struct spmi_device *spmi)
 	init_completion(&chip->usbin_uv_lowered);
 	init_completion(&chip->usbin_uv_raised);
 	init_completion(&chip->hvdcp_det_done);
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	INIT_DELAYED_WORK(&chip->enable_evp_chg_work, enable_evp_chg_work);
-#endif
 	chip->vadc_dev = vadc_dev;
 	chip->vchg_vadc_dev = vchg_vadc_dev;
 	chip->spmi = spmi;
@@ -9114,10 +9022,6 @@ static int smbchg_remove(struct spmi_device *spmi)
 	destroy_votable(chip->dc_icl_votable);
 	destroy_votable(chip->usb_icl_votable);
 	destroy_votable(chip->fcc_votable);
-
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	cancel_delayed_work(&chip->enable_evp_chg_work);
-#endif
 
 	return 0;
 }

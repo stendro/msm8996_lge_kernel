@@ -280,9 +280,6 @@ config LGE_USB_TYPE_C
 	help
 	  This enables LG platform specific options in USB-C drivers
 
-config LGE_USB_MAXIM_EVP
-	boolean "EVP charger support"
-
 source "drivers/usb/misc/anx7418/Kconfig"
 source "drivers/usb/misc/anx7688/Kconfig"
 source "drivers/usb/misc/alice_friends/Kconfig"

@@ -256,14 +256,6 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(resistance_id),
 	POWER_SUPPLY_ATTR(resistance_now),
 	POWER_SUPPLY_ATTR(flash_current_max),
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	POWER_SUPPLY_ATTR(is_evp_ta),
-#endif
-#ifdef CONFIG_LGE_USB_MAXIM_EVP
-	POWER_SUPPLY_ATTR(evp_vol),
-	POWER_SUPPLY_ATTR(hvdcp_type),
-	POWER_SUPPLY_ATTR(evp_detect_start),
-#endif
 	POWER_SUPPLY_ATTR(update_now),
 	POWER_SUPPLY_ATTR(esr_count),
 	POWER_SUPPLY_ATTR(buck_freq),

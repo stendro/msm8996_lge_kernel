@@ -670,14 +670,6 @@ config LGE_PM_BATTERY_ID_CHECKER
 	  problems as using non-standard or unexpected types. so cross-
 	  reference battery identification are useful to identify.
 
-config LGE_PM_MAXIM_EVP_CONTROL
-	bool "add evp control func."
-	default n
-	depends on QPNP_SMBCHARGER
-	depends on LGE_PM
-	help
-	  add evp control func.
-
 config LGE_PM_BATT_PROFILE
 	bool "LG battery profile injection"
 	depends on LGE_PM
