@@ -652,38 +652,6 @@ config MSM_BCL_PERIPHERAL_CTL
 	  provides routines to configure and monitor the BCL
 	  PMIC peripheral.
 
-config LGE_PM
-	tristate "MSM8996 LGE POWER Feature"
-	depends on SPMI || MSM_SPMI
-	help
-	  Say Y here to enable support for pm8994/pmi8994 chip lge feature.
-	  Power Management, Battery charging, Battery Monitoring System
-	  with battery FET and fuel gauge.
-
-config LGE_PM_BATTERY_ID_CHECKER
-	tristate "Virtual Device for LGE Battery ID Checker"
-	depends on LGE_PM
-	default n
-	help
-	  Say Y to enable LGE Battery ID Checker. Manufacturer have their own
-	  systematic identification of cell types, and protect the system from
-	  problems as using non-standard or unexpected types. so cross-
-	  reference battery identification are useful to identify.
-
-config LGE_PM_BATT_PROFILE
-	bool "LG battery profile injection"
-	depends on LGE_PM
-	default n
-	help
-	  Say Y to enable LGE Battery profile injection
-
-config LGE_PM_EMBEDDED_BATT_ID_ADC
-	bool "LGE EMBEDDED BATT ID ADC"
-	default n
-	depends on LGE_PM
-	help
-	  For distinguish battery id by adc value
-
 source "drivers/power/reset/Kconfig"
 
 endif # POWER_SUPPLY

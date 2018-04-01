@@ -36,10 +36,6 @@
 #include <linux/alarmtimer.h>
 #include <linux/qpnp/qpnp-revid.h>
 
-#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
-#include <linux/power/lge_battery_id.h>
-#endif
-
 /* Register offsets */
 
 /* Interrupt offsets */
@@ -518,12 +514,6 @@ struct fg_chip {
 	struct fg_wakeup_source	gain_comp_wakeup_source;
 	struct fg_wakeup_source	capacity_learning_wakeup_source;
 	bool			first_profile_loaded;
-#ifdef CONFIG_LGE_PM
-#ifdef CONFIG_LGE_PM_BATT_PROFILE
-	int			batt_profile_enabled;
-#endif
-	int			lge_rid_disable;
-#endif
 	struct fg_wakeup_source	update_temp_wakeup_source;
 	struct fg_wakeup_source	update_sram_wakeup_source;
 	bool			fg_restarting;
@@ -3325,38 +3315,6 @@ static void battery_age_work(struct work_struct *work)
 
 	estimate_battery_age(chip, &chip->actual_cap_uah);
 }
-
-#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
-void update_battery_type(char **battery_type)
-{
-	struct power_supply *psy;
-	union power_supply_propval prop = {0,};
-	int battery_id;
-	int i;
-
-	psy = power_supply_get_by_name("battery_id");
-	if (psy) {
-		psy->get_property(psy, POWER_SUPPLY_PROP_BATTERY_ID, &prop);
-		battery_id = prop.intval;
-	} else {
-		pr_info("battery_id not found. use default battey\n");
-		battery_id = BATT_ID_DEFAULT;
-	}
-	pr_info("battery_id : %d\n", battery_id);
-	for (i = 0; i < BATT_ID_LIST_MAX; i++) {
-		if (battery_id == battery_id_list[i].battery_id) {
-			*battery_type = battery_id_list[i].battery_type_name;
-			pr_info("use battery type : %s\n", *battery_type);
-			return;
-		}
-	}
-
-	*battery_type = BATT_ID_DEFAULT_TYPE_NAME;
-	pr_info("use default battery %s\n", *battery_type);
-
-	return;
-}
-#endif
 
 static int correction_times[] = {
 	1470,
@@ -6401,18 +6359,8 @@ wait:
 	if (fg_debug_mask & FG_STATUS)
 		pr_info("battery id = %d\n",
 				get_sram_prop_now(chip, FG_DATA_BATT_ID));
-
-#ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
-	if (!fg_batt_type)
-		update_battery_type(&fg_batt_type);
-#endif
-
-#if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_H1)
-	profile_node = of_batterydata_get_best_profile(batt_node, fg_batt_type);
-#else
 	profile_node = of_batterydata_get_best_profile(batt_node, "bms",
 							fg_batt_type);
-#endif
 	if (IS_ERR_OR_NULL(profile_node)) {
 		rc = PTR_ERR(profile_node);
 		if (rc == -EPROBE_DEFER) {
@@ -7195,14 +7143,6 @@ static int fg_of_init(struct fg_chip *chip)
 
 	chip->cyc_ctr.en = of_property_read_bool(node,
 				"qcom,cycle-counter-en");
-#ifdef CONFIG_LGE_PM
-#ifdef CONFIG_LGE_PM_BATT_PROFILE
-	chip->batt_profile_enabled = of_property_read_bool(node,
-				"qcom,lge_batt_profile");
-#endif
-	chip->lge_rid_disable = of_property_read_bool(node,
-				"lge,lge_rid_disable");
-#endif
 	if (chip->cyc_ctr.en)
 		chip->cyc_ctr.id = 1;
 

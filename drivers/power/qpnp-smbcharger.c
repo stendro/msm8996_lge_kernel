@@ -3828,12 +3828,8 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 		return 0;
 	}
 
-#if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_H1)
-	profile_node = of_batterydata_get_best_profile(batt_node, NULL);
-#else
 	profile_node = of_batterydata_get_best_profile(batt_node,
 							"bms", NULL);
-#endif
 	if (!profile_node) {
 		pr_err("couldn't find profile handle\n");
 		return -EINVAL;
