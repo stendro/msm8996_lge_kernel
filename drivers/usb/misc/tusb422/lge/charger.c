@@ -13,9 +13,9 @@ static enum power_supply_property chg_properties[] = {
 static const char *chg_to_string(enum power_supply_type type)
 {
 	switch (type) {
-	case POWER_SUPPLY_TYPE_TYPEC:
+	case POWER_SUPPLY_TYPE_CTYPE:
 		return "USB Type-C Charger";
-	case POWER_SUPPLY_TYPE_TYPEC_PD:
+	case POWER_SUPPLY_TYPE_CTYPE_PD:
 		return "USB Type-C PD Charger";
 	default:
 		return "Unknown Charger";

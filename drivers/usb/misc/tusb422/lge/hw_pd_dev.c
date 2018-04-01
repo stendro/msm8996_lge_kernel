@@ -200,12 +200,12 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 		set_pr(dev, DUAL_ROLE_PROP_PR_SNK);
 
 		if (vbus_state->vbus_type) {
-			if (dev->chg_psy.type == POWER_SUPPLY_TYPE_TYPEC_PD &&
+			if (dev->chg_psy.type == POWER_SUPPLY_TYPE_CTYPE_PD &&
 			    dev->volt_max == vbus_state->mv &&
 			    dev->curr_max == vbus_state->ma)
 				goto print_vbus_state;
 
-			dev->chg_psy.type = POWER_SUPPLY_TYPE_TYPEC_PD;
+			dev->chg_psy.type = POWER_SUPPLY_TYPE_CTYPE_PD;
 			dev->volt_max = vbus_state->mv;
 			dev->curr_max = vbus_state->ma;
 
@@ -216,7 +216,7 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 		} else {
 			switch (vbus_state->ma) {
 			case 3000: // Rp10K
-				if (dev->chg_psy.type == POWER_SUPPLY_TYPE_TYPEC &&
+				if (dev->chg_psy.type == POWER_SUPPLY_TYPE_CTYPE &&
 				    dev->volt_max == vbus_state->mv &&
 #ifdef CONFIG_ARCH_MSM8996
 				    dev->curr_max == 2000)
@@ -225,7 +225,7 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 #endif
 					goto print_vbus_state;
 
-				dev->chg_psy.type = POWER_SUPPLY_TYPE_TYPEC;
+				dev->chg_psy.type = POWER_SUPPLY_TYPE_CTYPE;
 				dev->volt_max = vbus_state->mv;
 #ifdef CONFIG_ARCH_MSM8996
 				dev->curr_max = 2000;
@@ -255,8 +255,8 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 print_vbus_state:
 		PRINT("%s: %s, %dmV, %dmA\n", __func__,
 		      chg_to_string(vbus_state->vbus_type ?
-				    POWER_SUPPLY_TYPE_TYPEC_PD :
-				    POWER_SUPPLY_TYPE_TYPEC),
+				    POWER_SUPPLY_TYPE_CTYPE_PD :
+				    POWER_SUPPLY_TYPE_CTYPE),
 		      vbus_state->mv,
 		      vbus_state->ma);
 		break;
@@ -371,7 +371,7 @@ print_vbus_state:
 
 #ifdef CONFIG_LGE_USB_FACTORY
 		dev->typec_mode = is_debug_accessory ?
-			POWER_SUPPLY_TYPE_TYPEC_DEBUG_ACCESSORY :
+			POWER_SUPPLY_TYPE_CTYPE_DEBUG_ACCESSORY :
 			POWER_SUPPLY_TYPE_UNKNOWN;
 #endif
 

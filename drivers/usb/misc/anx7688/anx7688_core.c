@@ -510,9 +510,9 @@ static enum power_supply_property usbpd_properties[] = {
 static const char *usbc_to_string(enum power_supply_type type)
 {
 	switch (type) {
-	case POWER_SUPPLY_TYPE_TYPEC:
+	case POWER_SUPPLY_TYPE_CTYPE:
 		return "USB Type-C Charger";
-	case POWER_SUPPLY_TYPE_TYPEC_PD:
+	case POWER_SUPPLY_TYPE_CTYPE_PD:
 		return "USB Type-C PD Charger";
 	default:
 		return "Unknown Charger";
@@ -681,8 +681,8 @@ static int usbpd_set_property(struct power_supply *psy,
 
 	case POWER_SUPPLY_PROP_TYPE:
 		switch (val->intval) {
-		case POWER_SUPPLY_TYPE_TYPEC:
-		case POWER_SUPPLY_TYPE_TYPEC_PD:
+		case POWER_SUPPLY_TYPE_CTYPE:
+		case POWER_SUPPLY_TYPE_CTYPE_PD:
 			psy->type = val->intval;
 			break;
 		default:
@@ -767,7 +767,7 @@ static void anx7688_ctype_work(struct work_struct *w)
 #endif
 	case USBC_CHARGER:
 		power_supply_set_supply_type(&chip->usbpd_psy,
-				POWER_SUPPLY_TYPE_TYPEC);
+				POWER_SUPPLY_TYPE_CTYPE);
 #if defined(CONFIG_LGE_USB_FLOATED_CHARGER_DETECT) && \
 	defined(CONFIG_LGE_USB_TYPE_C)
 		chip->usb_psy->set_property(chip->usb_psy,
@@ -803,7 +803,7 @@ static void anx7688_ctype_work(struct work_struct *w)
 #endif
 
 		power_supply_set_supply_type(&chip->usbpd_psy,
-				POWER_SUPPLY_TYPE_TYPEC_PD);
+				POWER_SUPPLY_TYPE_CTYPE_PD);
 #if defined(CONFIG_LGE_USB_FLOATED_CHARGER_DETECT) && \
 	defined(CONFIG_LGE_USB_TYPE_C)
 		chip->usb_psy->set_property(chip->usb_psy,

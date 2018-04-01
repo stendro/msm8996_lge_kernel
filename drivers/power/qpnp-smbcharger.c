@@ -2485,7 +2485,7 @@ static bool smbchg_is_parallel_usb_ok(struct smbchg_chip *chip,
 
 #ifdef CONFIG_LGE_USB_TYPE_C
 	if ((get_usb_supply_type(type) == POWER_SUPPLY_TYPE_USB) &&
-			 (c_type != POWER_SUPPLY_TYPE_TYPEC_PD)) {
+			 (c_type != POWER_SUPPLY_TYPE_CTYPE_PD)) {
 #else
 	if (get_usb_supply_type(type) == POWER_SUPPLY_TYPE_USB) {
 #endif
@@ -4034,8 +4034,8 @@ static void smbchg_usb_pd_en(struct smbchg_chip *chip)
 
 	c_type = get_usb_pd_supply_type(chip);
 
-	if (c_type == POWER_SUPPLY_TYPE_TYPEC ||
-			c_type == POWER_SUPPLY_TYPE_TYPEC_PD) {
+	if (c_type == POWER_SUPPLY_TYPE_CTYPE ||
+			c_type == POWER_SUPPLY_TYPE_CTYPE_PD) {
 		rc = chip->typec_psy->get_property(chip->typec_psy,
 				POWER_SUPPLY_PROP_VOLTAGE_MAX, &prop);
 		c_mv = prop.intval;
@@ -6194,8 +6194,8 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 
 	c_type = get_usb_pd_supply_type(chip);
 
-	if (c_type == POWER_SUPPLY_TYPE_TYPEC ||
-		c_type == POWER_SUPPLY_TYPE_TYPEC_PD) {
+	if (c_type == POWER_SUPPLY_TYPE_CTYPE ||
+		c_type == POWER_SUPPLY_TYPE_CTYPE_PD) {
 		smbchg_usb_pd_en(chip);
 		goto skip_current_for_non_sdp;
 	}
