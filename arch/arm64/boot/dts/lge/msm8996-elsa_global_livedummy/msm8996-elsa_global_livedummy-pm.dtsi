@@ -113,7 +113,8 @@
 	qcom,fg-dischg-med-voltage-gain = <5 4 4>;
 	qcom,fg-dischg-high-voltage-gain = <4 4 3>;
 	qcom,cl-max-limit-deciperc= <50>;
-	qcom,cl-min-limit-deciperc= <200>;
+	qcom,fg-acfa-usable-fcc = <90 80 70 60>;
+	qcom,fg-acfa-v-cutoff-aged = <3400 3500 3550 3600>;
 };
 
 &pmi8994_haptics {
@@ -339,6 +340,8 @@
 			"battery", "temp", "/sys/class/power_supply/battery/temp",
 			"battery", "valid_batt_id", "/sys/class/lge_power/lge_batt_id/valid_batt_id",
 			"battery", "voltage_now", "/sys/class/power_supply/battery/voltage_now",
+			"battery", "condition", "/sys/class/power_supply/battery/battery_condition",
+			"battery", "time_to_full_now", "/sys/class/power_supply/battery/time_to_full_now",
 			/* Charger */
 			"charger", "ac_online", "NULL",
 			"charger", "usb_online", "/sys/class/power_supply/usb/online",
@@ -355,6 +358,8 @@
 			"charger", "usb_parallel_chg_status", "/sys/class/power_supply/usb-parallel/status",
 			"charger", "usb_parallel_charging_enabled", "/sys/class/power_supply/usb-parallel/charging_enabled",
 			"charger", "quick_charging_state", "/sys/module/lge_power_class_charging_controller/parameters/quick_charging_state",
+			"charger", "incompatible", "/sys/class/power_supply/usb/incompatible_chg",
+			"charger", "ext_pwr", "/sys/class/power_supply/battery/ext_pwr",
 			/* LCD Backlight */
 			"lcd", "brightness", "/sys/class/leds/lcd-backlight/brightness",
 			"lcd", "max_brightness", "/sys/class/leds/lcd-backlight/max_brightness",

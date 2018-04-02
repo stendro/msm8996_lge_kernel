@@ -31,7 +31,7 @@
 &pmi8994_charger {
 	status = "ok";
 	qcom,iterm-ma = <100>;
-	qcom,fastchg-current-ma = <2500>;
+	qcom,fastchg-current-ma = <3100>;
 	qcom,float-voltage-mv = <4400>;
 	qcom,resume-delta-mv = <149>;
 	qcom,bmd-pin-src="bpd_thm";
@@ -41,15 +41,19 @@
 	/delete-property/ qcom,chg-inhibit-fg;
 	qcom,parallel-usb-min-current-ma = <1400>;
 	qcom,parallel-usb-9v-min-current-ma = <900>;
+	qcom,parallel-main-chg-fcc-percent = <40>;
 	qcom,charging-timeout-mins = <768>;
 	qcom,skip-usb-suspend-for-fake-battery;
+	qcom,aicl-rerun-period-s = <45>;
 	qcom,bmd-algo-disabled;
 
 	qcom,usb_id-vadc = <&pm8994_vadc>;
 	qcom,usbin-vadc = <&pmi8994_vadc>;
-	qcom,default-hvdcp-icl-ma = <2000>;
-	/* control for CM devices */
-	qcom,ext_en_acc = <&pm8994_gpios 19 0>;
+	qcom,default-hvdcp-icl-ma = <1900>;
+	qcom,default-hvdcp3-icl-ma = <1900>;
+	qcom,maximum-icl-ma = <2000>;
+	qcom,acc-detect-gpio = <&tlmm 132 0>;
+	qcom,enable-booster-gpio = <&pmi8994_gpios 9 0>;
 
 	/* lge,cable-adc-maxset : size of each cable prop        */
 	/* lge,cable-adc-useset : actual cable adc using set     */
@@ -77,14 +81,8 @@
 
 /{
         lge_batterydata: qcom,battery-data {
-                #include "../LGE_PMI8996_2000mAh_Test_Battery_Profile_Aug26th2015_PMI8996GUI00012.dtsi"
-                #include "../LGE_PMI8994_2000mAh_Test_Battery_Profile_Aug26th2015_PMI8994GUI2168.dtsi"
-                #include "../LGE_BLT16_3000mAh_averaged_MasterSlave_Aug6th2015_PMI8994GUI2168.dtsi"
-                #include "../LGE_BLT16_3000mAh_averaged_MasterSlave_Aug6th2015_PMI8996GUI00012.dtsi"
-                #include "../LGE_BL42D1F_1600mAh_averaged_MasterSlave_Oct12th2015_PMI8996GUI1014.dtsi"
-                #include "../Generic_2810mAh_Sept9th2015_PMI8996GUI1004.dtsi"
-                #include "../LGE_BL42D1_Tocad_2800mAh_averaged_MasterSlave_Nov23rd2015_PMI8996GUI1100.dtsi"
-                #include "../LGE_BL42D1F_2800mAh_averaged_MasterSlave_Nov30th2015_PMI8996GUI1100.dtsi"
+                #include "../LGE_BL44E1F_LGC_3200mAh.dtsi"
+                #include "../LGE_BL44E1F_Tocad_3200mAh.dtsi"
         };
 };
 
@@ -95,8 +93,8 @@
 	qcom,thermal-coefficients = [D2 85 0E 4A A5 35];
 	qcom,ext-sense-type;
 	qcom,capacity-learning-feedback;
-	qcom,resume-soc = <99>;
-	qcom,resume-soc-raw = <253>;
+	qcom,resume-soc = <97>;
+	qcom,resume-soc-raw = <247>;
 	qcom,fg-iterm-ma = <200>;
 	qcom,fg-chg-iterm-ma = <100>;
 	qcom,lge_batt_profile;
@@ -115,6 +113,7 @@
 	qcom,fg-dischg-voltage-gain-soc = <7 15 20>;
 	qcom,fg-dischg-med-voltage-gain = <5 4 4>;
 	qcom,fg-dischg-high-voltage-gain = <4 4 3>;
+	qcom,fg-rconn-mohm = <30>;
 	qcom,cl-max-limit-deciperc= <50>;
 	qcom,fg-acfa-usable-fcc = <90 80 70 60>;
 	qcom,fg-acfa-v-cutoff-aged = <3400 3500 3550 3600>;
@@ -162,6 +161,66 @@
 };
 
 &soc {
+	lge,cable_detect {
+		statuc = "ok";
+		compatible = "lge,cable-detect";
+
+		lge,usb_max_mode_current = <900>;
+
+		lge,no-init-cable 	= <      0       0    0   0    0    0>;
+		lge,cable-mhl-1k 	= <      1    5000  500  500  500  500>;
+		lge,cable-u-28p7k 	= <   5001   10000 1800  500 1500 3100>;
+		lge,cable-28p7k 	= <  10001  250000 1800  500 1500 3100>;
+		lge,cable-56k 		= < 250001  600000 1500 1500  500  500>;
+		lge,cable-100k 		= < 600001  620000 1800  500 1500 3100>;
+		lge,cable-130k 		= < 620001  780000 1500 1500  500  500>;
+		lge,cable-180k 		= < 780001  870000 1800  500 1500 3100>;
+		lge,cable-200k 		= < 870001  910000 1800  500 1500 3100>;
+		lge,cable-220k 		= < 910001  960000 1800  500 1500 3100>;
+		lge,cable-270k 		= < 960001 1050000 1800  500 1500 3100>;
+		lge,cable-330k 		= <1050001 1150000 1800  500 1500 3100>;
+		lge,cable-620k 		= <1150001 1380000 1800  500 1500 3100>;
+		lge,cable-910k 		= <1380001 1630000 1500 1500  500  500>;
+		lge,cable-none 		= <1630001 1900000 1800  500 1500 3100>;
+	};
+
+	lge,adc-qct {
+		compatible = "lge,adc-qct";
+		qcom,pm_adc-vadc = <&pm8994_vadc>;
+		qcom,pmi_adc-vadc = <&pmi8994_vadc>;
+		lge,xo_therm_chan = <0x72>;
+		lge,pa0_therm_chan = <0x75>;
+		lge,pa1_therm_chan = <0x77>;
+		lge,bd1_therm_chan = <0xff>;
+		lge,bd2_therm_chan = <0x74>;
+		lge,batt_therm_chan = <0xff>;
+		lge,usb_id_chan = <0x39>;
+	};
+
+	lge,charging_controller {
+		compatible = "lge,charging_controller";
+	};
+
+	lge,battery_id_check {
+		compatible = "lge,batt_id";
+		lge,pack_name = "BL44E1F";
+		lge,batt_capacity = "3200";
+	};
+
+	lge,uevent {
+		compatible = "lge,uevent";
+	};
+
+	lge,hw_rev {
+		compatible = "lge,hw_rev";
+	};
+
+	lge,store_mode {
+		compatible = "lge,store_mode";
+		lge,llk_max = <50>;
+		lge,llk_min = <45>;
+	};
+
 	lge,gpio-debug@fd510000 {
 		compatible = "lge,gpio-debug";
 		reg = <0x01010000 0x400000>;
@@ -226,7 +285,9 @@
 	};
 
 	qcom,msm-thermal {
-		qcom,limit-temp = <65>;
+		qcom,poll-ms = <50>;
+		qcom,limit-temp = <80>;
+		qcom,core-limit-temp = <90>;
 		qcom,disable-gfx-phase-ctrl;
 		qcom,disable-psm;
 		qcom,disable-ocr;
@@ -263,7 +324,7 @@
 			"adc", "thermal", "/sys/class/thermal/",
 			"adc", "xo_therm", "/sys/class/hwmon/hwmon1/device/xo_therm",
 			"adc", "batt_therm", "/sys/class/power_supply/battery/temp",
-			"adc", "batt_id", "/sys/class/power_supply/battery_id/batt_id",
+			"adc", "batt_id", "/sys/class/lge_power/lge_batt_id/valid_batt_id",
 			"adc", "pa_therm0", "/sys/class/hwmon/hwmon1/device/pa_therm0",
 			"adc", "pa_therm1", "/sys/class/hwmon/hwmon1/device/pa_therm1",
 			"adc", "usb_in", "/sys/class/hwmon/hwmon2/device/usbin",
@@ -276,17 +337,17 @@
 			"battery", "capacity", "/sys/class/power_supply/battery/capacity",
 			"battery", "health", "/sys/class/power_supply/battery/health",
 			"battery", "present", "/sys/class/power_supply/battery/present",
-			"battery", "pseudo_batt", "/sys/class/power_supply/lgcc/pseudo_batt",
+			"battery", "pseudo_batt", "/sys/class/lge_power/lge_cc/pseudo_batt",
 			"battery", "status", "/sys/class/power_supply/battery/status",
 			"battery", "temp", "/sys/class/power_supply/battery/temp",
-			"battery", "valid_batt_id", "/sys/class/power_supply/battery/valid_batt_id",
+			"battery", "valid_batt_id", "/sys/class/lge_power/lge_batt_id/valid_batt_id",
 			"battery", "voltage_now", "/sys/class/power_supply/battery/voltage_now",
 			"battery", "condition", "/sys/class/power_supply/battery/battery_condition",
 			"battery", "time_to_full_now", "/sys/class/power_supply/battery/time_to_full_now",
-			"battery", "charge_full", "/sys/class/power_supply/bms/charge_full",
-			"battery", "charge_now_raw", "/sys/class/power_supply/bms/charge_now_raw",
 			"battery", "cycle", "NULL",
 			"battery", "battery_type", "/sys/class/power_supply/bms/battery_type",
+			"battery", "charge_full", "/sys/class/power_supply/bms/charge_full",
+			"battery", "charge_now_raw", "/sys/class/power_supply/bms/charge_now_raw",
 			/* Charger */
 			"charger", "ac_online", "NULL",
 			"charger", "usb_online", "/sys/class/power_supply/usb/online",
@@ -300,18 +361,22 @@
 			"charger", "iusb_control", "NULL",
 			"charger", "thermal_mitigation", "/sys/class/power_supply/battery/system_temp_level",
 			"charger", "wlc_thermal_mitigation", "NULL",
-			"charger", "usb_parallel_chg_status", "NULL",
-			"charger", "usb_parallel_charging_enabled", "NULL",
-			"charger", "quick_charging_state", "/sys/module/lge_charging_controller/parameters/quick_charging_state",
-			"charger", "fastchg", "sys/class/power_supply/usb/fastchg",
+			"charger", "usb_parallel_chg_status", "/sys/class/power_supply/usb-parallel/status",
+			"charger", "usb_parallel_charging_enabled", "/sys/class/power_supply/usb-parallel/charging_enabled",
+			"charger", "restricted_charging", "/sys/module/lge_power_class_charging_controller/parameters/restricted_charging",
+			"charger", "fastchg", "/sys/class/power_supply/usb/fastchg",
 			"charger", "chgstep", "/sys/class/power_supply/battery/device/chgstep",
 			"charger", "incompatible", "/sys/class/power_supply/usb/incompatible_chg",
 			"charger", "ext_pwr", "/sys/class/power_supply/battery/ext_pwr",
-			"charger", "usb_parallel_chg_status", "/sys/class/power_supply/usb-parallel/status",
-			"charger", "usb_parallel_charging_enabled", "/sys/class/power_supply/usb-parallel/charging_enabled",
+			"charger", "input_current_settled", "/sys/class/power_supply/battery/input_current_settled",
+			"charger", "connection_type", "NULL",
+			"charger", "wireless_charging_enabled", "NULL",
+			"charger", "input_suspend", "NULL",
 			/* LCD Backlight */
 			"lcd", "brightness", "/sys/class/leds/lcd-backlight/brightness",
 			"lcd", "max_brightness", "/sys/class/leds/lcd-backlight/max_brightness",
+			"lcd_ex", "brightness", "/sys/class/leds/lcd-backlight-ex/brightness",
+			"lcd_ex", "max_brightness", "/sys/class/leds/lcd-backlight-ex/max_brightness",
 			/* KEY LED */
 			"key_led", "red_brightness", "/sys/class/leds/red/brightness",
 			"key_led", "green_brightness", "/sys/class/leds/green/brightness",
@@ -327,6 +392,7 @@
 			"platform", "power_state", "/sys/power/autosleep",
 			"platform", "poweron_alarm", "/sys/module/qpnp_rtc/parameters/poweron_alarm",
 			"platform", "pcb_rev", "/sys/class/hwmon/hwmon1/device/pcb_rev",
+			"platform", "smpl_boot", "/sys/module/lge_smpl_count/parameters/smpl_boot",
 			/* testmode */
 			"testmode", "charge", "/sys/class/power_supply/battery/device/at_charge",
 			"testmode", "chcomp", "/sys/class/power_supply/battery/device/at_chcomp",
@@ -343,22 +409,22 @@
 			"psfeature", "triton_policy", "/sys/devices/system/cpu/triton/cur_policy",
 			"psfeature", "cancun_is_cm", "/sys/devices/system/cpu/cpu0/cpufreq/interactive/cancun_is_compact";
 	};
-	/* vts, 0.34*XO + 0.45*Bd2 + WLED/1000 + 8.1 */
+	/* vts, 0.5*XO + 0.27*Bd2 + 7.07 */
 	virtual_temp_sensor: lge,vts {
 		compatible = "lge,vts";
 		lge,index = <101>;
 		qcom,vts-vadc = <&pm8994_vadc>;
 		lge,scaling-factor = <10>;
-		lge,constant-milli = <8100>;
+		lge,constant-milli = <7070>;
 		composite_sensor_0: lge,sensor0 {
 			label = "xo_therm";
 			channel = <0x72>;
-			weight-milli = <340>;
+			weight-milli = <500>;
 		};
 		composite_sensor_1: lge,sensor1 {
 			label = "bd_therm_2";
 			channel = <0x74>;
-			weight-milli = <450>;
+			weight-milli = <270>;
 		};
 	};
 	virtual_temp_sensor_led: lge,vts_led {

@@ -31,7 +31,7 @@
 &pmi8994_charger {
 	status = "ok";
 	qcom,iterm-ma = <100>;
-	qcom,fastchg-current-ma = <3100>;
+	qcom,fastchg-current-ma = <2500>;
 	qcom,float-voltage-mv = <4400>;
 	qcom,resume-delta-mv = <149>;
 	qcom,bmd-pin-src="bpd_thm";
@@ -115,7 +115,8 @@
 	qcom,fg-dischg-med-voltage-gain = <5 4 4>;
 	qcom,fg-dischg-high-voltage-gain = <4 4 3>;
 	qcom,cl-max-limit-deciperc= <50>;
-	qcom,cl-min-limit-deciperc= <200>;
+	qcom,fg-acfa-usable-fcc = <90 80 70 60>;
+	qcom,fg-acfa-v-cutoff-aged = <3400 3500 3550 3600>;
 };
 
 &pmi8994_haptics {
@@ -279,12 +280,18 @@
 			"battery", "temp", "/sys/class/power_supply/battery/temp",
 			"battery", "valid_batt_id", "/sys/class/power_supply/battery/valid_batt_id",
 			"battery", "voltage_now", "/sys/class/power_supply/battery/voltage_now",
+			"battery", "condition", "/sys/class/power_supply/battery/battery_condition",
+			"battery", "time_to_full_now", "/sys/class/power_supply/battery/time_to_full_now",
+			"battery", "charge_full", "/sys/class/power_supply/bms/charge_full",
+			"battery", "charge_now_raw", "/sys/class/power_supply/bms/charge_now_raw",
+			"battery", "cycle", "NULL",
+			"battery", "battery_type", "/sys/class/power_supply/bms/battery_type",
 			/* Charger */
 			"charger", "ac_online", "NULL",
 			"charger", "usb_online", "/sys/class/power_supply/usb/online",
 			"charger", "present", "/sys/class/power_supply/usb/present",
 			"charger", "wlc_online", "NULL",
-			"charger", "type", "/sys/class/power_supply/usb/type",
+			"charger", "type", "/sys/class/power_supply/usb/real_type",
 			"charger", "time_out", "/sys/class/power_supply/battery/safety_timer_enabled",
 			"charger", "charging_enabled", "/sys/class/power_supply/battery/charging_enabled",
 			"charger", "ibat_current", "/sys/class/power_supply/battery/current_now",
@@ -295,6 +302,12 @@
 			"charger", "usb_parallel_chg_status", "NULL",
 			"charger", "usb_parallel_charging_enabled", "NULL",
 			"charger", "quick_charging_state", "/sys/module/lge_charging_controller/parameters/quick_charging_state",
+			"charger", "fastchg", "/sys/class/power_supply/usb/fastchg",
+			"charger", "chgstep", "/sys/class/power_supply/battery/device/chgstep",
+			"charger", "incompatible", "/sys/class/power_supply/usb/incompatible_chg",
+			"charger", "ext_pwr", "/sys/class/power_supply/battery/ext_pwr",
+			"charger", "usb_parallel_chg_status", "/sys/class/power_supply/usb-parallel/status",
+			"charger", "usb_parallel_charging_enabled", "/sys/class/power_supply/usb-parallel/charging_enabled",
 			/* LCD Backlight */
 			"lcd", "brightness", "/sys/class/leds/lcd-backlight/brightness",
 			"lcd", "max_brightness", "/sys/class/leds/lcd-backlight/max_brightness",
@@ -306,6 +319,7 @@
 			"cpu", "cpu_idle_modes", "/sys/module/lpm_levels/system/",
 			/* GPU */
 			"gpu", "busy", "/sys/class/kgsl/kgsl-3d0/gpubusy",
+			"gpu", "gpuclk", "/sys/class/kgsl/kgsl-3d0/gpuclk",
 			/* PLATFORM */
 			"platform", "speed_bin", "NULL",
 			"platform", "pvs_bin", "NULL",
@@ -320,7 +334,13 @@
 			"testmode", "rtc_time", "/dev/rtc0",
 			"testmode", "pmrst", "/sys/class/power_supply/charger_controller/device/at_pmrst",
 			"testmode", "battexit", "/sys/class/power_supply/battery/present",
-			"testmode", "hardreset_mode", "/sys/module/qpnp_power_on/parameters/hardreset_mode";
+			"testmode", "hardreset_mode", "/sys/module/qpnp_power_on/parameters/hardreset_mode",
+			/* ps feature */
+			"psfeature", "vfps_ratio", "/sys/class/graphics/fb0/mdp/vfps_ratio",
+			"psfeature", "vfps", "/sys/class/graphics/fb0/mdp/vfps",
+			"psfeature", "vfps_fcnt", "/sys/class/graphics/fb0/mdp/vfps_fcnt",
+			"psfeature", "triton_policy", "/sys/devices/system/cpu/triton/cur_policy",
+			"psfeature", "cancun_is_cm", "/sys/devices/system/cpu/cpu0/cpufreq/interactive/cancun_is_compact";
 	};
 	/* vts, 0.34*XO + 0.45*Bd2 + WLED/1000 + 8.1 */
 	virtual_temp_sensor: lge,vts {
