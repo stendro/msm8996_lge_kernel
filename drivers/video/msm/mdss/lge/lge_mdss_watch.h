@@ -311,6 +311,7 @@ struct watch_data {
 	bool hw_clock_user_state;
 	unsigned int font_download_state;
 	struct watch_cfg wdata;
+	unsigned int set_roi;
 #if defined(CONFIG_LGE_LCD_TUNING)
 	unsigned int font_type_reset;
 #endif

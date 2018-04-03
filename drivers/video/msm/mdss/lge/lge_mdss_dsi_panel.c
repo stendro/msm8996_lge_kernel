@@ -22,6 +22,13 @@ struct dsi_panel_cmds reader_mode_step0_cmds;
 struct dsi_panel_cmds reader_mode_step1_cmds;
 struct dsi_panel_cmds reader_mode_step2_cmds;
 struct dsi_panel_cmds reader_mode_step3_cmds;
+struct dsi_panel_cmds reader_mode_step4_cmds;
+struct dsi_panel_cmds reader_mode_step5_cmds;
+struct dsi_panel_cmds reader_mode_step6_cmds;
+struct dsi_panel_cmds reader_mode_step7_cmds;
+struct dsi_panel_cmds reader_mode_step8_cmds;
+struct dsi_panel_cmds reader_mode_step9_cmds;
+struct dsi_panel_cmds reader_mode_step10_cmds;
 #endif
 
 char *lge_blmap_name[] = {
@@ -92,6 +99,20 @@ int lge_mdss_dsi_parse_reader_mode_cmds(struct device_node *np, struct mdss_dsi_
 			"qcom,panel-reader-mode-step2-command", "qcom,mdss-dsi-reader-mode-command-state");
 	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step3_cmds,
 			"qcom,panel-reader-mode-step3-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step4_cmds,
+			"qcom,panel-reader-mode-step4-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step5_cmds,
+			"qcom,panel-reader-mode-step5-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step6_cmds,
+			"qcom,panel-reader-mode-step6-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step7_cmds,
+			"qcom,panel-reader-mode-step7-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step8_cmds,
+			"qcom,panel-reader-mode-step8-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step9_cmds,
+			"qcom,panel-reader-mode-step9-command", "qcom,mdss-dsi-reader-mode-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &reader_mode_step10_cmds,
+			"qcom,panel-reader-mode-step10-command", "qcom,mdss-dsi-reader-mode-command-state");
 	return 0;
 }
 
@@ -103,44 +124,111 @@ bool lge_change_reader_mode(struct mdss_dsi_ctrl_pdata *ctrl, int new_mode)
 		pr_info("%s: Reader Mode Step 1\n",__func__);
 		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step1_cmds, CMD_REQ_COMMIT);
 		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
 		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
 		break;
 	case READER_MODE_STEP_2:
 		pr_info("%s: Reader Mode Step 2\n",__func__);
 		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step2_cmds, CMD_REQ_COMMIT);
 		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
 		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
 		break;
 	case READER_MODE_STEP_3:
 		pr_info("%s: Reader Mode Step 3\n",__func__);
 		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step3_cmds, CMD_REQ_COMMIT);
 		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
 		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
 		break;
 	case READER_MODE_STEP_4:
-		pr_info("%s: Reader Mode Step 4(MONO)\n",__func__);
-		ctrl->reg_55h_cmds.cmds[0].payload[1] |= MONO_MASK;
-		mask = READER_GC_MASK;
-		ctrl->reg_f0h_cmds.cmds[0].payload[1] &= (~mask);
+		pr_info("%s: Reader Mode Step 4\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step4_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
 		break;
+	case READER_MODE_STEP_5:
+		pr_info("%s: Reader Mode Step 5\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step5_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
+		break;
+	case READER_MODE_STEP_6:
+		pr_info("%s: Reader Mode Step 6\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step6_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
+		break;
+	case READER_MODE_STEP_7:
+		pr_info("%s: Reader Mode Step 7\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step7_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
+		break;
+	case READER_MODE_STEP_8:
+		pr_info("%s: Reader Mode Step 8\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step8_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
+		break;
+	case READER_MODE_STEP_9:
+		pr_info("%s: Reader Mode Step 9\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step9_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
+		break;
+	case READER_MODE_STEP_10:
+		pr_info("%s: Reader Mode Step 10\n",__func__);
+		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step10_cmds, CMD_REQ_COMMIT);
+		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+		ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+#endif
+		break;
+
 	case READER_MODE_OFF:
 	default:
 		pr_info("%s: Reader Mode Step OFF\n",__func__);
 		mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step0_cmds, CMD_REQ_COMMIT);
 		mask = MONO_MASK;
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
 		mask = READER_GC_MASK;
 		ctrl->reg_f0h_cmds.cmds[0].payload[1] &= (~mask);
+#endif
 	}
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	mdss_dsi_panel_cmds_send(ctrl, &ctrl->reg_55h_cmds, CMD_REQ_COMMIT);
 	mdss_dsi_panel_cmds_send(ctrl, &ctrl->reg_f0h_cmds, CMD_REQ_COMMIT);
 	pr_info("%s : 55h:0x%02x, f0h:0x%02x, f2h(SH):0x%02x, fbh(CABC):0x%02x \n",__func__,
 		ctrl->reg_55h_cmds.cmds[0].payload[1],	ctrl->reg_f0h_cmds.cmds[0].payload[1],
 		ctrl->reg_f2h_cmds.cmds[0].payload[3], ctrl->reg_fbh_cmds.cmds[0].payload[4]);
-
+#endif
 	return true;
 }
 

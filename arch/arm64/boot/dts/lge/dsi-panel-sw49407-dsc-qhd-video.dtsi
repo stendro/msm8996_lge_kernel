@@ -11,8 +11,8 @@
  */
 
 &mdss_mdp {
-	dsi_sw49407_dsc_video: qcom,mdss_dsi_sw49407_dsc_qhd_video {
-		qcom,mdss-dsi-panel-name = "SW49407 video mode dsc dsi panel";
+    dsi_sw49407_dsc_video: qcom,mdss_dsi_sw49407_dsc_qhd_video {
+        qcom,mdss-dsi-panel-name = "SW49407 video mode dsc dsi panel";
 		qcom,mdss-dsi-panel-type = "dsi_video_mode";
 		qcom,mdss-dsi-panel-framerate = <60>;
 		qcom,mdss-dsi-pan-enable-dynamic-fps;
@@ -62,7 +62,7 @@
 			21 1D 06 07 04 03 04 a0
 			21 1D 06 07 04 03 04 a0
 			21 13 06 07 04 03 04 a0		/* Clk lane */
-		];
+			];
 		qcom,mdss-dsi-reset-sequence = <1 10>, <0 10>, <1 10>;
 		qcom,mdss-dsi-t-clk-post = <0x0B>;
 		qcom,mdss-dsi-t-clk-pre = <0x26>;
@@ -133,7 +133,7 @@
 			/* Power Control 4 */
 			39 01 00 00 00 00 08 C3 35 44 22 26 21 35 DD
 			/* Power Control 5 */
-			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 12
+			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 10
 			/* Power Sequence Option Configuration */
 			39 01 00 00 00 00 06 C9 05 5D 03 04 01
 			/* APO Control */
@@ -145,15 +145,15 @@
 			/* U2 Control */
 			39 01 00 00 00 00 04 CD 86 40 07
 			/* Positive Gamma Curve for Red */
-			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Red */
 			39 01 00 00 00 00 0E D1 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Positive Gamma Curve for Green */
-			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
+			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 04 03
 			/* Negative Gamma Curve for Green */
 			39 01 00 00 00 00 0E D3 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
 			/* Positive Gamma Curve for Blue */
-			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Blue */
 			39 01 00 00 00 00 0E D5 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Test1 */
@@ -177,7 +177,7 @@
 			39 01 00 00 00 00 06 B1 47 00 80 00 00
 			/* Normal Display mode on */
 			05 01 00 00 00 00 01 13
-		];
+			];
 
 		qcom,v-to-c-on-command = [ /*initset v1.9*/
 			/* Manufacturer Command Protection */
@@ -231,7 +231,7 @@
 			/* Power Control 4 */
 			39 01 00 00 00 00 08 C3 35 44 22 26 21 35 DD
 			/* Power Control 5 */
-			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 12
+			39 01 00 00 00 00 07 C5 A2 38 28 54 D4 10
 			/* Power Sequence Option Configuration */
 			39 01 00 00 00 00 06 C9 05 5D 03 04 01
 			/* APO Control */
@@ -243,15 +243,15 @@
 			/* U2 Control */
 			39 01 00 00 00 00 04 CD 86 40 07
 			/* Positive Gamma Curve for Red */
-			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D0 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Red */
 			39 01 00 00 00 00 0E D1 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Positive Gamma Curve for Green */
-			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
+			39 01 00 00 00 00 0E D2 00 12 1D 2B 38 3F 50 48 39 28 15 04 03
 			/* Negative Gamma Curve for Green */
 			39 01 00 00 00 00 0E D3 00 12 1D 2B 38 3F 50 48 39 28 15 00 03
 			/* Positive Gamma Curve for Blue */
-			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
+			39 01 00 00 00 00 0E D4 00 12 1E 2C 39 40 4F 45 38 28 15 04 03
 			/* Negative Gamma Curve for Blue */
 			39 01 00 00 00 00 0E D5 00 12 1E 2C 39 40 4F 45 38 28 15 00 03
 			/* Test1 */
@@ -274,13 +274,13 @@
 			05 01 00 00 00 00 01 13
 			/* All off */
 			05 01 00 00 00 00 01 22
-		];
+			];
 		qcom,mdss-display-on-command = [
 			/* Display On */
 			05 01 00 00 00 00 01 29
 			/* Sleep Out */
 			05 01 00 00 00 00 01 11
-		];
+			];
 		qcom,mdss-dsi-on-command-state = "dsi_lp_mode";
 		qcom,mdss-dsi-off-command = [
 			/* Display Off */
@@ -387,32 +387,79 @@
 			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 0 */
 			39 01 00 00 00 00 11 F5 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00
 			39 01 00 00 00 00 11 F6 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 82 /* reader mode off */
 		];
 
 		qcom,panel-reader-mode-step1-command = [
 			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 1 */
 			39 01 00 00 00 00 11 F5 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00
-			39 01 00 00 00 00 11 F6 3A 3A 3A 3A 3A 3A 3A 3A 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 3C 3C 3C 3C 3C 3C 3C 3C 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
 		];
 		qcom,panel-reader-mode-step2-command = [
 			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 2 */
 			39 01 00 00 00 00 11 F5 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00
-			39 01 00 00 00 00 11 F6 35 35 35 35 35 35 35 35 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 3A 3A 3A 3A 3A 3A 3A 3A 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
 		];
 		qcom,panel-reader-mode-step3-command = [
 			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 3 */
 			39 01 00 00 00 00 11 F5 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00
-			39 01 00 00 00 00 11 F6 30 30 30 30 30 30 30 30 00 00 00 00 00 00 00 00
-		];
-
-		qcom,panel-reader-mode-on-command = [
+			39 01 00 00 00 00 11 F6 35 35 35 35 35 35 35 35 00 00 00 00 00 00 00 00
 			15 01 00 00 00 00 02 55 81
 			15 01 00 00 00 00 02 F0 8A
 		];
-
-		qcom,panel-reader-mode-off-command = [
+		qcom,panel-reader-mode-step4-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 4 */
+			39 01 00 00 00 00 11 F5 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 30 30 30 30 30 30 30 30 00 00 00 00 00 00 00 00
 			15 01 00 00 00 00 02 55 81
-			15 01 00 00 00 00 02 F0 82 /* reader mode off */
+			15 01 00 00 00 00 02 F0 8A
+		];
+		qcom,panel-reader-mode-step5-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 5 */
+			39 01 00 00 00 00 11 F5 3C 3C 3C 3C 3C 3C 3C 3C 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 29 29 29 29 29 29 29 29 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
+		];
+		qcom,panel-reader-mode-step6-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 6 */
+			39 01 00 00 00 00 11 F5 3B 3B 3B 3B 3B 3B 3B 3B 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 24 24 24 24 24 24 24 24 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
+		];
+		qcom,panel-reader-mode-step7-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 7 */
+			39 01 00 00 00 00 11 F5 3A 3A 3A 3A 3A 3A 3A 3A 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 1E 1E 1E 1E 1E 1E 1E 1E 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
+		];
+		qcom,panel-reader-mode-step8-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 8 */
+			39 01 00 00 00 00 11 F5 38 38 38 38 38 38 38 38 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 14 14 14 14 14 14 14 14 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
+		];
+		qcom,panel-reader-mode-step9-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 9 */
+			39 01 00 00 00 00 11 F5 34 34 34 34 34 34 34 34 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 09 09 09 09 09 09 09 09 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
+		];
+		qcom,panel-reader-mode-step10-command = [
+			39 01 00 00 00 00 11 F4 40 40 40 40 40 40 40 40 00 00 00 00 00 00 00 00 /* reader mode 10 */
+			39 01 00 00 00 00 11 F5 2F 2F 2F 2F 2F 2F 2F 2F 00 00 00 00 00 00 00 00
+			39 01 00 00 00 00 11 F6 08 08 08 08 08 08 08 08 00 00 00 00 00 00 00 00
+			15 01 00 00 00 00 02 55 81
+			15 01 00 00 00 00 02 F0 8A
 		];
 
 		qcom,mdss-dsi-reader-mode-command-state = "dsi_hs_mode";
@@ -650,15 +697,15 @@
 };
 &spmi_bus {
 	qcom,pmi8994@3 {
-		labibb: qpnp-labibb-regulator {
-			ibb_regulator: qcom,ibb@dc00 {
-				qcom,qpnp-ibb-init-voltage = <5500000>;
-				qcom,qpnp-ibb-init-lcd-voltage = <5500000>;
+			labibb: qpnp-labibb-regulator {
+				ibb_regulator: qcom,ibb@dc00 {
+					qcom,qpnp-ibb-init-voltage = <5500000>;
+					qcom,qpnp-ibb-init-lcd-voltage = <5500000>;
+				};
+				lab_regulator: qcom,lab@de00 {
+					qcom,qpnp-lab-init-voltage = <5500000>;
+					qcom,qpnp-lab-init-lcd-voltage = <5500000>;
+				};
 			};
-			lab_regulator: qcom,lab@de00 {
-				qcom,qpnp-lab-init-voltage = <5500000>;
-				qcom,qpnp-lab-init-lcd-voltage = <5500000>;
-			};
-		};
 	};
 };

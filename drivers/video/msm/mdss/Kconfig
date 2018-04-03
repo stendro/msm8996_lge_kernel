@@ -73,18 +73,6 @@ config FB_MSM_MDSS_FRC_DEBUG
 	statistics and check whether its output pattern matches expected
 	cadence.
 
-config LGE_MIPI_H1_INCELL_QHD_CMD_PANEL
-	bool "LGE_MIPI_H1_INCELL_QHD_CMD_PANEL"
-	default n
-	help
-	  if you say yes here you get support for the Incell Panel.
-
-config LGE_MIPI_LGD_LG4945_QHD_CMD_PANEL
-     bool "LGE_MIPI_LGD_LG4945_QHD_CMD_PANEL"
-     default n
-     help
-     if you say yes here you get support LG4945 Incell Panel.
-
 config LGE_DISPLAY_AOD_SUPPORTED
 	bool "Enable AOD function"
 	default n
@@ -132,6 +120,7 @@ config LGE_LCD_TUNING
 config LGE_DISPLAY_DYNAMIC_LOG
 	depends on LGE_LCD_TUNING
 	bool "Dynamic Log"
+	depends on MACH_LGE
 	default y
 	---help---
 	If you say Y here, developers can enable/disable display logs through adb
@@ -158,7 +147,8 @@ config LGE_PP_AD_SUPPORTED
 
 config LGE_ENHANCE_GALLERY_SHARPNESS
 	bool "CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS"
-	default n
+	depends on MACH_LGE
+	default y
 	help
 	if you say yes here you get support for enhance sharpness at gallery app
 
@@ -170,6 +160,7 @@ config LGE_VSYNC_SKIP
 
 config LGE_LCD_POWER_CTRL
 	bool "LCD power control mode"
+	depends on MACH_LGE
 	default y
 	---help---
 	if you say yes here you get support for lcd power on/off control.
@@ -177,6 +168,7 @@ config LGE_LCD_POWER_CTRL
 config LGE_PANEL_RECOVERY
 	depends on  LGE_DISPLAY_COMMON
 	bool "Panel recovery support"
+	depends on MACH_LGE
 	default y
 	---help---
 	if you say yes here, you get support for panel recovery routine.
@@ -190,6 +182,7 @@ config LGE_THERMAL_BL_MAX
 config LGE_LCD_MFTS_MODE
 	depends on LGE_LCD_POWER_CTRL
 	bool "LCD MFTS mode"
+	depends on MACH_LGE
 	default y
 	---help---
 	if you say yes here you get support for lcd mfts control.
@@ -202,7 +195,8 @@ config LGE_CAM_PREVIEW_TUNE
 
 config LGE_LCD_DYNAMIC_CABC_MIE_CTRL
 	bool "LGE_LCD_DYNAMIC_CABC_MIE_CTRL"
-	default n
+	depends on MACH_LGE
+	default y
 	help
 	if you say yes here you get support for cabc, image enhance function dynamic control
 
@@ -332,17 +326,17 @@ config LGE_DISPLAY_DYN_DSI_MODE_SWITCH
 	---help---
 	Support Dynamic DSI mode switch
 
+config LGE_DISPLAY_MFTS_DET_SUPPORTED
+	bool "LG MFTS Detection"
+	default n
+	---help---
+	Support MFTS Detection
+
 config LGE_DISPLAY_LUCYE_COMMON
 	depends on LGE_DISPLAY_COMMON
 	bool "Use LGE DISPLAY LUCYE COMMON"
 	---help---
 	The LUCYE COMMON provides support for 49407 1440X2880 panel
-
-config LGE_DISPLAY_SIW49407_1440_2880_VIDEO_LCD
-	bool "Support siw49407 1440 X 2880 resolution"
-	default n
-	---help---
-	Support SIW 49407 1440 X 2880 VIDEO mode
 
 config LGE_DISPLAY_AOD_WITH_MIPI
 	bool "Enable AOD_WITH_MIPI"

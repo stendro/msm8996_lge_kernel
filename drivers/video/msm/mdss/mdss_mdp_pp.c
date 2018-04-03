@@ -189,6 +189,122 @@ struct mdp_csc_cfg mdp_csc_8bit_convert[MDSS_MDP_MAX_CSC] = {
 	},
 };
 
+#if defined(CONFIG_LGE_BROADCAST_TDMB) || defined(CONFIG_LGE_BROADCAST_ISDBT_JAPAN)
+struct mdp_csc_cfg dmb_csc_convert = {
+#if defined(CONFIG_MACH_MSM8992_P1_KR) || defined(CONFIG_MACH_MSM8992_PPLUS_KR) || defined(CONFIG_MACH_MSM8992_P1A4WP_KR)
+	0,
+	{
+		0x0236, 0x0000, 0x0331,	/*283*/
+		0x025c, 0xff37, 0xfe60,	/*302*/
+		0x0276, 0x0409, 0x0000,	/*315*/
+	},
+	{ 0xfff0, 0xff80, 0xff80,},
+	{ 0x0, 0x0, 0x0,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8952_B5_JP_KDI) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) || defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ANNA_GLOBAL_COM) || defined(CONFIG_MACH_MSM8996_ANNA_KR)
+	0,
+	{
+		0x0244, 0x0000, 0x0331,    // 290
+		0x0240, 0xff38, 0xfe61,    // 288
+		0x0268, 0x0409, 0x0000,    // 308
+	},
+	{ 0xfff0, 0xff80, 0xff80,},
+	{ 0x0, 0x0, 0x0,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8937_L5_DCM_JP)
+	0,
+	{
+		0x0254, 0x0000, 0x0331,    // 298
+		0x0230, 0xff37, 0xfe60,    // 280
+		0x026e, 0x0409, 0x0000,    // 311
+	},
+	{ 0xfff0, 0xff80, 0xff80,},
+	{ 0x0, 0x0, 0x0,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8996_H1_KR)
+	0,
+	{
+		0x021c, 0x0000, 0x0331, /*270*/
+		0x024c, 0xff37, 0xfe60, /*294*/
+		0x0268, 0x0409, 0x0000, /*308*/
+	},
+	{ 0xfff0, 0xff80, 0xff80,},
+	{ 0x0, 0x0, 0x0,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8992_P1_KDDI_JP)
+	0,
+	{
+		0x0252, 0x0000, 0x0331,    // 297
+		0x0234, 0xff37, 0xfe60,    // 282
+		0x0272, 0x0409, 0x0000,    // 313
+	},
+	{ 0xfff0, 0xff80, 0xff80,},
+	{ 0x0, 0x0, 0x0,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8974_G3_KDDI)
+    0,
+    {
+        0x023e, 0x0000, 0x0331,    // 287
+        0x0244, 0xff38, 0xfe61,    // 290
+        0x026c, 0x0409, 0x0000,    // 310
+    },
+    { 0xfff0, 0xff80, 0xff80,},
+    { 0x0, 0x0, 0x0,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8974_DZNY_DCM)
+    0,
+    {
+        0x0218, 0x0000, 0x0331,    // 268
+        0x0238, 0xff38, 0xfe61,    // 284
+        0x026c, 0x0409, 0x0000,    // 310
+    },
+    { 0xfff0, 0xff80, 0xff80,},
+    { 0x0, 0x0, 0x0,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8996_ELSA_KR)
+    0,
+    {
+        0x0258, 0x0000, 0x0331,    // 300
+        0x026e, 0xff38, 0xfe61,    // 311
+        0x026e, 0x0409, 0x0000,    // 311
+    },
+    { 0xfff0, 0xff80, 0xff80,},
+    { 0x0, 0x0, 0x0,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#elif defined(CONFIG_MACH_MSM8996_LUCYE_KR)
+    0,
+    {
+        0x0248, 0x0000, 0x0331,    // 292
+        0x0250, 0xff38, 0xfe61,    // 296
+        0x0254, 0x0409, 0x0000,    // 298
+    },
+    { 0xfff0, 0xff80, 0xff80,},
+    { 0x0, 0x0, 0x0,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+    { 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#else
+	0,
+	{
+		0x0254, 0x0000, 0x0331,
+		0x0254, 0xff37, 0xfe60,
+		0x0254, 0x0409, 0x0000,
+	},
+	{ 0xfff0, 0xff80, 0xff80,},
+	{ 0x0, 0x0, 0x0,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+	{ 0x0, 0xff, 0x0, 0xff, 0x0, 0xff,},
+#endif
+};
+#endif /* LGE_BROADCAST */
+
 struct mdp_csc_cfg mdp_csc_10bit_convert[MDSS_MDP_MAX_CSC] = {
 	[MDSS_MDP_CSC_YUV2RGB_601L] = {
 		0,
@@ -519,6 +635,14 @@ static struct mdp_pp_feature_ops *pp_ops;
 
 static DEFINE_MUTEX(mdss_pp_mutex);
 static struct mdss_pp_res_type *mdss_pp_res;
+
+#if defined(CONFIG_LGE_BROADCAST_TDMB) || defined(CONFIG_LGE_BROADCAST_ISDBT_JAPAN)
+static int dmb_status; // on - 1, off - 0
+int pp_set_dmb_status(int flag) {
+	dmb_status = flag;
+	return 0;
+}
+#endif /* LGE_BROADCAST */
 
 #if defined(CONFIG_LGE_CAM_PREVIEW_TUNE)
 static int cam_preview_tune_status; /* on - 1, off - 0 */
@@ -1167,18 +1291,39 @@ static int pp_vig_pipe_setup(struct mdss_mdp_pipe *pipe, u32 *op)
 		 * is a previously configured pipe need to re-configure
 		 * CSC matrix
 		 */
-#if !defined(CONFIG_LGE_CAM_PREVIEW_TUNE)
-		mdss_mdp_csc_setup(MDSS_MDP_BLOCK_SSPP, pipe->num,
-				pp_vig_csc_pipe_val(pipe));
-#else
-		if(cam_preview_tune_status == 1) {
+#if !defined(CONFIG_LGE_BROADCAST_TDMB) && !defined(CONFIG_LGE_BROADCAST_ISDBT_JAPAN)
+		#if !defined(CONFIG_LGE_CAM_PREVIEW_TUNE)
+			mdss_mdp_csc_setup(MDSS_MDP_BLOCK_SSPP, pipe->num,
+				   pp_vig_csc_pipe_val(pipe));
+		#else
+			if(cam_preview_tune_status == 1) {
 				mdss_mdp_csc_setup_data(MDSS_MDP_BLOCK_SSPP, pipe->num,
-						&mdp_csc_convert_wideband);
-		} else {
+					&mdp_csc_convert_wideband);
+			} else {
 				mdss_mdp_csc_setup(MDSS_MDP_BLOCK_SSPP, pipe->num,
-						pp_vig_csc_pipe_val(pipe));
+					pp_vig_csc_pipe_val(pipe));
+			}
+		#endif
+#else
+#if !defined(CONFIG_LGE_CAM_PREVIEW_TUNE)
+		if(dmb_status == 1) {
+			mdss_mdp_csc_setup_data(MDSS_MDP_BLOCK_SSPP, pipe->num, &dmb_csc_convert);
+		} else {
+			mdss_mdp_csc_setup(MDSS_MDP_BLOCK_SSPP, pipe->num, pp_vig_csc_pipe_val(pipe));
+		}
+#else
+		if(dmb_status == 1) {
+			mdss_mdp_csc_setup_data(MDSS_MDP_BLOCK_SSPP, pipe->num, &dmb_csc_convert);
+		} else {
+			if(cam_preview_tune_status == 1) {
+				mdss_mdp_csc_setup_data(MDSS_MDP_BLOCK_SSPP, pipe->num, &mdp_csc_convert_wideband);
+			} else {
+				mdss_mdp_csc_setup(MDSS_MDP_BLOCK_SSPP, pipe->num, pp_vig_csc_pipe_val(pipe));
+			}
 		}
 #endif
+#endif /* LGE_BROADCAST */
+
 	}
 
 	/* Update CSC state only if tuning mode is enable */
@@ -5241,7 +5386,11 @@ int mdss_mdp_hist_collect(struct mdp_histogram_data *hist)
 	u32 exp_sum = 0;
 	struct mdss_mdp_pipe *pipe;
 	struct mdss_data_type *mdata = mdss_mdp_get_mdata();
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	unsigned long flag = 0;
+#else
 	unsigned long flag;
+#endif
 
 	if (mdata->mdp_rev < MDSS_MDP_HW_REV_103) {
 		pr_err("Unsupported mdp rev %d\n", mdata->mdp_rev);
@@ -5840,7 +5989,7 @@ int mdss_mdp_ad_input(struct msm_fb_data_type *mfd,
 			goto error;
 		}
 		ad->ad_data_mode = MDSS_AD_INPUT_AMBIENT;
-		pr_debug("ambient = %d\n", input->in.amb_light);
+		pr_err("[AD] ambient = %d\n", input->in.amb_light);
 		ad->ad_data = input->in.amb_light;
 		ad->calc_itr = ad->cfg.stab_itr;
 		ad->sts |= PP_AD_STS_DIRTY_VSYNC;

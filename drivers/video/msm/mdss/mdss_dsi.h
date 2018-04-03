@@ -380,14 +380,28 @@ struct dsi_panel_timing {
 	struct dsi_panel_cmds on_cmds;
 #if defined(CONFIG_LGE_DISPLAY_BL_EXTENDED)
 	struct dsi_panel_cmds display_on_cmds;
-	struct dsi_panel_cmds screen_cmds;
+#if defined(CONFIG_LGE_DISPLAY_MFTS_DET_SUPPORTED) && !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	struct dsi_panel_cmds trimming_cmds;
+	struct dsi_panel_cmds cam_cmds;
+	struct dsi_panel_cmds screen_cmds_102v;
+	struct dsi_panel_cmds screen_cmds_129v;
+	struct dsi_panel_cmds screen_cmds_132v;
+#endif
 #endif
 #if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	struct dsi_panel_cmds v_to_c_on_cmds;
 	struct dsi_panel_cmds c_to_v_on_cmds;
 #endif
+#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
+	struct dsi_panel_cmds sharpness_on_cmds;
+	struct dsi_panel_cmds ce_on_cmds;
+#endif
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 	struct dsi_panel_cmds vcom_cmds;
+#endif
+#if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
+	struct dsi_panel_cmds ie_on_cmds;
+	struct dsi_panel_cmds ie_off_cmds;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
 	struct dsi_panel_cmds display_on_cmds;
@@ -397,6 +411,9 @@ struct dsi_panel_timing {
 	struct dsi_panel_cmds reg_f2h_cmds;
 	struct dsi_panel_cmds reg_f3h_cmds;
 	struct dsi_panel_cmds reg_fbh_cmds;
+	struct dsi_panel_cmds vgho_vglo_8p8v_cmd;
+	struct dsi_panel_cmds vgho_vglo_11p6v_cmd;
+	int mux_gate_voltage_status;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_LINEAR_GAMMA)
 	struct dsi_panel_cmds linear_gamma_default_cmds;
@@ -549,7 +566,13 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds on_cmds;
 #if defined(CONFIG_LGE_DISPLAY_BL_EXTENDED)
 	struct dsi_panel_cmds display_on_cmds;
-	struct dsi_panel_cmds screen_cmds;
+#if defined(CONFIG_LGE_DISPLAY_MFTS_DET_SUPPORTED) && !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	struct dsi_panel_cmds trimming_cmds;
+	struct dsi_panel_cmds cam_cmds;
+	struct dsi_panel_cmds screen_cmds_102v;
+	struct dsi_panel_cmds screen_cmds_129v;
+	struct dsi_panel_cmds screen_cmds_132v;
+#endif
 #endif
 #if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	struct dsi_panel_cmds v_to_c_on_cmds;
@@ -566,13 +589,20 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds reg_f2h_cmds;
 	struct dsi_panel_cmds reg_f3h_cmds;
 	struct dsi_panel_cmds reg_fbh_cmds;
+	struct dsi_panel_cmds vgho_vglo_8p8v_cmd;
+	struct dsi_panel_cmds vgho_vglo_11p6v_cmd;
+	int mux_gate_voltage_status;
+#endif
+#if defined(CONFIG_LGE_ENHANCE_GALLERY_SHARPNESS)
+	struct dsi_panel_cmds sharpness_on_cmds;
+	struct dsi_panel_cmds ce_on_cmds;
 #endif
 #if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
-	int ie_on;
 	struct dsi_panel_cmds ie_on_cmds;
 	struct dsi_panel_cmds ie_off_cmds;
 	struct dsi_panel_cmds cabc_20_cmds;
 	struct dsi_panel_cmds cabc_30_cmds;
+	int ie_on;
 #endif
 #if defined(CONFIG_LGE_DISPLAY_LINEAR_GAMMA)
 	struct dsi_panel_cmds linear_gamma_default_cmds;

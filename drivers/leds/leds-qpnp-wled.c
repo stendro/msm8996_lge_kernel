@@ -750,108 +750,6 @@ static ssize_t qpnp_wled_fs_curr_ua_show(struct device *dev,
 	return snprintf(buf, PAGE_SIZE, "%d\n", wled->fs_curr_ua);
 }
 
-#if defined(CONFIG_LGE_MIPI_H1_INCELL_QHD_CMD_PANEL)
-static ssize_t qpnp_wled_sink_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct qpnp_wled *wled = dev_get_drvdata(dev);
-	int data,rc, i;
-	u8 reg = 0;
-
-	if (sscanf(buf, "%d", &data) != 1)
-		return -EINVAL;
-
-	reg = 0x00;
-	rc = qpnp_wled_write_reg(wled, &reg,
-			QPNP_WLED_CURR_SINK_REG(wled->sink_base));
-	if (rc){
-		pr_err("[Display] disable sinks is failed\n");
-		return rc;
-	}
-	pr_err("[Display] enabled sink : %d\n", data);
-
-	if (data == 0) {
-	/* Enable CABC and return to normal state.*/
-		for (i = 0; i < wled->num_strings; i++) {
-			if (wled->strings[i] >= QPNP_WLED_MAX_STRINGS) {
-				dev_err(&wled->spmi->dev, "Invalid string number\n");
-				return -EINVAL;
-			}
-
-			/* CABC enable */
-			rc = qpnp_wled_read_reg(wled, &reg,
-					QPNP_WLED_CABC_REG(wled->sink_base,
-							wled->strings[i]));
-			if (rc < 0)
-				return rc;
-			reg &= QPNP_WLED_CABC_MASK;
-			reg |= (wled->en_cabc << QPNP_WLED_CABC_SHIFT);
-			rc = qpnp_wled_write_reg(wled, &reg,
-					QPNP_WLED_CABC_REG(wled->sink_base,
-							wled->strings[i]));
-			if (rc)
-				return rc;
-		}
-		mutex_lock(&wled->cdev.led_access);
-		rc = qpnp_wled_set_level(wled, 0);
-			pr_err("[Display] %s, set_level rc = %d\n", __func__, rc);
-		rc = qpnp_wled_module_en(wled, wled->ctrl_base, 0);
-			pr_err("[Display] %s, module_en rc = %d\n", __func__, rc);
-		mutex_unlock(&wled->cdev.led_access);
-		/* enable all sinks */
-		reg = 0x70;
-		rc = qpnp_wled_write_reg(wled, &reg,
-				QPNP_WLED_CURR_SINK_REG(wled->sink_base));
-		if (rc) {
-			pr_err("[Display] enable all sinks is failed\n");
-			return rc;
-		}
-	} else {
-	/* Disable CABC to control WLED_SINK in sleep state */
-		for (i = 0; i < wled->num_strings; i++) {
-			if (wled->strings[i] >= QPNP_WLED_MAX_STRINGS) {
-				dev_err(&wled->spmi->dev, "Invalid string number\n");
-				return -EINVAL;
-			}
-			rc = qpnp_wled_read_reg(wled, &reg,
-					QPNP_WLED_CABC_REG(wled->sink_base,
-							wled->strings[i]));
-			if (rc < 0)
-				return rc;
-			reg &= QPNP_WLED_CABC_MASK;
-			rc = qpnp_wled_write_reg(wled, &reg,
-					QPNP_WLED_CABC_REG(wled->sink_base,
-							wled->strings[i]));
-			if (rc)
-				return rc;
-		}
-		if (data == 1)       /* enable sink1 */
-			reg = 0x10;
-		else if (data == 2)  /* enable sink2 */
-			reg = 0x20;
-		else if (data == 3)  /* enable sink3 */
-			reg = 0x40;
-		else                 /* enable all sink */
-			reg = 0x70;
-
-		rc = qpnp_wled_write_reg(wled, &reg,
-				QPNP_WLED_CURR_SINK_REG(wled->sink_base));
-		if (rc) {
-			pr_err("[Display] sinks %d is failed\n", data);
-			return rc;
-		}
-
-		mutex_lock(&wled->cdev.led_access);
-		rc = qpnp_wled_set_level(wled, 0xFFF);
-			pr_err("[Display] %s, set_level rc = %d\n", __func__, rc);
-		rc = qpnp_wled_module_en(wled, wled->ctrl_base, 1);
-			pr_err("[Display] %s, module_en rc = %d\n", __func__, rc);
-		mutex_unlock(&wled->cdev.led_access);
-	}
-	return count;
-}
-#endif
-
 /* sysfs store function for full scale current in ua*/
 static ssize_t qpnp_wled_fs_curr_ua_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
@@ -915,11 +813,6 @@ static struct device_attribute qpnp_wled_attrs[] = {
 	__ATTR(ramp_step, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_wled_ramp_step_show,
 			qpnp_wled_ramp_step_store),
-#if defined(CONFIG_LGE_MIPI_H1_INCELL_QHD_CMD_PANEL)
-	__ATTR(wled_sink, (S_IRUGO | S_IWUSR | S_IWGRP),
-			NULL,
-			qpnp_wled_sink_store),
-#endif
 };
 
 /* worker for setting wled brightness */

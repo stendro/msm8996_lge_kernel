@@ -195,8 +195,47 @@ exit:
 
 extern void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 		struct dsi_panel_cmds *pcmds, u32 flags);
+extern void lge_force_mdss_dsi_panel_cmd_read(char cmd0, int cnt, char* ret_buf);
 
 #if IS_ENABLED(CONFIG_LGE_DISPLAY_OVERRIDE_MDSS_DSI_PANEL_ON)
+int change_vcom_cmds_for_VNL(struct mdss_dsi_ctrl_pdata *ctrl, int restore)
+{
+	int i = 0;
+	int ret = 0;
+	int cnt = 7;
+	char ret_buf[7] = {0x0};
+	char cmd_addr[1] = {0xC5};
+
+	lge_force_mdss_dsi_panel_cmd_read(cmd_addr[0], cnt, ret_buf);
+
+	memcpy(&(ctrl->vcom_cmds.cmds[0].payload[1]), ret_buf, cnt);
+
+	pr_info("[%s] vcom reg before writing: ", restore?"restore":"change");
+	for ( i = 0; i < cnt + 1; i++) {
+		pr_info("0x%x ", ctrl->vcom_cmds.cmds[0].payload[i]);
+	}
+	pr_info("\n");
+
+	if (restore)
+		ctrl->vcom_cmds.cmds[0].payload[6] = 0x34;
+	else
+		ctrl->vcom_cmds.cmds[0].payload[6] = 0x30;
+
+	mdss_dsi_panel_cmds_send(ctrl, &ctrl->vcom_cmds, CMD_REQ_COMMIT);
+
+	//memset(ret_buf, 0, cnt);
+	lge_force_mdss_dsi_panel_cmd_read(cmd_addr[0], cnt, ret_buf);
+	memcpy(&(ctrl->vcom_cmds.cmds[0].payload[1]), ret_buf, cnt);
+
+	pr_info("[%s] vcom reg after writing: ", restore?"restore":"change");
+	for ( i = 0; i < cnt + 1; i++) {
+		pr_info("0x%x ", ctrl->vcom_cmds.cmds[0].payload[i]);
+	}
+	pr_info("\n");
+
+	return ret;
+}
+
 int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
@@ -247,6 +286,8 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 			if (on_cmds->cmd_cnt)
 				mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
 
+			change_vcom_cmds_for_VNL(ctrl, 0);
+
 #if defined(CONFIG_LGE_LCD_DYNAMIC_CABC_MIE_CTRL)
 			if (ctrl->ie_on == 0)
 				mdss_dsi_panel_cmds_send(ctrl, &ctrl->ie_off_cmds, CMD_REQ_COMMIT);
@@ -273,6 +314,9 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	}
 	if (on_cmds->cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
+
+	change_vcom_cmds_for_VNL(ctrl, 0);
+
 	if (pinfo->compression_mode == COMPRESSION_DSC)
 		mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
 
@@ -367,3 +411,18 @@ end:
 	return 0;
 }
 #endif
+
+extern int lge_is_valid_U2_FTRIM_reg(void);
+ssize_t mdss_fb_is_valid(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	int ret = 0;
+	int is_valid = lge_is_valid_U2_FTRIM_reg();
+	if (is_valid < 0)
+		ret = is_valid; //read error
+	else
+		ret = scnprintf(buf, PAGE_SIZE, "DDIC validation is %d\n",
+				is_valid);
+
+	return ret;
+}

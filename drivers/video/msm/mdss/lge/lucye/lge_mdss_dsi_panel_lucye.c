@@ -24,9 +24,13 @@ extern struct dsi_panel_cmds reader_mode_step0_cmds;
 extern struct dsi_panel_cmds reader_mode_step1_cmds;
 extern struct dsi_panel_cmds reader_mode_step2_cmds;
 extern struct dsi_panel_cmds reader_mode_step3_cmds;
-#if defined(CONFIG_LGE_DISPLAY_READER_MONO_MODE)
 extern struct dsi_panel_cmds reader_mode_step4_cmds;
-#endif
+extern struct dsi_panel_cmds reader_mode_step5_cmds;
+extern struct dsi_panel_cmds reader_mode_step6_cmds;
+extern struct dsi_panel_cmds reader_mode_step7_cmds;
+extern struct dsi_panel_cmds reader_mode_step8_cmds;
+extern struct dsi_panel_cmds reader_mode_step9_cmds;
+extern struct dsi_panel_cmds reader_mode_step10_cmds;
 #endif
 
 #if defined(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI)
@@ -36,6 +40,23 @@ extern void lcd_watch_font_crc_check_after_panel_reset(void);
 
 extern void mdss_dsi_panel_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl,
 		struct dsi_panel_cmds *pcmds, u32 flags);
+
+/* when panel state is off, improve to ignore sre cmds */
+void lge_set_sre_cmds(struct mdss_dsi_ctrl_pdata *ctrl)
+{
+	char mask = 0x00;
+	if(ctrl->sre_status == SRE_MID) {
+		ctrl->reg_55h_cmds.cmds[0].payload[1] |= SRE_MASK_MID;
+		pr_info("%s: SRE MID\n",__func__);
+	} else if(ctrl->sre_status == SRE_HIGH) {
+		ctrl->reg_55h_cmds.cmds[0].payload[1] |= SRE_MASK_HIGH;
+		pr_info("%s: SRE HIGH\n",__func__);
+	} else {
+		mask = SRE_MASK;
+		ctrl->reg_55h_cmds.cmds[0].payload[1] &= (~mask);
+	}
+}
+EXPORT_SYMBOL(lge_set_sre_cmds);
 
 static void lge_set_image_quality_cmds(struct mdss_dsi_ctrl_pdata *ctrl)
 {
@@ -58,8 +79,39 @@ static void lge_set_image_quality_cmds(struct mdss_dsi_ctrl_pdata *ctrl)
 			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step3_cmds, CMD_REQ_COMMIT);
 			break;
 		case READER_MODE_STEP_4:
-			pr_info("%s: Reader STEP MONO\n",__func__);
-			ctrl->reg_55h_cmds.cmds[0].payload[1] |= MONO_MASK;
+			pr_info("%s: Reader STEP 4\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step4_cmds, CMD_REQ_COMMIT);
+			break;
+		case READER_MODE_STEP_5:
+			pr_info("%s: Reader STEP 5\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step5_cmds, CMD_REQ_COMMIT);
+			break;
+		case READER_MODE_STEP_6:
+			pr_info("%s: Reader STEP 6\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step6_cmds, CMD_REQ_COMMIT);
+			break;
+		case READER_MODE_STEP_7:
+			pr_info("%s: Reader STEP 7\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step7_cmds, CMD_REQ_COMMIT);
+			break;
+		case READER_MODE_STEP_8:
+			pr_info("%s: Reader STEP 8\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step8_cmds, CMD_REQ_COMMIT);
+			break;
+		case READER_MODE_STEP_9:
+			pr_info("%s: Reader STEP 9\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step9_cmds, CMD_REQ_COMMIT);
+			break;
+		case READER_MODE_STEP_10:
+			pr_info("%s: Reader STEP 10\n",__func__);
+			ctrl->reg_f0h_cmds.cmds[0].payload[1] |= READER_GC_MASK;
+			mdss_dsi_panel_cmds_send(ctrl, &reader_mode_step10_cmds, CMD_REQ_COMMIT);
 			break;
 		default:
 			pr_info("%s: Reader STEP OFF\n",__func__);
@@ -305,6 +357,9 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 #endif
 		if (gpio_is_valid(ctrl_pdata->mode_gpio)) {
 			bool out;
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+			out = MODE_GPIO_HIGH;
+#endif
 
 			if (pinfo->mode_gpio_state == MODE_GPIO_HIGH)
 				out = true;
@@ -381,6 +436,9 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 			mdss_dsi_panel_cmds_send(ctrl, &ctrl->aod_cmds[AOD_PANEL_CMD_U3_TO_U2], CMD_REQ_COMMIT);
 			goto notify;
 		case AOD_CMD_DISABLE:
+			lge_set_sre_cmds(ctrl);
+			mdss_dsi_panel_cmds_send(ctrl, &ctrl->reg_55h_cmds, CMD_REQ_COMMIT);
+			lge_change_reader_mode(ctrl, lge_get_reader_mode());
 			mdss_dsi_panel_cmds_send(ctrl, &ctrl->aod_cmds[AOD_PANEL_CMD_U2_TO_U3], CMD_REQ_COMMIT);
 			goto notify;
 		case ON_AND_AOD:
@@ -388,6 +446,7 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 			lcd_watch_restore_reg_after_panel_reset();
 			if (ctrl->display_on_and_aod_comds.cmd_cnt)
 				mdss_dsi_panel_cmds_send(ctrl, &ctrl->display_on_and_aod_comds, CMD_REQ_COMMIT);
+			lge_set_sre_cmds(ctrl);
 			lge_set_image_quality_cmds(ctrl);
 
 			if (pinfo->compression_mode == COMPRESSION_DSC)
@@ -407,6 +466,7 @@ int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 #endif
 	if (ctrl->on_cmds.cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->on_cmds, CMD_REQ_COMMIT);
+	lge_set_sre_cmds(ctrl);
 	lge_set_image_quality_cmds(ctrl);
 
 	if (pinfo->compression_mode == COMPRESSION_DSC)

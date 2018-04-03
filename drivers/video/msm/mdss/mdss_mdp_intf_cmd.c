@@ -1918,7 +1918,6 @@ static int mdss_mdp_cmd_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
 		pr_err("invalid ctx\n");
 		return -ENODEV;
 	}
-
 	pdata = ctl->panel_data;
 
 	MDSS_XLOG(ctl->num, atomic_read(&ctx->koff_cnt), ctl->roi_bkup.w,
@@ -1977,7 +1976,6 @@ static int mdss_mdp_cmd_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
 			MDSS_XLOG(0xbac);
 			mdss_fb_report_panel_dead(ctl->mfd);
 		} else if (ctx->pp_timeout_report_cnt == 0) {
-			WARN(1, "mdss_mdp_cmd_wait4pingpong timed out: rc=%d, ctl=%d\n", rc, ctl->num);
 			MDSS_XLOG(0xbad);
 			MDSS_XLOG_TOUT_HANDLER("mdp", "dsi0_ctrl", "dsi0_phy",
 				"dsi1_ctrl", "dsi1_phy", "vbif", "vbif_nrt",
@@ -2139,9 +2137,7 @@ static int mdss_mdp_cmd_panel_on(struct mdss_mdp_ctl *ctl,
 					NULL, CTL_INTF_EVENT_FLAG_DEFAULT);
 			WARN(rc, "intf %d panel on error (%d)\n",
 					ctl->intf_num, rc);
-
 		}
-
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 		if (!skip_lcd_error_check)
 			rc = mdss_mdp_tearcheck_enable(ctl, true);

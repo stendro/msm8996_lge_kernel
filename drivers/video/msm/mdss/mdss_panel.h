@@ -644,8 +644,6 @@ struct mdss_panel_hdr_properties {
 
 	/* peak brightness supported by panel */
 	u32 peak_brightness;
-	/* average brightness supported by panel */
-	u32 avg_brightness;
 	/* Blackness level supported by panel */
 	u32 blackness_level;
 };
@@ -685,6 +683,9 @@ struct mdss_panel_info {
 #if defined(CONFIG_LGE_HIGH_LUMINANCE_MODE)
 	int hl_mode_on;
 #endif
+#endif
+#if defined(CONFIG_LGE_DISPLAY_MFTS_DET_SUPPORTED) && !defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
+	int is_validate_lcd;
 #endif
 #if defined(CONFIG_LGE_THERMAL_BL_MAX)
 	int thermal_maxblvalue;
@@ -1281,11 +1282,6 @@ static inline void mdss_panel_info_from_timing(struct mdss_panel_timing *pt,
 static inline struct mdss_panel_timing *mdss_panel_get_timing_by_name(
 		struct mdss_panel_data *pdata,
 		const char *name) { return NULL; };
-#endif
-
-#if defined(CONFIG_LGE_MIPI_H1_INCELL_QHD_CMD_PANEL)
-void lge_force_mdss_dsi_panel_cmd_read(char cmd0, int cnt, char* ret_buf);
-int lge_is_valid_U2_FTRIM_reg(void);
 #endif
 
 #endif /* MDSS_PANEL_H */

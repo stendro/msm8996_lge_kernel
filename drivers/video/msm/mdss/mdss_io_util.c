@@ -134,7 +134,6 @@ void msm_dss_iounmap(struct dss_io_data *io_data)
 	io_data->len = 0;
 } /* msm_dss_iounmap */
 EXPORT_SYMBOL(msm_dss_iounmap);
-
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 int msm_dss_set_vreg(struct dss_vreg *in_vreg,
 	int num_vreg, int mode)
@@ -158,7 +157,6 @@ int msm_dss_set_vreg(struct dss_vreg *in_vreg,
 }
 EXPORT_SYMBOL(msm_dss_set_vreg);
 #endif
-
 int msm_dss_config_vreg(struct device *dev, struct dss_vreg *in_vreg,
 	int num_vreg, int config)
 {

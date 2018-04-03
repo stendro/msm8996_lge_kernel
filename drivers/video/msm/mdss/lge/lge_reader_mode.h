@@ -19,6 +19,13 @@
 #define READER_MODE_STEP_2	2
 #define READER_MODE_STEP_3	3
 #define READER_MODE_STEP_4	4
+#define READER_MODE_STEP_5	5
+#define READER_MODE_STEP_6	6
+#define READER_MODE_STEP_7	7
+#define READER_MODE_STEP_8	8
+#define READER_MODE_STEP_9	9
+#define READER_MODE_STEP_10	10
+
 
 /* Implementions of below functions depend on DDIC */
 int lge_mdss_dsi_parse_reader_mode_cmds(struct device_node *np, struct mdss_dsi_ctrl_pdata *ctrl_pdata);
@@ -28,4 +35,6 @@ int lge_mdss_dsi_panel_send_on_cmds(struct mdss_dsi_ctrl_pdata *ctrl, struct dsi
 
 int lge_get_reader_mode(void);
 
+ssize_t set_reader_mode(struct device *dev, struct device_attribute *attr, const char *buf, size_t count);
+ssize_t get_reader_mode(struct device *dev, struct device_attribute *attr, char *buf);
 #endif

@@ -1422,17 +1422,19 @@ if( mfd->panel_info->type == MIPI_CMD_PANEL )
 	 * runtime device which will be released when overlay is turned off
 	 */
 #ifdef DISABLE_IDLE_PC_FIRST_UPDATE
- 	if (mfd->panel_info->type == MIPI_CMD_PANEL) {
- 	 	if(count == 0) {
-		 	rc = pm_runtime_get_sync(&mfd->pdev->dev);
-		 	count++;
-	    	if (IS_ERR_VALUE(rc)) {
-			 	 	pr_err("unable to resume with pm_runtime_get_sync rc=%d\n", rc);
-			 	 	goto end;
-	    	}
-	  	}
- 	} else {
-#endif
+if( mfd->panel_info->type == MIPI_CMD_PANEL )
+{ 	if(count == 0) {
+		rc = pm_runtime_get_sync(&mfd->pdev->dev);
+		count++;
+	   if (IS_ERR_VALUE(rc)) {
+			pr_err("unable to resume with pm_runtime_get_sync rc=%d\n",
+				rc);
+			goto end;
+	   }
+	 }
+}
+else
+{
 	if (!mdp5_data->mdata->idle_pc_enabled ||
 		(mfd->panel_info->type != MIPI_CMD_PANEL)) {
 		rc = pm_runtime_get_sync(&mfd->pdev->dev);
@@ -1440,12 +1442,21 @@ if( mfd->panel_info->type == MIPI_CMD_PANEL )
 			pr_err("unable to resume with pm_runtime_get_sync rc=%d\n",
 				rc);
 			goto end;
-		}
-	}
-#ifdef DISABLE_IDLE_PC_FIRST_UPDATE
- 	}
-#endif
+	         }
+	 }
+}
 
+#else
+	if (!mdp5_data->mdata->idle_pc_enabled ||
+		(mfd->panel_info->type != MIPI_CMD_PANEL)) {
+		rc = pm_runtime_get_sync(&mfd->pdev->dev);
+		if (IS_ERR_VALUE(rc)) {
+			pr_err("unable to resume with pm_runtime_get_sync rc=%d\n",
+				rc);
+			goto end;
+	         }
+	 }
+#endif
 	/*
 	 * We need to do hw init before any hw programming.
 	 * Also, hw init involves programming the VBIF registers which
@@ -1984,7 +1995,7 @@ static void __validate_and_set_roi(struct msm_fb_data_type *mfd,
 		goto set_roi;
 
 	if (!memcmp(&commit->l_roi, &tmp_roi, sizeof(tmp_roi)) &&
-	    !memcmp(&commit->r_roi, &tmp_roi, sizeof(tmp_roi)))
+			!memcmp(&commit->r_roi, &tmp_roi, sizeof(tmp_roi)))
 		goto set_roi;
 #endif
 
@@ -2113,6 +2124,17 @@ set_roi:
 						ctl->mixer_right->height};
 				}
 				pr_info("[Watch] Don't send AOD command if font download is fail!!\n");
+			}
+		}
+		else if (mfd->watch.set_roi) {
+			oem_mdss_aod_cmd_send(mfd, AOD_CMD_ENABLE);
+			l_roi = (struct mdss_rect){0, SKIP_ROI_SIZE,
+			ctl->mixer_left->width,
+			ctl->mixer_left->height-SKIP_ROI_SIZE};
+			if (ctl->mixer_right) {
+					r_roi = (struct mdss_rect) {0, SKIP_ROI_SIZE,
+						ctl->mixer_right->width,
+						ctl->mixer_right->height-SKIP_ROI_SIZE};
 			}
 		}
 #endif
@@ -3593,13 +3615,6 @@ static void mdss_mdp_overlay_pan_display(struct msm_fb_data_type *mfd)
 		goto iommu_disable;
 	}
 
-	if (l_pipe_allocated &&
-			(l_pipe->multirect.num == MDSS_MDP_PIPE_RECT1)) {
-		pr_err("Invalid: L_Pipe-%d is assigned for RECT-%d\n",
-				l_pipe->num, l_pipe->multirect.num);
-		goto pipe_release;
-	}
-
 	if (mdss_mdp_pipe_map(l_pipe)) {
 		pr_err("unable to map base pipe\n");
 		goto pipe_release;
@@ -3645,16 +3660,6 @@ static void mdss_mdp_overlay_pan_display(struct msm_fb_data_type *mfd)
 		if (ret) {
 			pr_err("unable to allocate right base pipe\n");
 			goto pipe_release;
-		}
-
-		if (l_pipe_allocated && r_pipe_allocated &&
-				(l_pipe->num != r_pipe->num) &&
-				(r_pipe->multirect.num ==
-				 MDSS_MDP_PIPE_RECT1)) {
-			pr_err("Invalid: L_Pipe-%d,RECT-%d R_Pipe-%d,RECT-%d\n",
-					l_pipe->num, l_pipe->multirect.num,
-					r_pipe->num, l_pipe->multirect.num);
-			goto iommu_disable;
 		}
 
 		if (mdss_mdp_pipe_map(r_pipe)) {
@@ -5723,6 +5728,7 @@ static int __handle_overlay_prepare(struct msm_fb_data_type *mfd,
 	}
 
 	pr_debug("prepare fb%d num_ovs=%d\n", mfd->index, num_ovs);
+	MDSS_XLOG(mfd->index, num_ovs); //QCT debug patch for SMMU fault issue
 
 	for (i = 0; i < num_ovs; i++) {
 		if (IS_RIGHT_MIXER_OV(ip_ovs[i].flags, ip_ovs[i].dst_rect.x,

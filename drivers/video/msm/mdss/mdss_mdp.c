@@ -782,7 +782,12 @@ void mdss_mdp_irq_clear(struct mdss_data_type *mdata,
 
 int mdss_mdp_irq_enable(u32 intr_type, u32 intf_num)
 {
+
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	int irq_idx = 0;
+#else
 	int irq_idx, idx;
+#endif
 	unsigned long irq_flags;
 	int ret = 0;
 	struct mdss_data_type *mdata = mdss_mdp_get_mdata();
@@ -800,8 +805,13 @@ int mdss_mdp_irq_enable(u32 intr_type, u32 intf_num)
 
 	spin_lock_irqsave(&mdp_lock, irq_flags);
 	if (mdata->mdp_irq_mask[irq.reg_idx] & irq.irq_mask) {
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+		pr_warn("MDSS MDP IRQ-0x%x is already set, mask=%x\n",
+				irq.irq_mask, mdata->mdp_irq_mask[irq.reg_idx]);
+#else
 		pr_warn("MDSS MDP IRQ-0x%x is already set, mask=%x\n",
 				irq.irq_mask, mdata->mdp_irq_mask[idx]);
+#endif
 		ret = -EBUSY;
 	} else {
 		pr_debug("MDP IRQ mask old=%x new=%x\n",
@@ -1778,6 +1788,8 @@ static void mdss_mdp_hw_rev_caps_init(struct mdss_data_type *mdata)
 			ARRAY_SIZE(invalid_mdp107_wb_output_fmts),
 			VALID_MDP_WB_INTF_FORMAT);
 	case MDSS_MDP_HW_REV_107_2:
+		/* disable ECG for 28nm PHY platform */
+		mdata->enable_gate = false;
 		mdata->max_target_zorder = 7; /* excluding base layer */
 		mdata->max_cursor_size = 128;
 		mdata->per_pipe_ib_factor.numer = 8;

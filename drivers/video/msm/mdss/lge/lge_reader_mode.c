@@ -77,7 +77,11 @@ ssize_t set_reader_mode(struct device *dev,
 		pr_err("no panel connected!\n");
 		return count;
 	}
-	if (mfd->panel_power_state == MDSS_PANEL_POWER_OFF) {
+
+	if (mdss_dsi_is_panel_off(pdata)) {
+		new_mode = simple_strtoul(buf, NULL, 10);
+		new_mode %= 100;
+		cur_reader_mode = new_mode;
 		pr_err("%s: Panel is off\n", __func__);
 		return count;
 	}
@@ -88,6 +92,7 @@ ssize_t set_reader_mode(struct device *dev,
 	}
 
 	new_mode = simple_strtoul(buf, NULL, 10);
+	new_mode %= 100;
 	if (lge_change_reader_mode(ctrl, new_mode))
 		cur_reader_mode = new_mode;
 
