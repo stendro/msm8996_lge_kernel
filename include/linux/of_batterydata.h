@@ -48,7 +48,7 @@ int of_batterydata_read_data(struct device_node *container_node,
  * This routine returns a device_node pointer to the closest match battery data
  * from device tree based on the battery id reading.
  */
-#if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_ANNA)
+#if defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_H1)
 struct device_node *of_batterydata_get_best_profile(
 		struct device_node *batterydata_container_node,
 		const char *batt_type);
