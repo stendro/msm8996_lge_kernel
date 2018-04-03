@@ -154,7 +154,11 @@ bool lge_battery_check()
 		usb_online = 0;
 	}
 
+#ifdef CONFIG_LGE_PM_FACTORY_CABLE
 	if (lge_is_factory_cable() && usb_online)
+#else
+	if (usb_online)
+#endif
 		return true;
 	else
 		return is_battery_valid(battery_id);

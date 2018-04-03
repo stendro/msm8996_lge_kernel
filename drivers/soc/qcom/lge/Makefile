@@ -4,7 +4,7 @@ obj-$(CONFIG_LGE_HANDLE_PANIC) += lge_handle_panic.o
 #obj-$(CONFIG_LGE_EARJACK_DEBUGGER) += lge_earjack_debugger.o
 #obj-$(CONFIG_LGE_BOOTLOADER_TIME_CHECKER) += lge_bootloader_time_checker.o
 #obj-$(CONFIG_LGE_PM) += lge_monitor_thermal.o
-#obj-$(CONFIG_LGE_PM_CABLE_DETECTION) += lge_cable_detection.o
+obj-$(CONFIG_LGE_PM_CABLE_DETECTION) += lge_cable_detection.o
 #obj-$(CONFIG_LGE_PM_SMPL_COUNTER) += lge_smpl_count.o
 obj-$(CONFIG_LGE_PM_CHARGING_CONTROLLER) += lge_charging_controller.o
 obj-$(CONFIG_LGE_PM_CHARGING_SCENARIO) += lge_charging_scenario.o
@@ -17,7 +17,4 @@ obj-$(CONFIG_LGE_ACC_NT) += lge_acc_nt.o
 #obj-$(CONFIG_LGE_LCD_TUNING) += lge_lcd_misc_ctrl.o
 #obj-$(CONFIG_LGE_QFPROM_INTERFACE) += lge_qfprom_access.o
 #obj-$(CONFIG_PRE_SELF_DIAGNOSIS) += lge_pre_selfd.o
-#obj-$(CONFIG_LGE_PM_SUPPORT_LG_POWER_CLASS) += power/
-
-obj-$(CONFIG_LGE_PM_LGE_POWER_CORE)		+= lge_power_class_core.o lge_power_class_sysfs.o
-obj-$(CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER)		+= lge_power_class_battery_id_checker.o
+obj-$(CONFIG_LGE_PM_SUPPORT_LG_POWER_CLASS) += power/

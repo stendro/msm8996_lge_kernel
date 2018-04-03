@@ -5653,7 +5653,7 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 	}
 #endif
 
-#if CONFIG_LGE_PM_FACTORY_CABLE
+#ifdef CONFIG_LGE_PM_FACTORY_CABLE
 #ifdef CONFIG_LGE_USB_TYPE_C
 	if (!chip->dp_alt_mode && lge_is_factory_cable()) {
 #else

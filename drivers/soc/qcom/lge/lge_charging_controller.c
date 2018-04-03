@@ -692,10 +692,12 @@ static void usb_current_max_check_work(struct work_struct *work)
 	the_controller->usb_psy->get_property(the_controller->usb_psy,
 			POWER_SUPPLY_PROP_APSD_RERUN_NEED, &pval);
 
+#ifdef CONFIG_LGE_PM_FACTORY_CABLE
 	if (lge_is_factory_cable() || pval.intval == 1) {
 		pr_err("%s : skip current_max_check work\n", __func__);
 		return;
 	}
+#endif
 
 	the_controller->usb_psy->get_property(the_controller->usb_psy,
 			POWER_SUPPLY_PROP_REAL_TYPE, &pval);

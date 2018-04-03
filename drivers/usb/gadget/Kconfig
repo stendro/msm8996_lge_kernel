@@ -451,4 +451,38 @@ config LGE_USB_G_ANDROID
 
 	default n
 
+config LGE_USB_G_MULTIPLE_CONFIGURATION
+        boolean "LGE Multiple Configuration"
+        depends on LGE_USB_G_ANDROID
+        help
+          Support multiple mtp functions in multiple configuration.
+          Add another descriptor for 2nd mtp function.
+
+          Say y if this must be needed.
+
+        default n
+
+config LGE_USB_G_LAF
+        boolean "LGE specific LAF support in LGE Android"
+        depends on LGE_USB_G_ANDROID
+        help
+          It supports LGE specific LAF feature.
+
+          Say y if this must be needed.
+
+        default y
+
+config LGE_USB_EMBEDDED_BATTERY
+        boolean "power cycle when factory cable is connected"
+        help
+          In case of the phone with embedded battery, power cycle is implemented
+          when factory cable is connected.
+
+          Say y if this must be needed.
+
+        default n
+
+config LGE_USB_MAXIM_EVP
+       boolean "EVP charger support"
+
 endif # USB_GADGET
