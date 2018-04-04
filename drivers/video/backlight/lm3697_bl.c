@@ -427,7 +427,35 @@ static ssize_t lcd_backlight_store_exp_min_value(struct device *dev,
 
 	return count;
 }
+#if defined(CONFIG_BACKLIGHT_PARTIAL_MODE_SUPPORTED)
+static ssize_t lcd_backlight_store_partial_on_off(struct device *dev,
+		struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	int value;
 
+	if (!count)
+		return -EINVAL;
+
+	value = simple_strtoul(buf, NULL, 10);
+
+	if(value == 1){	// HVLED1
+		lm3697_write_reg(main_lm3697_dev->client, 0x10,
+			0x06);	//HVLED 1 Bank A
+		lm3697_write_reg(main_lm3697_dev->client, 0x24, 0x01);	//Enable Bank A
+	} else if(value == 2) {	// HVLED2
+		lm3697_write_reg(main_lm3697_dev->client, 0x10,
+			0x05);	//HVLED 2 Bank A
+		lm3697_write_reg(main_lm3697_dev->client, 0x24, 0x01);	//Enable Bank A
+	} else {	// HVLED1,2
+		lm3697_write_reg(main_lm3697_dev->client, 0x10,
+			main_lm3697_dev->output_config);	//HVLED 1,2 Bank A
+		lm3697_write_reg(main_lm3697_dev->client, 0x24, 0x01);	//Enable Bank A
+	}
+	pr_info("[LM3697] %s EXT BL partial on off mode %d \n", __func__, value);
+	return count;
+}
+#endif
 #if defined(CONFIG_BACKLIGHT_CABC_DEBUG_ENABLE)
 static ssize_t lcd_backlight_show_pwm(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -466,6 +494,10 @@ DEVICE_ATTR(lm3697_backlight_on_off, 0644, lcd_backlight_show_on_off,
 		lcd_backlight_store_on_off);
 DEVICE_ATTR(lm3697_exp_min_value, 0644, lcd_backlight_show_exp_min_value,
 		lcd_backlight_store_exp_min_value);
+#if defined(CONFIG_BACKLIGHT_PARTIAL_MODE_SUPPORTED)
+DEVICE_ATTR(lm3697_partial_on_off, 0200, NULL,
+		lcd_backlight_store_partial_on_off);
+#endif
 #if defined(CONFIG_BACKLIGHT_CABC_DEBUG_ENABLE)
 DEVICE_ATTR(lm3697_pwm, 0644, lcd_backlight_show_pwm, lcd_backlight_store_pwm);
 #endif
@@ -604,6 +636,10 @@ static int lm3697_probe(struct i2c_client *i2c_dev,
 			&dev_attr_lm3697_backlight_on_off);
 	err = device_create_file(&i2c_dev->dev,
 			&dev_attr_lm3697_exp_min_value);
+#if defined(CONFIG_BACKLIGHT_PARTIAL_MODE_SUPPORTED)
+	err = device_create_file(&i2c_dev->dev,
+			&dev_attr_lm3697_partial_on_off);
+#endif
 #if defined(CONFIG_BACKLIGHT_CABC_DEBUG_ENABLE)
 	err = device_create_file(&i2c_dev->dev,
 			&dev_attr_lm3697_pwm);
