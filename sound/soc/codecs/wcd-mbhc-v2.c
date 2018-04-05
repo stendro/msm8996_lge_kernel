@@ -45,8 +45,10 @@ union power_supply_propval value;
 static bool skip_recalc_imped = false;
 #endif
 #endif
-#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9218P)
 extern bool enable_es9218p;
+#endif
+#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
 extern int es9218_sabre_headphone_on(void);
 extern int es9218_sabre_headphone_off(void);
 extern int es9218_get_power_state(void);
@@ -127,16 +129,13 @@ enum wcd_mbhc_det_water_usb {
 static int wcd_event_notify_from_usb(struct notifier_block *self, unsigned long val, void *data);
 #endif // CONFIG_LGE_MBHC_DET_WATER_ON_USB
 
-#if defined(CONFIG_SND_SOC_ES9218P)
-// temporary code before applying tunning values of MBHC
+#if defined(CONFIG_SND_SOC_ES9218P)        /* Lucye */
 #define LGE_NORMAL_HEADSET_THRESHOLD	50
 #define LGE_ADVANCED_HEADSET_THRESHOLD	600
-#endif
-#if defined(CONFIG_MACH_MSM8996_ELSA)
+#elif defined(CONFIG_SND_SOC_ES9018)         /* Elsa */
 #define LGE_NORMAL_HEADSET_THRESHOLD	50
 #define LGE_ADVANCED_HEADSET_THRESHOLD	400
-#endif
-#if defined(CONFIG_MACH_MSM8996_H1)
+#else                                        /* Default */
 #define LGE_NORMAL_HEADSET_THRESHOLD	100
 #define LGE_ADVANCED_HEADSET_THRESHOLD	400
 #endif
@@ -297,17 +296,16 @@ end:
 
 static void lge_set_sdev_name(struct wcd_mbhc *mbhc, int status)
 {
-#ifdef CONFIG_SND_SOC_ES9218P
+#if defined(CONFIG_SND_SOC_ES9218P)
 	int ess_threshold = -30;    // for diva w/o DAC
 #endif
+
 	pr_debug("%s: enter\n", __func__);
 
 #if defined(CONFIG_SND_SOC_ES9218P)
 	if(enable_es9218p)
 		ess_threshold = 200;
-#endif
 
-#ifdef CONFIG_SND_SOC_ES9218P
 	if (mbhc->lge_moist_det_en) {
 		/* for lge Moisture detect, org impedance */
 		mbhc->zl_org = mbhc->zl;
@@ -464,8 +462,19 @@ static void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 		}
 #endif
 		switch_set_state(&mbhc->sdev, switch_device);
-#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
-		if (enable_es9218p) {
+#if defined(CONFIG_SND_SOC_ES9018)
+		if (status == 0)
+			es9218_sabre_headphone_off();
+		else if (status == SND_JACK_HEADPHONE
+			|| status == SND_JACK_HEADSET
+			|| status == SND_JACK_LINEOUT) {
+			pr_info("[LGE MBHC] %s: call #1 es9218_sabre_headphone_on()\n", __func__);
+			es9218_sabre_headphone_on();
+		}
+		else
+			pr_debug("%s: not reported to switch_dev\n", __func__);
+#elif defined(CONFIG_SND_SOC_ES9218P)
+		if(enable_es9218p) {
 			if (status == 0)
 				es9218_sabre_headphone_off();
 			else if (status == SND_JACK_HEADPHONE
@@ -1058,7 +1067,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			if ( !((mbhc->mbhc_cfg->detect_extn_cable) && (mbhc->hph_status == SND_JACK_LINEOUT))) {
 				wcd_mbhc_jack_report(mbhc, &mbhc->headset_jack,
 					0, WCD_MBHC_JACK_MASK);
-#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9218P)
                 if (enable_es9218p && (mbhc->hph_status & WCD_MBHC_JACK_MASK)) {
                     pr_info("[LGE MBHC] %s: call #2 es9218_sabre_headphone_on().\n", __func__);
                     pr_debug("[LGE MBHC] %s: remove jack(%d) and report insertion of another jack.\n", __func__, mbhc->hph_status);
@@ -1093,7 +1102,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			jack_type == SND_JACK_HEADPHONE)
 			mbhc->hph_status &= ~SND_JACK_HEADSET;
 
-#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9218P)
 		if (enable_es9218p) {
 			pr_info("[LGE MBHC] %s: call #3 es9218_sabre_headphone_on()\n", __func__);
 			es9218_sabre_headphone_on();
@@ -1153,7 +1162,9 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		}
 
 		mbhc->hph_status |= jack_type;
-
+#if defined(CONFIG_SND_SOC_ES9018)
+		es9218_sabre_headphone_on();
+#endif
 		pr_debug("%s: Reporting insertion %d(%x)\n", __func__,
 			 jack_type, mbhc->hph_status);
 		pr_info("[LGE MBHC] Impedance zl: %d, zr:%d\n", mbhc->zl, mbhc->zr);
@@ -2268,7 +2279,10 @@ static irqreturn_t wcd_mbhc_mech_plug_detect_irq(int irq, void *data)
 		r = IRQ_NONE;
 	} else {
 		/* Call handler */
-#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
+#if defined(CONFIG_SND_SOC_ES9018)
+		pr_info("[LGE MBHC] %s: call #4 es9218_sabre_headphone_on()\n", __func__);
+		es9218_sabre_headphone_on();
+#elif defined(CONFIG_SND_SOC_ES9218P)
 		if (enable_es9218p) {
 			pr_info("[LGE MBHC] %s: call #4 es9218_sabre_headphone_on()\n", __func__);
 			es9218_sabre_headphone_on();

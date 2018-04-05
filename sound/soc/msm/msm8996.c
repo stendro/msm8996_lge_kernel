@@ -109,10 +109,7 @@ static int msm_tert_mi2s_tx_ch = 2;
 #ifdef CONFIG_SND_USE_QUAT_MI2S
 static int msm_quat_mi2s_tx_ch = 2;
 #endif
-#if defined(CONFIG_SND_SOC_ES9018) && defined(CONFIG_MACH_MSM8996_ELSA)
-bool enable_es9218p = true;
-#endif
-#if defined(CONFIG_SND_SOC_ES9218P) && defined(CONFIG_MACH_MSM8996_LUCYE)
+#if defined(CONFIG_SND_SOC_ES9218P)
 bool enable_es9218p = false;
 #endif
 
@@ -2464,12 +2461,15 @@ static void *def_tasha_mbhc_cal(void)
 	}
 
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(tasha_wcd_cal)->X) = (Y))
-	S(v_hs_max, 1500);
-#if defined(CONFIG_SND_SOC_ES9018) || defined(CONFIG_SND_SOC_ES9218P)
-	if (enable_es9218p) {
+#if defined(CONFIG_SND_SOC_ES9018)
+	S(v_hs_max, 2800);
+#elif defined(CONFIG_SND_SOC_ES9218P)
+	if(enable_es9218p){
 		S(v_hs_max, 2800);
 		pr_info("%s: set v_hs_max as 2800 installed es9218p chip\n", __func__);
 	}
+#else
+	S(v_hs_max, 1500);
 #endif
 #undef S
 #define S(X, Y) ((WCD_MBHC_CAL_BTN_DET_PTR(tasha_wcd_cal)->X) = (Y))
@@ -4067,7 +4067,7 @@ static struct snd_soc_dai_link msm8996_dummy_dai_link[] = {
 		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA2,
 	},
 };
-#if defined(CONFIG_SND_USE_SEC_MI2S) && defined(CONFIG_MACH_MSM8996_LUCYE)
+#if defined(CONFIG_SND_USE_SEC_MI2S) && defined(CONFIG_SND_SOC_ES9218P)
 static struct snd_soc_dai_link msm8996_sec_mi2s_dai_link[] = {
 	{
 		.name = LPASS_BE_SEC_MI2S_RX,
