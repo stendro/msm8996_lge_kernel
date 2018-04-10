@@ -511,6 +511,12 @@ config LGE_DISABLE_SECOND_SCREEN
 	  for LGE devices at the time of this writing (progress is being
 	  made for other Android versions though).
 
+config LGE_MSM8996_ENABLE_VENDOR
+	bool "Enables using the vendor partition"
+	depends on MACH_LGE
+	help
+	  Enables the /vendor partition in device-tree fstab
+
 endmenu
 
 source "drivers/soc/qcom/lge/power/Kconfig"
