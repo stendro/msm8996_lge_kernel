@@ -63,7 +63,7 @@ COPY_AK() {
 }
 
 COPY_INIT() {
-	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ]; then
+	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; then
 	  echo "Copying init file (G6)..."
 	  cp $INIT_FILE_G6 $DDIR/ramdisk/init.blu_active.rc \
 		|| ABORT "Failed to copy init file"
