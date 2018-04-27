@@ -390,7 +390,7 @@ ARM_ARCH_OPT := -mcpu=cortex-a57 -mtune=cortex-a57
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a) \
  -g0 -DNDEBUG \
  -fomit-frame-pointer \
- -fivopts -fipa-pta -fipa-cp-clone
+ -fivopts
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
