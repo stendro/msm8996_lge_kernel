@@ -502,8 +502,7 @@ static struct dma_async_tx_descriptor *edma_prep_slave_sg(
 		return NULL;
 	}
 
-	edesc = kzalloc(sizeof(*edesc) + sg_len *
-		sizeof(edesc->pset[0]), GFP_ATOMIC);
+	edesc = kzalloc(struct_size(edesc, pset, sg_len), GFP_ATOMIC);
 	if (!edesc) {
 		dev_err(dev, "%s: Failed to allocate a descriptor\n", __func__);
 		return NULL;
@@ -656,8 +655,7 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
 	if (nslots > MAX_NR_SG)
 		return NULL;
 
-	edesc = kzalloc(sizeof(*edesc) + nslots *
-		sizeof(edesc->pset[0]), GFP_ATOMIC);
+	edesc = kzalloc(struct_size(edesc, pset, nslots), GFP_ATOMIC);
 	if (!edesc) {
 		dev_err(dev, "%s: Failed to allocate a descriptor\n", __func__);
 		return NULL;

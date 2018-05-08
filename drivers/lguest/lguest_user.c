@@ -102,8 +102,7 @@ static int add_eventfd(struct lguest *lg, unsigned long addr, int fd)
 	 * Replace the old array with the new one, carefully: others can
 	 * be accessing it at the same time.
 	 */
-	new = kmalloc(sizeof(*new) + sizeof(new->map[0]) * (old->num + 1),
-		      GFP_KERNEL);
+	new = kmalloc(struct_size(new, map, (old->num + 1)), GFP_KERNEL);
 	if (!new)
 		return -ENOMEM;
 
