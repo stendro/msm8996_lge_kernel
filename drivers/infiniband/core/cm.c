@@ -3773,8 +3773,8 @@ static void cm_add_one(struct ib_device *ib_device)
 	if (rdma_node_get_transport(ib_device->node_type) != RDMA_TRANSPORT_IB)
 		return;
 
-	cm_dev = kzalloc(sizeof(*cm_dev) + sizeof(*port) *
-			 ib_device->phys_port_cnt, GFP_KERNEL);
+	cm_dev = kzalloc(CHECKME_struct_size(&*cm_dev, *port, ib_device->phys_port_cnt),
+			 GFP_KERNEL);
 	if (!cm_dev)
 		return;
 

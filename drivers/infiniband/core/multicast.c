@@ -806,7 +806,7 @@ static void mcast_add_one(struct ib_device *device)
 	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
 		return;
 
-	dev = kmalloc(sizeof *dev + device->phys_port_cnt * sizeof *port,
+	dev = kmalloc(CHECKME_struct_size(&*dev, *port, device->phys_port_cnt),
 		      GFP_KERNEL);
 	if (!dev)
 		return;
