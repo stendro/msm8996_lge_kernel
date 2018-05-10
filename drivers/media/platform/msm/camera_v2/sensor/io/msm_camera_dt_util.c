@@ -1626,6 +1626,7 @@ int msm_cam_sensor_handle_reg_gpio(int seq_val,
 
 	if (gconf->gpio_num_info &&
 		(gconf->gpio_num_info->valid[gpio_offset] == 1)) {
+//clang-branch	if (gconf->gpio_num_info->valid[gpio_offset] == 1) {
 		gpio_set_value_cansleep(
 			gconf->gpio_num_info->gpio_num
 			[gpio_offset], val);
