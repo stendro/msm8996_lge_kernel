@@ -17,6 +17,7 @@
 #include "msm8996-h1_kddi_jp-panel.dtsi"
 #include "msm8996-h1_kddi_jp-pm.dtsi"
 #include "msm8996-h1_kddi_jp-sound.dtsi"
+/* all other H1 devices share ../msm8996-h1-connectivity.dtsi */
 #include "msm8996-h1_kddi_jp-connectivity.dtsi"
 /* all other MSM8996 devices share ../msm8996-nfc.dtsi */
 #include "msm8996-h1_kddi_jp-nfc.dtsi"
