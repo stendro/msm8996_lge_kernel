@@ -387,7 +387,8 @@ static int f2fs_move_inline_dirents(struct inode *dir, struct page *ipage,
 	f2fs_wait_on_page_writeback(page, DATA, true);
 	zero_user_segment(page, MAX_INLINE_DATA(dir), PAGE_SIZE);
 
-	dentry_blk = page_address(page);
+	make_dentry_ptr_inline(dir, &src, inline_dentry);
+	make_dentry_ptr_block(dir, &dst, dentry_blk);
 
 	make_dentry_ptr_inline(dir, &src, inline_dentry);
 	make_dentry_ptr_block(dir, &dst, dentry_blk);
