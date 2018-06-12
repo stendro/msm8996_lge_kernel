@@ -641,8 +641,9 @@ static int iommu_pm_create_group_debugfs_hierarchy(struct iommu_info *iommu,
 		pmon_entry->cnt_grp[i].grp_no = i;
 		pmon_entry->cnt_grp[i].num_counters = pmon_entry->num_counters;
 		pmon_entry->cnt_grp[i].counters =
-			kzalloc(sizeof(*pmon_entry->cnt_grp[i].counters)
-			* pmon_entry->cnt_grp[i].num_counters, GFP_KERNEL);
+			kcalloc(pmon_entry->cnt_grp[i].num_counters,
+				sizeof(*pmon_entry->cnt_grp[i].counters),
+				GFP_KERNEL);
 
 		if (!pmon_entry->cnt_grp[i].counters) {
 			pr_err("Unable to allocate memory for counters\n");
@@ -689,8 +690,9 @@ int msm_iommu_pm_iommu_register(struct iommu_pmon *pmon_entry)
 		}
 	}
 
-	pmon_entry->cnt_grp = kzalloc(sizeof(*pmon_entry->cnt_grp)
-				      * pmon_entry->num_groups, GFP_KERNEL);
+	pmon_entry->cnt_grp = kcalloc(pmon_entry->num_groups,
+				      sizeof(*pmon_entry->cnt_grp),
+				      GFP_KERNEL);
 	if (!pmon_entry->cnt_grp) {
 		ret = -ENOMEM;
 		goto file_err;

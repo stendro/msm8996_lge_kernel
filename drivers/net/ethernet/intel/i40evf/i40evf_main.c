@@ -1088,7 +1088,7 @@ static int i40evf_alloc_queues(struct i40evf_adapter *adapter)
 		struct i40e_ring *tx_ring;
 		struct i40e_ring *rx_ring;
 
-		tx_ring = kzalloc(sizeof(struct i40e_ring) * 2, GFP_KERNEL);
+		tx_ring = kcalloc(2, sizeof(struct i40e_ring), GFP_KERNEL);
 		if (!tx_ring)
 			goto err_out;
 

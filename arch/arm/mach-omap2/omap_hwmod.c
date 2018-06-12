@@ -4222,8 +4222,8 @@ int omap_hwmod_pad_route_irq(struct omap_hwmod *oh, int pad_idx, int irq_idx)
 
 	if (!oh->mux->irqs) {
 		/* XXX What frees this? */
-		oh->mux->irqs = kzalloc(sizeof(int) * oh->mux->nr_pads_dynamic,
-			GFP_KERNEL);
+		oh->mux->irqs = kcalloc(oh->mux->nr_pads_dynamic, sizeof(int),
+					GFP_KERNEL);
 		if (!oh->mux->irqs)
 			return -ENOMEM;
 	}

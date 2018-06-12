@@ -59,11 +59,13 @@ static unsigned long *backups;
 
 static int at91_aic_pm_init(void)
 {
-	backups = kzalloc(BITS_TO_LONGS(n_irqs) * sizeof(*backups), GFP_KERNEL);
+	backups = kcalloc(BITS_TO_LONGS(n_irqs), sizeof(*backups),
+			  GFP_KERNEL);
 	if (!backups)
 		return -ENOMEM;
 
-	wakeups = kzalloc(BITS_TO_LONGS(n_irqs) * sizeof(*backups), GFP_KERNEL);
+	wakeups = kcalloc(BITS_TO_LONGS(n_irqs), sizeof(*backups),
+			  GFP_KERNEL);
 	if (!wakeups) {
 		kfree(backups);
 		return -ENOMEM;
@@ -252,8 +254,9 @@ void __init at91_aic_init(unsigned int *priority, unsigned int ext_irq_mask)
 	unsigned int i;
 	int irq_base;
 
-	at91_extern_irq = kzalloc(BITS_TO_LONGS(n_irqs)
-				  * sizeof(*at91_extern_irq), GFP_KERNEL);
+	at91_extern_irq = kcalloc(BITS_TO_LONGS(n_irqs),
+				  sizeof(*at91_extern_irq),
+				  GFP_KERNEL);
 
 	if (at91_aic_pm_init() || at91_extern_irq == NULL)
 		panic("Unable to allocate bit maps\n");

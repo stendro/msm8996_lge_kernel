@@ -899,8 +899,9 @@ static int detect_cache_attributes(unsigned int cpu)
 	if (num_cache_leaves == 0)
 		return -ENOENT;
 
-	per_cpu(ici_cpuid4_info, cpu) = kzalloc(
-	    sizeof(struct _cpuid4_info) * num_cache_leaves, GFP_KERNEL);
+	per_cpu(ici_cpuid4_info, cpu) = kcalloc(num_cache_leaves,
+						sizeof(struct _cpuid4_info),
+						GFP_KERNEL);
 	if (per_cpu(ici_cpuid4_info, cpu) == NULL)
 		return -ENOMEM;
 
@@ -1042,7 +1043,7 @@ static struct attribute **amd_l3_attrs(void)
 	if (amd_nb_has_feature(AMD_NB_L3_PARTITIONING))
 		n += 1;
 
-	attrs = kzalloc(n * sizeof (struct attribute *), GFP_KERNEL);
+	attrs = kcalloc(n, sizeof(struct attribute *), GFP_KERNEL);
 	if (attrs == NULL)
 		return attrs = default_attrs;
 
@@ -1128,8 +1129,9 @@ static int cpuid4_cache_sysfs_init(unsigned int cpu)
 	if (unlikely(per_cpu(ici_cache_kobject, cpu) == NULL))
 		goto err_out;
 
-	per_cpu(ici_index_kobject, cpu) = kzalloc(
-	    sizeof(struct _index_kobject) * num_cache_leaves, GFP_KERNEL);
+	per_cpu(ici_index_kobject, cpu) = kcalloc(num_cache_leaves,
+						  sizeof(struct _index_kobject),
+						  GFP_KERNEL);
 	if (unlikely(per_cpu(ici_index_kobject, cpu) == NULL))
 		goto err_out;
 

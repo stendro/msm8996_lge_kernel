@@ -269,7 +269,8 @@ nouveau_fifo_create_(struct nouveau_object *parent,
 
 	priv->min = min;
 	priv->max = max;
-	priv->channel = kzalloc(sizeof(*priv->channel) * (max + 1), GFP_KERNEL);
+	priv->channel = kcalloc(max + 1, sizeof(*priv->channel),
+				GFP_KERNEL);
 	if (!priv->channel)
 		return -ENOMEM;
 

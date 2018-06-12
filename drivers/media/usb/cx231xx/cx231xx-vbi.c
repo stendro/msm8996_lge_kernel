@@ -416,7 +416,7 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 	for (i = 0; i < 8; i++)
 		dma_q->partial_buf[i] = 0;
 
-	dev->vbi_mode.bulk_ctl.urb = kzalloc(sizeof(void *) * num_bufs,
+	dev->vbi_mode.bulk_ctl.urb = kcalloc(num_bufs, sizeof(void *),
 					     GFP_KERNEL);
 	if (!dev->vbi_mode.bulk_ctl.urb) {
 		cx231xx_errdev("cannot alloc memory for usb buffers\n");
@@ -424,7 +424,7 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
 	}
 
 	dev->vbi_mode.bulk_ctl.transfer_buffer =
-	    kzalloc(sizeof(void *) * num_bufs, GFP_KERNEL);
+	    kcalloc(num_bufs, sizeof(void *), GFP_KERNEL);
 	if (!dev->vbi_mode.bulk_ctl.transfer_buffer) {
 		cx231xx_errdev("cannot allocate memory for usbtransfer\n");
 		kfree(dev->vbi_mode.bulk_ctl.urb);

@@ -830,7 +830,7 @@ struct fib_info *fib_create_info(struct fib_config *cfg)
 		goto failure;
 	fib_info_cnt++;
 	if (cfg->fc_mx) {
-		fi->fib_metrics = kzalloc(sizeof(u32) * RTAX_MAX, GFP_KERNEL);
+		fi->fib_metrics = kcalloc(RTAX_MAX, sizeof(u32), GFP_KERNEL);
 		if (!fi->fib_metrics)
 			goto failure;
 	} else

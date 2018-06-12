@@ -247,8 +247,9 @@ int __init arch_early_irq_init(void)
 
 	for_each_ioapic(i) {
 		ioapics[i].saved_registers =
-			kzalloc(sizeof(struct IO_APIC_route_entry) *
-				ioapics[i].nr_registers, GFP_KERNEL);
+			kcalloc(ioapics[i].nr_registers,
+				sizeof(struct IO_APIC_route_entry),
+				GFP_KERNEL);
 		if (!ioapics[i].saved_registers)
 			pr_err("IOAPIC %d: suspend/resume impossible!\n", i);
 	}

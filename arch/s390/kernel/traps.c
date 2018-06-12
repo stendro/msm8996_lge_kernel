@@ -312,7 +312,7 @@ int alloc_vector_registers(struct task_struct *tsk)
 	int i;
 
 	/* Allocate vector register save area. */
-	vxrs = kzalloc(sizeof(__vector128) * __NUM_VXRS,
+	vxrs = kcalloc(__NUM_VXRS, sizeof(__vector128),
 		       GFP_KERNEL|__GFP_REPEAT);
 	if (!vxrs)
 		return -ENOMEM;

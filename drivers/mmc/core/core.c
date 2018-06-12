@@ -596,8 +596,9 @@ static int mmc_devfreq_create_freq_table(struct mmc_host *host)
 	if (!clk_scaling->freq_table) {
 		pr_debug("%s: no frequency table defined -  setting default\n",
 			mmc_hostname(host));
-		clk_scaling->freq_table = kzalloc(
-			2*sizeof(*(clk_scaling->freq_table)), GFP_KERNEL);
+		clk_scaling->freq_table = kcalloc(2,
+						  sizeof(*(clk_scaling->freq_table)),
+						  GFP_KERNEL);
 		if (!clk_scaling->freq_table)
 			return -ENOMEM;
 		clk_scaling->freq_table[0] = host->card->clk_scaling_lowest;

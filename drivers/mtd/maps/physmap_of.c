@@ -131,7 +131,7 @@ static const char * const *of_get_probes(struct device_node *dp)
 		if (cp[l] == 0)
 			count++;
 
-	res = kzalloc((count + 1)*sizeof(*res), GFP_KERNEL);
+	res = kcalloc(count + 1, sizeof(*res), GFP_KERNEL);
 	count = 0;
 	while (cplen > 0) {
 		res[count] = cp;
@@ -205,7 +205,7 @@ static int of_flash_probe(struct platform_device *dev)
 
 	dev_set_drvdata(&dev->dev, info);
 
-	mtd_list = kzalloc(sizeof(*mtd_list) * count, GFP_KERNEL);
+	mtd_list = kcalloc(count, sizeof(*mtd_list), GFP_KERNEL);
 	if (!mtd_list)
 		goto err_flash_remove;
 

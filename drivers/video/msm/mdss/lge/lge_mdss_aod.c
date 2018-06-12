@@ -61,8 +61,9 @@ int oem_mdss_aod_init(struct device_node *node,
 	pr_info("[AOD] init start\n");
 	panel_info = &(ctrl_pdata->panel_data.panel_info);
 	panel_info->aod_init_done = false;
-	ctrl_pdata->aod_cmds = kzalloc(sizeof(struct dsi_panel_cmds) *
-					AOD_PANEL_CMD_NUM, GFP_KERNEL);
+	ctrl_pdata->aod_cmds = kcalloc(AOD_PANEL_CMD_NUM,
+				       sizeof(struct dsi_panel_cmds),
+				       GFP_KERNEL);
 	if (!ctrl_pdata->aod_cmds) {
 		pr_err("[AOD] failed to get memory\n");
 		return -AOD_RETURN_ERROR_MEMORY;

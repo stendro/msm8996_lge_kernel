@@ -999,9 +999,9 @@ static int __init msm_jtag_dbg_init(void)
 
 	/* Allocate dbg state save space */
 #ifdef CONFIG_ARM64
-	dbg.state = kzalloc(MAX_DBG_STATE_SIZE * sizeof(uint64_t), GFP_KERNEL);
+	dbg.state = kcalloc(MAX_DBG_STATE_SIZE, sizeof(uint64_t), GFP_KERNEL);
 #else
-	dbg.state = kzalloc(MAX_DBG_STATE_SIZE * sizeof(uint32_t), GFP_KERNEL);
+	dbg.state = kcalloc(MAX_DBG_STATE_SIZE, sizeof(uint32_t), GFP_KERNEL);
 #endif
 	if (!dbg.state) {
 		ret = -ENOMEM;

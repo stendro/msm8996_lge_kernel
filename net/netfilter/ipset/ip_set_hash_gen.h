@@ -127,7 +127,7 @@ hbucket_elem_add(struct hbucket *n, u8 ahash_max, size_t dsize)
 			/* Trigger rehashing */
 			return -EAGAIN;
 
-		tmp = kzalloc((n->size + AHASH_INIT_SIZE) * dsize,
+		tmp = kcalloc(n->size + AHASH_INIT_SIZE, dsize,
 			      GFP_ATOMIC);
 		if (!tmp)
 			return -ENOMEM;
@@ -500,8 +500,7 @@ mtype_expire(struct ip_set *set, struct htype *h, u8 nets_length, size_t dsize)
 			}
 		}
 		if (n->pos + AHASH_INIT_SIZE < n->size) {
-			void *tmp = kzalloc((n->size - AHASH_INIT_SIZE)
-					    * dsize,
+			void *tmp = kcalloc(n->size - AHASH_INIT_SIZE, dsize,
 					    GFP_ATOMIC);
 			if (!tmp)
 				/* Still try to delete expired elements */
@@ -771,8 +770,8 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
 #endif
 		ip_set_ext_destroy(set, data);
 		if (n->pos + AHASH_INIT_SIZE < n->size) {
-			void *tmp = kzalloc((n->size - AHASH_INIT_SIZE)
-					    * set->dsize,
+			void *tmp = kcalloc(n->size - AHASH_INIT_SIZE,
+					    set->dsize,
 					    GFP_ATOMIC);
 			if (!tmp) {
 				ret = 0;

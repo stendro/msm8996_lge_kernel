@@ -237,8 +237,9 @@ static int __init hyp_debug_init(void)
 	}
 
 	nr_restart_nb = resource_size(&res) / sizeof(struct pil_image_info);
-	restart_nbs = kzalloc(nr_restart_nb *
-			     sizeof(struct restart_notifier_block), GFP_KERNEL);
+	restart_nbs = kcalloc(nr_restart_nb,
+			      sizeof(struct restart_notifier_block),
+			      GFP_KERNEL);
 	if (!restart_nbs) {
 		ret = -ENOMEM;
 		hyp_dbg_err("restart notifiers allocation failed\n");

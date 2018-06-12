@@ -4364,7 +4364,7 @@ static int qlt_set_data_offset(struct qla_tgt_cmd *cmd, uint32_t offset)
 	}
 	sg_srr_cnt = (cmd->sg_cnt - i);
 
-	sg_srr = kzalloc(sizeof(struct scatterlist) * sg_srr_cnt, GFP_KERNEL);
+	sg_srr = kcalloc(sg_srr_cnt, sizeof(struct scatterlist), GFP_KERNEL);
 	if (!sg_srr) {
 		ql_dbg(ql_dbg_tgt, cmd->vha, 0xe057,
 		    "Unable to allocate sgp\n");
@@ -6450,8 +6450,9 @@ qlt_mem_alloc(struct qla_hw_data *ha)
 	if (!QLA_TGT_MODE_ENABLED())
 		return 0;
 
-	ha->tgt.tgt_vp_map = kzalloc(sizeof(struct qla_tgt_vp_map) *
-	    MAX_MULTI_ID_FABRIC, GFP_KERNEL);
+	ha->tgt.tgt_vp_map = kcalloc(MAX_MULTI_ID_FABRIC,
+				     sizeof(struct qla_tgt_vp_map),
+				     GFP_KERNEL);
 	if (!ha->tgt.tgt_vp_map)
 		return -ENOMEM;
 

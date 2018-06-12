@@ -646,7 +646,7 @@ static int fib6_commit_metrics(struct dst_entry *dst,
 	if (dst->flags & DST_HOST) {
 		mp = dst_metrics_write_ptr(dst);
 	} else {
-		mp = kzalloc(sizeof(u32) * RTAX_MAX, GFP_ATOMIC);
+		mp = kcalloc(RTAX_MAX, sizeof(u32), GFP_ATOMIC);
 		if (!mp)
 			return -ENOMEM;
 		dst_init_metrics(dst, mp, 0);

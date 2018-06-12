@@ -436,7 +436,7 @@ int msm_sensor_get_sub_module_index(struct device_node *of_node,
 				__func__, count);
 			goto ERROR;
 		}
-		val_array = kzalloc(sizeof(uint32_t) * count, GFP_KERNEL);
+		val_array = kcalloc(count, sizeof(uint32_t), GFP_KERNEL);
 		if (!val_array) {
 			pr_err("%s failed %d\n", __func__, __LINE__);
 			rc = -ENOMEM;
@@ -472,7 +472,7 @@ int msm_sensor_get_sub_module_index(struct device_node *of_node,
 			rc = -EINVAL;
 			goto ERROR;
 		}
-		val_array = kzalloc(sizeof(uint32_t) * count, GFP_KERNEL);
+		val_array = kcalloc(count, sizeof(uint32_t), GFP_KERNEL);
 		if (!val_array) {
 			pr_err("%s failed %d\n", __func__, __LINE__);
 			rc = -ENOMEM;
@@ -616,7 +616,7 @@ int msm_camera_get_dt_power_setting_data(struct device_node *of_node,
 	}
 #endif
 
-	ps = kzalloc(sizeof(*ps) * count, GFP_KERNEL);
+	ps = kcalloc(count, sizeof(*ps), GFP_KERNEL);
 	if (!ps) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
 		return -ENOMEM;
@@ -733,7 +733,7 @@ int msm_camera_get_dt_power_setting_data(struct device_node *of_node,
 		}
 	}
 
-	array = kzalloc(sizeof(uint32_t) * count, GFP_KERNEL);
+	array = kcalloc(count, sizeof(uint32_t), GFP_KERNEL);
 	if (!array) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
 		rc = -ENOMEM;
@@ -779,7 +779,7 @@ int msm_camera_get_dt_power_setting_data(struct device_node *of_node,
 		need_reverse = 1;
 
 	power_info->power_down_setting =
-		kzalloc(sizeof(*ps) * size, GFP_KERNEL);
+		kcalloc(size, sizeof(*ps), GFP_KERNEL);
 
 	if (!power_info->power_down_setting) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
@@ -831,14 +831,14 @@ int msm_camera_get_dt_gpio_req_tbl(struct device_node *of_node,
 		return 0;
 	}
 
-	val_array = kzalloc(sizeof(uint32_t) * count, GFP_KERNEL);
+	val_array = kcalloc(count, sizeof(uint32_t), GFP_KERNEL);
 	if (!val_array) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
 		return -ENOMEM;
 	}
 
-	gconf->cam_gpio_req_tbl = kzalloc(sizeof(struct gpio) * count,
-		GFP_KERNEL);
+	gconf->cam_gpio_req_tbl = kcalloc(count, sizeof(struct gpio),
+					  GFP_KERNEL);
 	if (!gconf->cam_gpio_req_tbl) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
 		rc = -ENOMEM;
@@ -1381,7 +1381,7 @@ int msm_camera_get_dt_vreg_data(struct device_node *of_node,
 		return 0;
 	}
 
-	vreg = kzalloc(sizeof(*vreg) * count, GFP_KERNEL);
+	vreg = kcalloc(count, sizeof(*vreg), GFP_KERNEL);
 	if (!vreg) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
 		return -ENOMEM;
@@ -1416,7 +1416,7 @@ int msm_camera_get_dt_vreg_data(struct device_node *of_node,
 		}
 	}
 
-	vreg_array = kzalloc(sizeof(uint32_t) * count, GFP_KERNEL);
+	vreg_array = kcalloc(count, sizeof(uint32_t), GFP_KERNEL);
 	if (!vreg_array) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
 		rc = -ENOMEM;

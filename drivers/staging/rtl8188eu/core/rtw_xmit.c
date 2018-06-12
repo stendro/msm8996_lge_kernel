@@ -1636,7 +1636,9 @@ void rtw_alloc_hwxmits(struct adapter *padapter)
 
 	pxmitpriv->hwxmit_entry = HWXMIT_ENTRY;
 
-	pxmitpriv->hwxmits = kzalloc(sizeof(struct hw_xmit) * pxmitpriv->hwxmit_entry, GFP_KERNEL);
+	pxmitpriv->hwxmits = kcalloc(pxmitpriv->hwxmit_entry,
+				     sizeof(struct hw_xmit),
+				     GFP_KERNEL);
 
 	hwxmits = pxmitpriv->hwxmits;
 

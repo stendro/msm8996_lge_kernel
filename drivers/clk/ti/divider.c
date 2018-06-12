@@ -331,7 +331,7 @@ __init ti_clk_get_div_table(struct device_node *node)
 		return ERR_PTR(-EINVAL);
 	}
 
-	table = kzalloc(sizeof(*table) * (valid_div + 1), GFP_KERNEL);
+	table = kcalloc(valid_div + 1, sizeof(*table), GFP_KERNEL);
 
 	if (!table)
 		return ERR_PTR(-ENOMEM);

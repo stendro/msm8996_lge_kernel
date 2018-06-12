@@ -611,7 +611,7 @@ static struct fb_videomode *fb_create_modedb(unsigned char *edid, int *dbsize)
 	ver = edid[EDID_STRUCT_VERSION];
 	rev = edid[EDID_STRUCT_REVISION];
 
-	mode = kzalloc(50 * sizeof(struct fb_videomode), GFP_KERNEL);
+	mode = kcalloc(50, sizeof(struct fb_videomode), GFP_KERNEL);
 	if (mode == NULL)
 		return NULL;
 
@@ -1042,8 +1042,9 @@ void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
 	if (!(num + svd_n))
 		return;
 
-	m = kzalloc((specs->modedb_len + num + svd_n) *
-		       sizeof(struct fb_videomode), GFP_KERNEL);
+	m = kcalloc(specs->modedb_len + num + svd_n,
+		    sizeof(struct fb_videomode),
+		    GFP_KERNEL);
 
 	if (!m)
 		return;

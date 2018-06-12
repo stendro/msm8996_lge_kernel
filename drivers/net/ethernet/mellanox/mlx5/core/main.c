@@ -217,7 +217,7 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
 	if (nvec <= MLX5_EQ_VEC_COMP_BASE)
 		return -ENOMEM;
 
-	table->msix_arr = kzalloc(nvec * sizeof(*table->msix_arr), GFP_KERNEL);
+	table->msix_arr = kcalloc(nvec, sizeof(*table->msix_arr), GFP_KERNEL);
 	if (!table->msix_arr)
 		return -ENOMEM;
 

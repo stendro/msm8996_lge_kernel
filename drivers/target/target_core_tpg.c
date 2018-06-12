@@ -212,7 +212,7 @@ static void *array_zalloc(int n, size_t size, gfp_t flags)
 	void **a;
 	int i;
 
-	a = kzalloc(n * sizeof(void*), flags);
+	a = kcalloc(n, sizeof(void *), flags);
 	if (!a)
 		return NULL;
 	for (i = 0; i < n; i++) {

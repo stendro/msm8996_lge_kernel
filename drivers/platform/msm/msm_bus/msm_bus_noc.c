@@ -446,17 +446,16 @@ static void *msm_bus_noc_allocate_noc_data(struct platform_device *pdev,
 	else
 		ninfo->qos_delta = fab_pdata->qos_delta;
 
-	ninfo->mas_modes = kzalloc(sizeof(uint32_t) * fab_pdata->nmasters,
-		GFP_KERNEL);
+	ninfo->mas_modes = kcalloc(fab_pdata->nmasters, sizeof(uint32_t),
+				   GFP_KERNEL);
 	if (!ninfo->mas_modes) {
 		MSM_BUS_DBG("Couldn't alloc mem for noc master-modes\n");
 		return NULL;
 	}
 
 	for (i = 0; i < NUM_CTX; i++) {
-		ninfo->cdata[i].mas = kzalloc(sizeof(struct
-			msm_bus_node_hw_info) * fab_pdata->nmasters * 2,
-			GFP_KERNEL);
+		ninfo->cdata[i].mas = kzalloc(array3_size(sizeof(struct msm_bus_node_hw_info), fab_pdata->nmasters, 2),
+					      GFP_KERNEL);
 		if (!ninfo->cdata[i].mas) {
 			MSM_BUS_DBG("Couldn't alloc mem for noc master-bw\n");
 			kfree(ninfo->mas_modes);
@@ -464,9 +463,8 @@ static void *msm_bus_noc_allocate_noc_data(struct platform_device *pdev,
 			return NULL;
 		}
 
-		ninfo->cdata[i].slv = kzalloc(sizeof(struct
-			msm_bus_node_hw_info) * fab_pdata->nslaves * 2,
-			GFP_KERNEL);
+		ninfo->cdata[i].slv = kzalloc(array3_size(sizeof(struct msm_bus_node_hw_info), fab_pdata->nslaves, 2),
+					      GFP_KERNEL);
 		if (!ninfo->cdata[i].slv) {
 			MSM_BUS_DBG("Couldn't alloc mem for noc master-bw\n");
 			kfree(ninfo->cdata[i].mas);

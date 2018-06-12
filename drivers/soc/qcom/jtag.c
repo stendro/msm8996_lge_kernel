@@ -1131,7 +1131,7 @@ static int __init msm_jtag_dbg_init(void)
 	}
 
 	/* Allocate dbg state save space */
-	dbg.state = kzalloc(MAX_DBG_STATE_SIZE * sizeof(uint32_t), GFP_KERNEL);
+	dbg.state = kcalloc(MAX_DBG_STATE_SIZE, sizeof(uint32_t), GFP_KERNEL);
 	if (!dbg.state) {
 		ret = -ENOMEM;
 		goto dbg_err;
@@ -1187,7 +1187,7 @@ static int __init msm_jtag_etm_init(void)
 	etm_clk_disable();
 
 	/* Allocate etm state save space */
-	etm.state = kzalloc(MAX_ETM_STATE_SIZE * sizeof(uint32_t), GFP_KERNEL);
+	etm.state = kcalloc(MAX_ETM_STATE_SIZE, sizeof(uint32_t), GFP_KERNEL);
 	if (!etm.state) {
 		ret = -ENOMEM;
 		goto etm_err;
