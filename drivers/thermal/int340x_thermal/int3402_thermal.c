@@ -172,8 +172,8 @@ static int int3402_thermal_probe(struct platform_device *pdev)
 	if (ACPI_FAILURE(status))
 		trip_cnt = 0;
 	else {
-		d->aux_trips = devm_kzalloc(&pdev->dev,
-				sizeof(*d->aux_trips) * trip_cnt, GFP_KERNEL);
+		d->aux_trips = devm_kcalloc(&pdev->dev,
+				trip_cnt, sizeof(*d->aux_trips), GFP_KERNEL);
 		if (!d->aux_trips)
 			return -ENOMEM;
 		trip_mask = trip_cnt - 1;

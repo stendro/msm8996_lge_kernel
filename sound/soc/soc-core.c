@@ -3815,9 +3815,9 @@ int snd_soc_register_card(struct snd_soc_card *card)
 
 	soc_init_card_debugfs(card);
 
-	card->rtd = devm_kzalloc(card->dev,
-				 sizeof(struct snd_soc_pcm_runtime) *
-				 (card->num_links + card->num_aux_devs),
+	card->rtd = devm_kcalloc(card->dev,
+				 card->num_links + card->num_aux_devs,
+				 sizeof(struct snd_soc_pcm_runtime),
 				 GFP_KERNEL);
 	if (card->rtd == NULL)
 		return -ENOMEM;
@@ -3827,9 +3827,9 @@ int snd_soc_register_card(struct snd_soc_card *card)
 	for (i = 0; i < card->num_links; i++) {
 		card->rtd[i].card = card;
 		card->rtd[i].dai_link = &card->dai_link[i];
-		card->rtd[i].codec_dais = devm_kzalloc(card->dev,
-					sizeof(struct snd_soc_dai *) *
-					(card->rtd[i].dai_link->num_codecs),
+		card->rtd[i].codec_dais = devm_kcalloc(card->dev,
+					card->rtd[i].dai_link->num_codecs,
+					sizeof(struct snd_soc_dai *),
 					GFP_KERNEL);
 		if (card->rtd[i].codec_dais == NULL)
 			return -ENOMEM;
@@ -4717,7 +4717,7 @@ int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
 		return -EINVAL;
 	}
 
-	routes = devm_kzalloc(card->dev, num_routes * sizeof(*routes),
+	routes = devm_kcalloc(card->dev, num_routes, sizeof(*routes),
 			      GFP_KERNEL);
 	if (!routes) {
 		dev_err(card->dev,

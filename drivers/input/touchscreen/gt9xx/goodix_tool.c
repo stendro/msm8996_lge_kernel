@@ -574,8 +574,8 @@ s32 init_wr_node(struct i2c_client *client)
 
 	i = GTP_I2C_RETRY_5;
 	while ((!cmd_data) && i) {
-		cmd_data = devm_kzalloc(&client->dev,
-				i * DATA_LENGTH_UINT, GFP_KERNEL);
+		cmd_data = devm_kcalloc(&client->dev,
+				DATA_LENGTH_UINT, i, GFP_KERNEL);
 		if (cmd_data)
 			break;
 		i--;

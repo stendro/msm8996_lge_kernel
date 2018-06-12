@@ -299,8 +299,9 @@ struct ahci_host_priv *ahci_platform_get_resources(struct platform_device *pdev)
 	hpriv->nports = of_get_child_count(dev->of_node);
 
 	if (hpriv->nports) {
-		hpriv->phys = devm_kzalloc(dev,
-					   hpriv->nports * sizeof(*hpriv->phys),
+		hpriv->phys = devm_kcalloc(dev,
+					   hpriv->nports,
+					   sizeof(*hpriv->phys),
 					   GFP_KERNEL);
 		if (!hpriv->phys) {
 			rc = -ENOMEM;

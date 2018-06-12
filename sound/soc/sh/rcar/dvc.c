@@ -289,8 +289,8 @@ static void rsnd_of_parse_dvc(struct platform_device *pdev,
 	if (!nr)
 		goto rsnd_of_parse_dvc_end;
 
-	dvc_info = devm_kzalloc(dev,
-				sizeof(struct rsnd_dvc_platform_info) * nr,
+	dvc_info = devm_kcalloc(dev,
+				nr, sizeof(struct rsnd_dvc_platform_info),
 				GFP_KERNEL);
 	if (!dvc_info) {
 		dev_err(dev, "dvc info allocation error\n");
@@ -327,7 +327,7 @@ int rsnd_dvc_probe(struct platform_device *pdev,
 		return -EINVAL;
 	}
 
-	dvc	= devm_kzalloc(dev, sizeof(*dvc) * nr, GFP_KERNEL);
+	dvc	= devm_kcalloc(dev, nr, sizeof(*dvc), GFP_KERNEL);
 	if (!dvc) {
 		dev_err(dev, "CMD allocate failed\n");
 		return -ENOMEM;

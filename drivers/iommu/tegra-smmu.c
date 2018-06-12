@@ -633,8 +633,8 @@ static int alloc_pdir(struct smmu_as *as)
 	/*
 	 * do the allocation, then grab as->lock
 	 */
-	cnt = devm_kzalloc(smmu->dev,
-			   sizeof(cnt[0]) * SMMU_PDIR_COUNT,
+	cnt = devm_kcalloc(smmu->dev,
+			   SMMU_PDIR_COUNT, sizeof(cnt[0]),
 			   GFP_KERNEL);
 	page = alloc_page(GFP_KERNEL | __GFP_DMA);
 
@@ -1169,7 +1169,8 @@ static int tegra_smmu_probe(struct platform_device *pdev)
 	}
 
 	smmu->nregs = pdev->num_resources;
-	smmu->regs = devm_kzalloc(dev, 2 * smmu->nregs * sizeof(*smmu->regs),
+	smmu->regs = devm_kcalloc(dev,
+				  2 * smmu->nregs, sizeof(*smmu->regs),
 				  GFP_KERNEL);
 	smmu->rege = smmu->regs + smmu->nregs;
 	if (!smmu->regs)
