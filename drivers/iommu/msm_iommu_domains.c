@@ -85,7 +85,7 @@ int msm_iommu_map_extra(struct iommu_domain *domain,
 		struct page *dummy_page = phys_to_page(phy_addr);
 		size_t map_ret;
 
-		sglist = vmalloc(sizeof(*sglist) * nrpages);
+		sglist = vmalloc(array_size(nrpages, sizeof(*sglist)));
 		if (!sglist) {
 			ret = -ENOMEM;
 			goto out;

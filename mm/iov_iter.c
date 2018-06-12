@@ -495,7 +495,7 @@ static ssize_t get_pages_alloc_iovec(struct iov_iter *i,
 	
 	p = kmalloc_array(n, sizeof(struct page *), GFP_KERNEL);
 	if (!p)
-		p = vmalloc(n * sizeof(struct page *));
+		p = vmalloc(array_size(n, sizeof(struct page *)));
 	if (!p)
 		return -ENOMEM;
 

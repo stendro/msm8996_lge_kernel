@@ -822,8 +822,7 @@ static int fw_load(struct IR_tx *tx)
 
 	dprintk("%u IR blaster codesets loaded\n", tx_data->num_code_sets);
 
-	tx_data->code_sets = vmalloc(
-		tx_data->num_code_sets * sizeof(char *));
+	tx_data->code_sets = vmalloc(array_size(sizeof(char *), tx_data->num_code_sets));
 	if (tx_data->code_sets == NULL) {
 		fw_unload_locked();
 		ret = -ENOMEM;

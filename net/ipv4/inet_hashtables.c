@@ -614,7 +614,7 @@ int inet_ehash_locks_alloc(struct inet_hashinfo *hashinfo)
 		hashinfo->ehash_locks =	kmalloc_array(nblocks, size,
 						      GFP_KERNEL | __GFP_NOWARN);
 		if (!hashinfo->ehash_locks)
-			hashinfo->ehash_locks = vmalloc(nblocks * size);
+			hashinfo->ehash_locks = vmalloc(array_size(size, nblocks));
 
 		if (!hashinfo->ehash_locks)
 			return -ENOMEM;

@@ -400,7 +400,7 @@ static ssize_t etb_read(struct file *file, char __user *data,
 
 	wlength = min(total, DIV_ROUND_UP(skip + (int)len, 4));
 	length = min(total * 4 - skip, (int)len);
-	buf = vmalloc(wlength * 4);
+	buf = vmalloc(array_size(wlength, 4));
 
 	dev_dbg(t->dev, "ETB read %ld bytes to %lld from %ld words at %d\n",
 		length, pos, wlength, first);
