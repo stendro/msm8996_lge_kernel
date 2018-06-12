@@ -394,7 +394,7 @@ probe_pci_root_info(struct pci_root_info *info, struct acpi_device *device,
 			&info->res_num);
 	if (info->res_num) {
 		info->res =
-			kzalloc_node(sizeof(*info->res) * info->res_num,
+			kcalloc_node(info->res_num, sizeof(*info->res),
 				     GFP_KERNEL, info->controller->node);
 		if (!info->res) {
 			kfree(name);
@@ -402,7 +402,7 @@ probe_pci_root_info(struct pci_root_info *info, struct acpi_device *device,
 		}
 
 		info->res_offset =
-			kzalloc_node(sizeof(*info->res_offset) * info->res_num,
+			kcalloc_node(info->res_num, sizeof(*info->res_offset),
 					GFP_KERNEL, info->controller->node);
 		if (!info->res_offset) {
 			kfree(name);
