@@ -644,7 +644,7 @@ static ssize_t show_watch_watch_reg_write(struct device *dev,
 		return count;
 	}
 
-	param = kzalloc(sizeof(int) * cmd_leng, GFP_KERNEL);
+	param = kcalloc(cmd_leng, sizeof(int), GFP_KERNEL);
 	if (!param) {
 		pr_err("[Watch] Error to get param memory\n");
 		return count;

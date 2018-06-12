@@ -402,7 +402,7 @@ static int caam_jr_init(struct device *dev)
 	jrp->outring = dma_alloc_coherent(dev, sizeof(struct jr_outentry) *
 					  JOBR_DEPTH, &outbusaddr, GFP_KERNEL);
 
-	jrp->entinfo = kzalloc(sizeof(struct caam_jrentry_info) * JOBR_DEPTH,
+	jrp->entinfo = kcalloc(JOBR_DEPTH, sizeof(struct caam_jrentry_info),
 			       GFP_KERNEL);
 
 	if ((jrp->inpring == NULL) || (jrp->outring == NULL) ||

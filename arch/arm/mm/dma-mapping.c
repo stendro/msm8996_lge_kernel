@@ -2040,8 +2040,8 @@ arm_iommu_create_mapping(struct bus_type *bus, dma_addr_t base, size_t size)
 		goto err;
 
 	mapping->bitmap_size = bitmap_size;
-	mapping->bitmaps = kzalloc(extensions * sizeof(unsigned long *),
-				GFP_KERNEL);
+	mapping->bitmaps = kcalloc(extensions, sizeof(unsigned long *),
+				   GFP_KERNEL);
 	if (!mapping->bitmaps)
 		goto err2;
 

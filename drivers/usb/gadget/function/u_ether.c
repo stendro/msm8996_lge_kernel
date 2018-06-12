@@ -514,7 +514,7 @@ static int prealloc(struct list_head *list,
 			if (!sg_ctx)
 				goto extra;
 			req->context = sg_ctx;
-			req->buf = kzalloc(DL_MAX_PKTS_PER_XFER * hlen,
+			req->buf = kcalloc(hlen, DL_MAX_PKTS_PER_XFER,
 						GFP_ATOMIC);
 		} else {
 			req->complete = rx_complete;

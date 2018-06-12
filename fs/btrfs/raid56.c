@@ -1730,7 +1730,7 @@ static void __raid_recover_end_io(struct btrfs_raid_bio *rbio)
 	int err;
 	int i;
 
-	pointers = kzalloc(rbio->bbio->num_stripes * sizeof(void *),
+	pointers = kcalloc(rbio->bbio->num_stripes, sizeof(void *),
 			   GFP_NOFS);
 	if (!pointers) {
 		err = -ENOMEM;

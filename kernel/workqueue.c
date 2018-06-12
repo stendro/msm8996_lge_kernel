@@ -3838,7 +3838,7 @@ int apply_workqueue_attrs(struct workqueue_struct *wq,
 		wq->flags &= ~__WQ_ORDERED;
 	}
 
-	pwq_tbl = kzalloc(nr_node_ids * sizeof(pwq_tbl[0]), GFP_KERNEL);
+	pwq_tbl = kcalloc(nr_node_ids, sizeof(pwq_tbl[0]), GFP_KERNEL);
 	new_attrs = alloc_workqueue_attrs(GFP_KERNEL);
 	tmp_attrs = alloc_workqueue_attrs(GFP_KERNEL);
 	if (!pwq_tbl || !new_attrs || !tmp_attrs)
@@ -4901,7 +4901,7 @@ static void __init wq_numa_init(void)
 	 * available.  Build one from cpu_to_node() which should have been
 	 * fully initialized by now.
 	 */
-	tbl = kzalloc(nr_node_ids * sizeof(tbl[0]), GFP_KERNEL);
+	tbl = kcalloc(nr_node_ids, sizeof(tbl[0]), GFP_KERNEL);
 	BUG_ON(!tbl);
 
 	for_each_node(node)

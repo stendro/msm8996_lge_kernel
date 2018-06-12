@@ -624,18 +624,16 @@ static void *msm_bus_bimc_allocate_bimc_data(struct platform_device *pdev,
 	binfo->params.bus_id = fab_pdata->id;
 
 	for (i = 0; i < NUM_CTX; i++) {
-		binfo->cdata[i].mas = kzalloc(sizeof(struct
-			msm_bus_node_hw_info) * fab_pdata->nmasters * 2,
-			GFP_KERNEL);
+		binfo->cdata[i].mas = kzalloc(array3_size(sizeof(struct msm_bus_node_hw_info), fab_pdata->nmasters, 2),
+					      GFP_KERNEL);
 		if (!binfo->cdata[i].mas) {
 			MSM_BUS_ERR("Couldn't alloc mem for bimc master hw\n");
 			kfree(binfo);
 			return NULL;
 		}
 
-		binfo->cdata[i].slv = kzalloc(sizeof(struct
-			msm_bus_node_hw_info) * fab_pdata->nslaves * 2,
-			GFP_KERNEL);
+		binfo->cdata[i].slv = kzalloc(array3_size(sizeof(struct msm_bus_node_hw_info), fab_pdata->nslaves, 2),
+					      GFP_KERNEL);
 		if (!binfo->cdata[i].slv) {
 			MSM_BUS_DBG("Couldn't alloc mem for bimc slave hw\n");
 			kfree(binfo->cdata[i].mas);

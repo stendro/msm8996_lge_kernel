@@ -1316,7 +1316,7 @@ static ssize_t show_delta(struct device *dev, char *buf)
 	int i = 0;
 	int j = 0;
 
-	delta = kzalloc(sizeof(int16_t) * (COL_SIZE*ROW_SIZE), GFP_KERNEL);
+	delta = kcalloc(COL_SIZE * ROW_SIZE, sizeof(int16_t), GFP_KERNEL);
 
 	if (delta == NULL) {
 		TOUCH_E("delta mem_error\n");
@@ -1409,7 +1409,7 @@ static ssize_t show_rawdata(struct device *dev, char *buf)
 	int i = 0;
 	int j = 0;
 
-	rawdata = kzalloc(sizeof(int16_t) * (COL_SIZE*ROW_SIZE), GFP_KERNEL);
+	rawdata = kcalloc(COL_SIZE * ROW_SIZE, sizeof(int16_t), GFP_KERNEL);
 
 	if (rawdata == NULL) {
 		TOUCH_E("mem_error\n");

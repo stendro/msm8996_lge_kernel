@@ -83,8 +83,9 @@ static inline int of_spmi_alloc_devnode_store(struct of_spmi_dev_info *d_info,
 					      uint32_t num_dev_node)
 {
 	d_info->b_info.num_dev_node = num_dev_node;
-	d_info->b_info.dev_node = kzalloc(sizeof(struct spmi_resource) *
-						num_dev_node, GFP_KERNEL);
+	d_info->b_info.dev_node = kcalloc(num_dev_node,
+					  sizeof(struct spmi_resource),
+					  GFP_KERNEL);
 	if (!d_info->b_info.dev_node)
 		return -ENOMEM;
 
@@ -102,7 +103,7 @@ static int of_spmi_allocate_node_resources(struct of_spmi_dev_info *d_info,
 	struct resource *res = NULL;
 
 	if (num_irq || num_reg) {
-		res = kzalloc(sizeof(*res) * (num_irq + num_reg), GFP_KERNEL);
+		res = kcalloc(num_irq + num_reg, sizeof(*res), GFP_KERNEL);
 		if (!res)
 			return -ENOMEM;
 	}
@@ -124,7 +125,7 @@ static int of_spmi_allocate_devnode_resources(struct of_spmi_dev_info *d_info,
 	struct resource *res = NULL;
 
 	if (num_irq || num_reg) {
-		res = kzalloc(sizeof(*res) * (num_irq + num_reg), GFP_KERNEL);
+		res = kcalloc(num_irq + num_reg, sizeof(*res), GFP_KERNEL);
 		if (!res)
 			return -ENOMEM;
 	}

@@ -493,9 +493,9 @@ int msm_register_domain(struct msm_iova_layout *layout)
 		mutex_init(&pools[i].pool_mutex);
 		pools[i].nr_pages = PAGE_ALIGN(layout->partitions[i].size)
 					>> PAGE_SHIFT;
-		pools[i].bitmap = kzalloc(
-				BITS_TO_LONGS(pools[i].nr_pages) * sizeof(long),
-					GFP_KERNEL);
+		pools[i].bitmap = kcalloc(BITS_TO_LONGS(pools[i].nr_pages),
+					  sizeof(long),
+					  GFP_KERNEL);
 		if (!pools[i].bitmap)
 			continue;
 	}

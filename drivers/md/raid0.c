@@ -139,12 +139,12 @@ static int create_strip_zones(struct mddev *mddev, struct r0conf **private_conf)
 	pr_debug("md/raid0:%s: FINAL %d zones\n",
 		 mdname(mddev), conf->nr_strip_zones);
 	err = -ENOMEM;
-	conf->strip_zone = kzalloc(sizeof(struct strip_zone)*
-				conf->nr_strip_zones, GFP_KERNEL);
+	conf->strip_zone = kcalloc(conf->nr_strip_zones,
+				   sizeof(struct strip_zone),
+				   GFP_KERNEL);
 	if (!conf->strip_zone)
 		goto abort;
-	conf->devlist = kzalloc(sizeof(struct md_rdev*)*
-				conf->nr_strip_zones*mddev->raid_disks,
+	conf->devlist = kzalloc(array3_size(sizeof(struct md_rdev *), conf->nr_strip_zones, mddev->raid_disks),
 				GFP_KERNEL);
 	if (!conf->devlist)
 		goto abort;

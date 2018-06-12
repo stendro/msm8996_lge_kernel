@@ -86,7 +86,7 @@ gk20a_ram_get(struct nouveau_fb *pfb, u64 size, u32 align, u32 ncmin,
 	mem->base.size = npages;
 	mem->base.memtype = type;
 
-	mem->base.pages = kzalloc(sizeof(dma_addr_t) * npages, GFP_KERNEL);
+	mem->base.pages = kcalloc(npages, sizeof(dma_addr_t), GFP_KERNEL);
 	if (!mem->base.pages) {
 		kfree(mem);
 		return -ENOMEM;

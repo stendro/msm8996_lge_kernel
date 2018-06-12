@@ -109,7 +109,7 @@ s32 msm_iommu_pagetable_alloc(struct msm_iommu_pt *pt)
 	fl_table_phys = ALIGN(fl_table_phys, FL_ALIGN);
 	pt->fl_table = phys_to_virt(fl_table_phys);
 
-	pt->sl_table_shadow = kzalloc(sizeof(u64 *) * NUM_FL_PTE, GFP_KERNEL);
+	pt->sl_table_shadow = kcalloc(NUM_FL_PTE, sizeof(u64 *), GFP_KERNEL);
 	if (!pt->sl_table_shadow) {
 		kfree(pt->unaligned_fl_table);
 		return -ENOMEM;

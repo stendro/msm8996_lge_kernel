@@ -140,7 +140,7 @@ int qib_create_ctxts(struct qib_devdata *dd)
 	 * Allocate full ctxtcnt array, rather than just cfgctxts, because
 	 * cleanup iterates across all possible ctxts.
 	 */
-	dd->rcd = kzalloc(sizeof(*dd->rcd) * dd->ctxtcnt, GFP_KERNEL);
+	dd->rcd = kcalloc(dd->ctxtcnt, sizeof(*dd->rcd), GFP_KERNEL);
 	if (!dd->rcd) {
 		qib_dev_err(dd,
 			"Unable to allocate ctxtdata array, failing\n");
@@ -1162,8 +1162,8 @@ struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
 
 	if (!qib_cpulist_count) {
 		u32 count = num_online_cpus();
-		qib_cpulist = kzalloc(BITS_TO_LONGS(count) *
-				      sizeof(long), GFP_KERNEL);
+		qib_cpulist = kcalloc(BITS_TO_LONGS(count), sizeof(long),
+				      GFP_KERNEL);
 		if (qib_cpulist)
 			qib_cpulist_count = count;
 		else

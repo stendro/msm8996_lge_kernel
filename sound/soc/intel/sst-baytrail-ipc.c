@@ -795,7 +795,7 @@ static int msg_empty_list_init(struct sst_byt *byt)
 	struct ipc_message *msg;
 	int i;
 
-	byt->msg = kzalloc(sizeof(*msg) * IPC_EMPTY_LIST_SIZE, GFP_KERNEL);
+	byt->msg = kcalloc(IPC_EMPTY_LIST_SIZE, sizeof(*msg), GFP_KERNEL);
 	if (byt->msg == NULL)
 		return -ENOMEM;
 

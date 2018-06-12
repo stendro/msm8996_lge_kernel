@@ -304,7 +304,7 @@ void lge_mdss_panel_parse_dt_blmaps(struct device_node *np,
 
 	struct mdss_panel_info *pinfo = &(ctrl_pdata->panel_data.panel_info);
 	pinfo->blmap_size = 256;
-	array = kzalloc(sizeof(u32) * pinfo->blmap_size, GFP_KERNEL);
+	array = kcalloc(pinfo->blmap_size, sizeof(u32), GFP_KERNEL);
 
 	if (!array)
 		return;
@@ -324,8 +324,8 @@ void lge_mdss_panel_parse_dt_blmaps(struct device_node *np,
 			goto error;
 		}
 
-		pinfo->blmap[i] = kzalloc(sizeof(int) * pinfo->blmap_size,
-				GFP_KERNEL);
+		pinfo->blmap[i] = kcalloc(pinfo->blmap_size, sizeof(int),
+					  GFP_KERNEL);
 
 		if (!pinfo->blmap[i]){
 			goto error;

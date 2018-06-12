@@ -152,7 +152,7 @@ static int max3110_read_multi(struct uart_max3110 *max)
 	int ret, blen;
 
 	blen = M3110_RX_FIFO_DEPTH * sizeof(u16);
-	buf = kzalloc(blen * 2, GFP_KERNEL | GFP_DMA);
+	buf = kcalloc(blen, 2, GFP_KERNEL | GFP_DMA);
 	if (!buf) {
 		pr_warning(PR_FMT "%s(): fail to alloc dma buffer\n", __func__);
 		return 0;

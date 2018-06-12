@@ -1136,7 +1136,7 @@ static int __net_init icmp_sk_init(struct net *net)
 	int i, err;
 
 	net->ipv4.icmp_sk =
-		kzalloc(nr_cpu_ids * sizeof(struct sock *), GFP_KERNEL);
+		kcalloc(nr_cpu_ids, sizeof(struct sock *), GFP_KERNEL);
 	if (net->ipv4.icmp_sk == NULL)
 		return -ENOMEM;
 

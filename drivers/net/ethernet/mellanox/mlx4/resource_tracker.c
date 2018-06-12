@@ -466,7 +466,7 @@ int mlx4_init_resource_tracker(struct mlx4_dev *dev)
 	int t;
 
 	priv->mfunc.master.res_tracker.slave_list =
-		kzalloc(dev->num_slaves * sizeof(struct slave_list),
+		kcalloc(dev->num_slaves, sizeof(struct slave_list),
 			GFP_KERNEL);
 	if (!priv->mfunc.master.res_tracker.slave_list)
 		return -ENOMEM;
@@ -493,11 +493,13 @@ int mlx4_init_resource_tracker(struct mlx4_dev *dev)
 						      sizeof(int),
 						      GFP_KERNEL);
 		if (i == RES_MAC || i == RES_VLAN)
-			res_alloc->allocated = kzalloc(MLX4_MAX_PORTS *
-						       (dev->num_vfs + 1) * sizeof(int),
+			res_alloc->allocated = kcalloc(MLX4_MAX_PORTS * (dev->num_vfs + 1),
+							sizeof(int),
 							GFP_KERNEL);
 		else
-			res_alloc->allocated = kzalloc((dev->num_vfs + 1) * sizeof(int), GFP_KERNEL);
+			res_alloc->allocated = kcalloc(dev->num_vfs + 1,
+						       sizeof(int),
+						       GFP_KERNEL);
 
 		if (!res_alloc->quota || !res_alloc->guaranteed ||
 		    !res_alloc->allocated)
@@ -1044,7 +1046,7 @@ static int add_res_range(struct mlx4_dev *dev, int slave, u64 base, int count,
 	struct mlx4_resource_tracker *tracker = &priv->mfunc.master.res_tracker;
 	struct rb_root *root = &tracker->res_tree[type];
 
-	res_arr = kzalloc(count * sizeof *res_arr, GFP_KERNEL);
+	res_arr = kcalloc(count, sizeof(*res_arr), GFP_KERNEL);
 	if (!res_arr)
 		return -ENOMEM;
 

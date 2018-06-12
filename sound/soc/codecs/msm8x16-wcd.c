@@ -6059,9 +6059,9 @@ static int msm8x16_wcd_init_supplies(struct msm8x16_wcd *msm8x16,
 	int ret;
 	int i;
 
-	msm8x16->supplies = kzalloc(sizeof(struct regulator_bulk_data) *
-				   ARRAY_SIZE(pdata->regulator),
-				   GFP_KERNEL);
+	msm8x16->supplies = kcalloc(ARRAY_SIZE(pdata->regulator),
+				    sizeof(struct regulator_bulk_data),
+				    GFP_KERNEL);
 	if (!msm8x16->supplies) {
 		ret = -ENOMEM;
 		goto err;

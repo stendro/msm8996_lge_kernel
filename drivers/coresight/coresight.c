@@ -642,7 +642,7 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 		else
 			nr_refcnts = 1;
 
-		refcnts = kzalloc(sizeof(*refcnts) * nr_refcnts, GFP_KERNEL);
+		refcnts = kcalloc(nr_refcnts, sizeof(*refcnts), GFP_KERNEL);
 		if (!refcnts) {
 			ret = -ENOMEM;
 			goto err_kzalloc_refcnts;
@@ -651,7 +651,7 @@ struct coresight_device *coresight_register(struct coresight_desc *desc)
 	}
 
 	csdev->nr_conns = desc->pdata->nr_outports;
-	conns = kzalloc(sizeof(*conns) * csdev->nr_conns, GFP_KERNEL);
+	conns = kcalloc(csdev->nr_conns, sizeof(*conns), GFP_KERNEL);
 	if (!conns) {
 		ret = -ENOMEM;
 		goto err_kzalloc_conns;

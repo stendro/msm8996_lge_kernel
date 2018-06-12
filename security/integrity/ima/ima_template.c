@@ -125,7 +125,7 @@ static int template_desc_init_fields(const char *template_fmt,
 	if (template_fmt_copy == NULL)
 		return -ENOMEM;
 
-	*fields = kzalloc(template_num_fields * sizeof(*fields), GFP_KERNEL);
+	*fields = kcalloc(template_num_fields, sizeof(*fields), GFP_KERNEL);
 	if (*fields == NULL) {
 		result = -ENOMEM;
 		goto out;

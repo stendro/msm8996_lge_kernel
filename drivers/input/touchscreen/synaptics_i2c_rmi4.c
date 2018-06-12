@@ -3459,7 +3459,7 @@ static int synaptics_rmi4_probe(struct i2c_client *client,
 		return -EINVAL;
 	}
 
-	rmi4_data = kzalloc(sizeof(*rmi4_data) * 2, GFP_KERNEL);
+	rmi4_data = kcalloc(2, sizeof(*rmi4_data), GFP_KERNEL);
 	if (!rmi4_data)
 		return -ENOMEM;
 

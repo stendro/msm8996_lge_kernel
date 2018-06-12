@@ -195,7 +195,7 @@ int pinconf_generic_parse_dt_config(struct device_node *np,
 		return -EINVAL;
 
 	/* allocate a temporary array big enough to hold one of each option */
-	cfg = kzalloc(sizeof(*cfg) * ARRAY_SIZE(dt_params), GFP_KERNEL);
+	cfg = kcalloc(ARRAY_SIZE(dt_params), sizeof(*cfg), GFP_KERNEL);
 	if (!cfg)
 		return -ENOMEM;
 

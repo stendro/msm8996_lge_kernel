@@ -334,7 +334,7 @@ int spmi_register_board_info(int busnum,
 	struct spmii_boardinfo *bi;
 	struct spmi_controller *ctrl;
 
-	bi = kzalloc(n * sizeof(*bi), GFP_KERNEL);
+	bi = kcalloc(n, sizeof(*bi), GFP_KERNEL);
 	if (!bi)
 		return -ENOMEM;
 

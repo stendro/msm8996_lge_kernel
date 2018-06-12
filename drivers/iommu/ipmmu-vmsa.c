@@ -864,7 +864,7 @@ static int ipmmu_domain_init(struct iommu_domain *io_domain)
 
 	spin_lock_init(&domain->lock);
 
-	domain->pgd = kzalloc(IPMMU_PTRS_PER_PGD * sizeof(pgd_t), GFP_KERNEL);
+	domain->pgd = kcalloc(IPMMU_PTRS_PER_PGD, sizeof(pgd_t), GFP_KERNEL);
 	if (!domain->pgd) {
 		kfree(domain);
 		return -ENOMEM;

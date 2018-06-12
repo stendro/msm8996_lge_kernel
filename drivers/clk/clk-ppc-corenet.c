@@ -184,7 +184,7 @@ static void __init core_pll_init(struct device_node *np)
 	/* output clock number per PLL */
 	clocks_per_pll = count;
 
-	subclks = kzalloc(sizeof(struct clk *) * count, GFP_KERNEL);
+	subclks = kcalloc(count, sizeof(struct clk *), GFP_KERNEL);
 	if (!subclks) {
 		pr_err("%s: could not allocate subclks\n", __func__);
 		goto err_map;

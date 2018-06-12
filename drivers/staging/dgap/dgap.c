@@ -1227,7 +1227,7 @@ static int dgap_tty_register(struct board_t *brd)
 
 	/* The kernel wants space to store pointers to tty_structs */
 	brd->serial_driver->ttys =
-		kzalloc(MAXPORTS * sizeof(struct tty_struct *), GFP_KERNEL);
+		kcalloc(MAXPORTS, sizeof(struct tty_struct *), GFP_KERNEL);
 	if (!brd->serial_driver->ttys) {
 		rc = -ENOMEM;
 		goto free_serial_drv;
@@ -1266,7 +1266,7 @@ static int dgap_tty_register(struct board_t *brd)
 
 	/* The kernel wants space to store pointers to tty_structs */
 	brd->print_driver->ttys =
-		kzalloc(MAXPORTS * sizeof(struct tty_struct *), GFP_KERNEL);
+		kcalloc(MAXPORTS, sizeof(struct tty_struct *), GFP_KERNEL);
 	if (!brd->print_driver->ttys) {
 		rc = -ENOMEM;
 		goto free_print_drv;

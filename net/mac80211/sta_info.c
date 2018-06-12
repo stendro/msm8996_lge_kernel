@@ -307,7 +307,7 @@ struct sta_info *sta_info_alloc(struct ieee80211_sub_if_data *sdata,
 	tx_latency = rcu_dereference(local->tx_latency);
 	/* init stations Tx latency statistics && TID bins */
 	if (tx_latency) {
-		sta->tx_lat = kzalloc(IEEE80211_NUM_TIDS *
+		sta->tx_lat = kcalloc(IEEE80211_NUM_TIDS,
 				      sizeof(struct ieee80211_tx_latency_stat),
 				      GFP_ATOMIC);
 		if (!sta->tx_lat) {
