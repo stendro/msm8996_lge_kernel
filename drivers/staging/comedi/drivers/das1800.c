@@ -1461,7 +1461,7 @@ static int das1800_attach(struct comedi_device *dev,
 
 	if (devpriv->ai_buf0 == NULL) {
 		devpriv->ai_buf0 =
-		    kmalloc(FIFO_SIZE * sizeof(uint16_t), GFP_KERNEL);
+		    kmalloc_array(FIFO_SIZE, sizeof(uint16_t), GFP_KERNEL);
 		if (devpriv->ai_buf0 == NULL)
 			return -ENOMEM;
 	}

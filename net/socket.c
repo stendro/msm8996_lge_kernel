@@ -2082,8 +2082,8 @@ static int ___sys_sendmsg(struct socket *sock, struct msghdr __user *msg,
 		if (msg_sys->msg_iovlen > UIO_MAXIOV)
 			goto out;
 		err = -ENOMEM;
-		iov = kmalloc(msg_sys->msg_iovlen * sizeof(struct iovec),
-			      GFP_KERNEL);
+		iov = kmalloc_array(msg_sys->msg_iovlen, sizeof(struct iovec),
+				    GFP_KERNEL);
 		if (!iov)
 			goto out;
 	}
@@ -2292,8 +2292,8 @@ static int ___sys_recvmsg(struct socket *sock, struct msghdr __user *msg,
 		if (msg_sys->msg_iovlen > UIO_MAXIOV)
 			goto out;
 		err = -ENOMEM;
-		iov = kmalloc(msg_sys->msg_iovlen * sizeof(struct iovec),
-			      GFP_KERNEL);
+		iov = kmalloc_array(msg_sys->msg_iovlen, sizeof(struct iovec),
+				    GFP_KERNEL);
 		if (!iov)
 			goto out;
 	}

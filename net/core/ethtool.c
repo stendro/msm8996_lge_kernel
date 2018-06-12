@@ -1357,7 +1357,7 @@ static int ethtool_get_stats(struct net_device *dev, void __user *useraddr)
 		return -EFAULT;
 
 	stats.n_stats = n_stats;
-	data = kmalloc(n_stats * sizeof(u64), GFP_USER);
+		data = kmalloc_array(n_stats, sizeof(u64), GFP_USER);
 	if (!data)
 		return -ENOMEM;
 

@@ -378,8 +378,8 @@ p9_virtio_zc_request(struct p9_client *client, struct p9_req_t *req,
 
 	if (uodata) {
 		out_nr_pages = p9_nr_pages(uodata, outlen);
-		out_pages = kmalloc(sizeof(struct page *) * out_nr_pages,
-				    GFP_NOFS);
+		out_pages = kmalloc_array(out_nr_pages, sizeof(struct page *),
+					  GFP_NOFS);
 		if (!out_pages) {
 			err = -ENOMEM;
 			goto err_out;
@@ -395,8 +395,8 @@ p9_virtio_zc_request(struct p9_client *client, struct p9_req_t *req,
 	}
 	if (uidata) {
 		in_nr_pages = p9_nr_pages(uidata, inlen);
-		in_pages = kmalloc(sizeof(struct page *) * in_nr_pages,
-				   GFP_NOFS);
+		in_pages = kmalloc_array(in_nr_pages, sizeof(struct page *),
+					 GFP_NOFS);
 		if (!in_pages) {
 			err = -ENOMEM;
 			goto err_out;

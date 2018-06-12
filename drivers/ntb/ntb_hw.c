@@ -1263,8 +1263,9 @@ static int ntb_setup_msix(struct ntb_device *ndev)
 		goto err;
 	}
 
-	ndev->msix_entries = kmalloc(sizeof(struct msix_entry) * msix_entries,
-				     GFP_KERNEL);
+	ndev->msix_entries = kmalloc_array(msix_entries,
+					   sizeof(struct msix_entry),
+					   GFP_KERNEL);
 	if (!ndev->msix_entries) {
 		rc = -ENOMEM;
 		goto err;

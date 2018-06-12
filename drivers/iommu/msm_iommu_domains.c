@@ -620,9 +620,9 @@ static int create_and_add_domain(struct iommu_group *group,
 
 	if (of_get_property(node, "qcom,virtual-addr-pool", &array_size)) {
 		l.npartitions = array_size / sizeof(unsigned int) / 2;
-		part = kmalloc(
-			sizeof(struct msm_iova_partition) * l.npartitions,
-			       GFP_KERNEL);
+		part = kmalloc_array(l.npartitions,
+				     sizeof(struct msm_iova_partition),
+				     GFP_KERNEL);
 		if (!part) {
 			pr_err("%s: could not allocate space for partition",
 				__func__);
@@ -650,9 +650,9 @@ static int create_and_add_domain(struct iommu_group *group,
 		}
 	} else {
 		l.npartitions = 1;
-		part = kmalloc(
-			sizeof(struct msm_iova_partition) * l.npartitions,
-			       GFP_KERNEL);
+		part = kmalloc_array(l.npartitions,
+				     sizeof(struct msm_iova_partition),
+				     GFP_KERNEL);
 		if (!part) {
 			pr_err("%s: could not allocate space for partition",
 				__func__);
@@ -827,9 +827,9 @@ static int iommu_domain_probe(struct platform_device *pdev)
 
 		domains = p->domains;
 		l.npartitions = domains[i].npools;
-		part = kmalloc(
-			sizeof(struct msm_iova_partition) * l.npartitions,
-				GFP_KERNEL);
+		part = kmalloc_array(l.npartitions,
+				     sizeof(struct msm_iova_partition),
+				     GFP_KERNEL);
 
 		if (!part) {
 			pr_info("%s: could not allocate space for domain %d",

@@ -94,7 +94,7 @@ static int sram_probe(struct platform_device *pdev)
 	 * after the reserved blocks from the dt are processed.
 	 */
 	nblocks = (np) ? of_get_available_child_count(np) + 1 : 1;
-	rblocks = kmalloc((nblocks) * sizeof(*rblocks), GFP_KERNEL);
+	rblocks = kmalloc_array(nblocks, sizeof(*rblocks), GFP_KERNEL);
 	if (!rblocks) {
 		ret = -ENOMEM;
 		goto err_alloc;

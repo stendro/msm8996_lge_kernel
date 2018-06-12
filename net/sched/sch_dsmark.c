@@ -362,7 +362,7 @@ static int dsmark_init(struct Qdisc *sch, struct nlattr *opt)
 	if (tb[TCA_DSMARK_DEFAULT_INDEX])
 		default_index = nla_get_u16(tb[TCA_DSMARK_DEFAULT_INDEX]);
 
-	mask = kmalloc(indices * 2, GFP_KERNEL);
+	mask = kmalloc_array(indices, 2, GFP_KERNEL);
 	if (mask == NULL) {
 		err = -ENOMEM;
 		goto errout;

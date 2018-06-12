@@ -4646,9 +4646,9 @@ static int mvpp2_txq_init(struct mvpp2_port *port,
 	for_each_present_cpu(cpu) {
 		txq_pcpu = per_cpu_ptr(txq->pcpu, cpu);
 		txq_pcpu->size = txq->size;
-		txq_pcpu->tx_skb = kmalloc(txq_pcpu->size *
-					   sizeof(*txq_pcpu->tx_skb),
-					   GFP_KERNEL);
+		txq_pcpu->tx_skb = kmalloc_array(txq_pcpu->size,
+						 sizeof(*txq_pcpu->tx_skb),
+						 GFP_KERNEL);
 		if (!txq_pcpu->tx_skb) {
 			dma_free_coherent(port->dev->dev.parent,
 					  txq->size * MVPP2_DESC_ALIGNED_SIZE,
