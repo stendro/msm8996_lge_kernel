@@ -371,7 +371,7 @@ nouveau_vm_create(struct nouveau_vmmgr *vmm, u64 offset, u64 length,
 	vm->fpde = offset >> (vmm->pgt_bits + 12);
 	vm->lpde = (offset + length - 1) >> (vmm->pgt_bits + 12);
 
-	vm->pgt  = vzalloc((vm->lpde - vm->fpde + 1) * sizeof(*vm->pgt));
+	vm->pgt  = vzalloc(array_size(sizeof(*vm->pgt), (vm->lpde - vm->fpde + 1)));
 	if (!vm->pgt) {
 		kfree(vm);
 		return -ENOMEM;
