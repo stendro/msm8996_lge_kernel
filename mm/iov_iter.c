@@ -493,7 +493,7 @@ static ssize_t get_pages_alloc_iovec(struct iov_iter *i,
 	addr &= ~(PAGE_SIZE - 1);
 	n = (len + PAGE_SIZE - 1) / PAGE_SIZE;
 	
-	p = kmalloc(n * sizeof(struct page *), GFP_KERNEL);
+	p = kmalloc_array(n, sizeof(struct page *), GFP_KERNEL);
 	if (!p)
 		p = vmalloc(n * sizeof(struct page *));
 	if (!p)

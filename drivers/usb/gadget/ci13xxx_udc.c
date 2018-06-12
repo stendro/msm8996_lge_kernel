@@ -1425,7 +1425,7 @@ static ssize_t show_registers(struct device *dev,
 		return 0;
 	}
 
-	dump = kmalloc(sizeof(u32) * DUMP_ENTRIES, GFP_KERNEL);
+	dump = kmalloc_array(DUMP_ENTRIES, sizeof(u32), GFP_KERNEL);
 	if (!dump) {
 		dev_err(dev, "%s: out of memory\n", __func__);
 		return 0;

@@ -294,7 +294,7 @@ EXPORT_SYMBOL(dst_release);
 
 u32 *dst_cow_metrics_generic(struct dst_entry *dst, unsigned long old)
 {
-	u32 *p = kmalloc(sizeof(u32) * RTAX_MAX, GFP_ATOMIC);
+	u32 *p = kmalloc_array(RTAX_MAX, sizeof(u32), GFP_ATOMIC);
 
 	if (p) {
 		u32 *old_p = __DST_METRICS_PTR(old);

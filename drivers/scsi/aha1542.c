@@ -662,7 +662,7 @@ static int aha1542_queuecommand_lck(Scsi_Cmnd * SCpnt, void (*done) (Scsi_Cmnd *
 #endif
 		int i, sg_count = scsi_sg_count(SCpnt);
 		ccb[mbo].op = 2;	/* SCSI Initiator Command  w/scatter-gather */
-		SCpnt->host_scribble = kmalloc(sizeof(*cptr)*sg_count,
+		SCpnt->host_scribble = kmalloc_array(sg_count, sizeof(*cptr),
 		                                         GFP_KERNEL | GFP_DMA);
 		cptr = (struct chain *) SCpnt->host_scribble;
 		if (cptr == NULL) {

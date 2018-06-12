@@ -371,7 +371,7 @@ int i2o_device_parse_lct(struct i2o_controller *c)
 	buf = le32_to_cpu(*dlct++);
 	table_size = buf & 0xffff;
 
-	lct = c->lct = kmalloc(table_size * 4, GFP_KERNEL);
+	lct = c->lct = kmalloc_array(table_size, 4, GFP_KERNEL);
 	if (!lct) {
 		mutex_unlock(&c->lct_lock);
 		return -ENOMEM;

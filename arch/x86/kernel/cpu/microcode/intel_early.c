@@ -213,8 +213,9 @@ save_microcode(struct mc_saved_data *mc_saved_data,
 	/*
 	 * Copy new microcode data.
 	 */
-	mc_saved_p = kmalloc(mc_saved_count*sizeof(struct microcode_intel *),
-			     GFP_KERNEL);
+	mc_saved_p = kmalloc_array(mc_saved_count,
+				   sizeof(struct microcode_intel *),
+				   GFP_KERNEL);
 	if (!mc_saved_p)
 		return -ENOMEM;
 

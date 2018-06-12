@@ -505,10 +505,9 @@ static int prealloc(struct list_head *list,
 			req->complete = tx_complete;
 			if (!sg_supported)
 				goto add_list;
-			req->sg = kmalloc(
-					DL_MAX_PKTS_PER_XFER *
+			req->sg = kmalloc_array(DL_MAX_PKTS_PER_XFER,
 						sizeof(struct scatterlist),
-					GFP_ATOMIC);
+						GFP_ATOMIC);
 			if (!req->sg)
 				goto extra;
 			sg_ctx = kmalloc(sizeof(*sg_ctx), GFP_ATOMIC);

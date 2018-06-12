@@ -281,7 +281,7 @@ asmlinkage long sys_oabi_epoll_wait(int epfd,
 
 	if (maxevents <= 0 || maxevents > (INT_MAX/sizeof(struct epoll_event)))
 		return -EINVAL;
-	kbuf = kmalloc(sizeof(*kbuf) * maxevents, GFP_KERNEL);
+	kbuf = kmalloc_array(maxevents, sizeof(*kbuf), GFP_KERNEL);
 	if (!kbuf)
 		return -ENOMEM;
 	fs = get_fs();
@@ -317,7 +317,7 @@ asmlinkage long sys_oabi_semtimedop(int semid,
 
 	if (nsops < 1 || nsops > SEMOPM)
 		return -EINVAL;
-	sops = kmalloc(sizeof(*sops) * nsops, GFP_KERNEL);
+	sops = kmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
 	if (!sops)
 		return -ENOMEM;
 	err = 0;

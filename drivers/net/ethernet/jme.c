@@ -589,8 +589,9 @@ jme_setup_tx_resources(struct jme_adapter *jme)
 	atomic_set(&txring->next_to_clean, 0);
 	atomic_set(&txring->nr_free, jme->tx_ring_size);
 
-	txring->bufinf		= kmalloc(sizeof(struct jme_buffer_info) *
-					jme->tx_ring_size, GFP_ATOMIC);
+	txring->bufinf		= kmalloc_array(jme->tx_ring_size,
+						      sizeof(struct jme_buffer_info),
+						      GFP_ATOMIC);
 	if (unlikely(!(txring->bufinf)))
 		goto err_free_txring;
 
@@ -851,8 +852,9 @@ jme_setup_rx_resources(struct jme_adapter *jme)
 	rxring->next_to_use	= 0;
 	atomic_set(&rxring->next_to_clean, 0);
 
-	rxring->bufinf		= kmalloc(sizeof(struct jme_buffer_info) *
-					jme->rx_ring_size, GFP_ATOMIC);
+	rxring->bufinf		= kmalloc_array(jme->rx_ring_size,
+						      sizeof(struct jme_buffer_info),
+						      GFP_ATOMIC);
 	if (unlikely(!(rxring->bufinf)))
 		goto err_free_rxring;
 

@@ -11299,7 +11299,7 @@ static int advansys_wide_init_chip(struct Scsi_Host *shost)
 	 * If the allocation fails decrement and try again.
 	 */
 	for (req_cnt = adv_dvc->max_host_qng; req_cnt > 0; req_cnt--) {
-		reqp = kmalloc(sizeof(adv_req_t) * req_cnt, GFP_KERNEL);
+		reqp = kmalloc_array(req_cnt, sizeof(adv_req_t), GFP_KERNEL);
 
 		ASC_DBG(1, "reqp 0x%p, req_cnt %d, bytes %lu\n", reqp, req_cnt,
 			 (ulong)sizeof(adv_req_t) * req_cnt);

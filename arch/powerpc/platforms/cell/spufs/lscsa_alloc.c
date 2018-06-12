@@ -105,7 +105,7 @@ int spu_alloc_lscsa(struct spu_state *csa)
 	 * normal kernel vmalloc mapping, which in our case will be 4K
 	 */
 	n_4k = SPU_64K_PAGE_COUNT * SPU_LSCSA_NUM_BIG_PAGES;
-	pgarray = kmalloc(sizeof(struct page *) * n_4k, GFP_KERNEL);
+	pgarray = kmalloc_array(n_4k, sizeof(struct page *), GFP_KERNEL);
 	if (pgarray == NULL)
 		goto fail;
 	for (i = 0; i < SPU_LSCSA_NUM_BIG_PAGES; i++)

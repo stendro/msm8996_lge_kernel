@@ -92,7 +92,7 @@ void __init efi_call_phys_prolog(void)
 	local_irq_save(efi_flags);
 
 	n_pgds = DIV_ROUND_UP((max_pfn << PAGE_SHIFT), PGDIR_SIZE);
-	save_pgd = kmalloc(n_pgds * sizeof(pgd_t), GFP_KERNEL);
+	save_pgd = kmalloc_array(n_pgds, sizeof(pgd_t), GFP_KERNEL);
 
 	for (pgd = 0; pgd < n_pgds; pgd++) {
 		save_pgd[pgd] = *pgd_offset_k(pgd * PGDIR_SIZE);

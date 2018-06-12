@@ -345,7 +345,7 @@ av8l_fast_prepopulate_pgtables(struct av8l_fast_io_pgtable *data,
 	int i, j, pg = 0;
 	struct page **pages, *page;
 
-	pages = kmalloc(sizeof(*pages) * NUM_PGTBL_PAGES, GFP_KERNEL);
+	pages = kmalloc_array(NUM_PGTBL_PAGES, sizeof(*pages), GFP_KERNEL);
 	if (!pages)
 		return -ENOMEM;
 
