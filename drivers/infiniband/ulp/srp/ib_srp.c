@@ -811,16 +811,17 @@ static int srp_alloc_req_data(struct srp_target_port *target)
 
 	for (i = 0; i < target->req_ring_size; ++i) {
 		req = &target->req_ring[i];
-		mr_list = kmalloc(target->cmd_sg_cnt * sizeof(void *),
-				  GFP_KERNEL);
+		mr_list = kmalloc_array(target->cmd_sg_cnt, sizeof(void *),
+					GFP_KERNEL);
 		if (!mr_list)
 			goto out;
 		if (srp_dev->use_fast_reg)
 			req->fr_list = mr_list;
 		else
 			req->fmr_list = mr_list;
-		req->map_page = kmalloc(srp_dev->max_pages_per_mr *
-					sizeof(void *), GFP_KERNEL);
+		req->map_page = kmalloc_array(srp_dev->max_pages_per_mr,
+					      sizeof(void *),
+					      GFP_KERNEL);
 		if (!req->map_page)
 			goto out;
 		req->indirect_desc = kmalloc(target->indirect_size, GFP_KERNEL);

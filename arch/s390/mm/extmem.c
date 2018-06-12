@@ -104,7 +104,7 @@ static int
 dcss_set_subcodes(void)
 {
 #ifdef CONFIG_64BIT
-	char *name = kmalloc(8 * sizeof(char), GFP_KERNEL | GFP_DMA);
+	char *name = kmalloc(8, GFP_KERNEL | GFP_DMA);
 	unsigned long rx, ry;
 	int rc;
 

@@ -210,7 +210,7 @@ static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
 	/* We can't pass qib_msix_entry array to qib_msix_setup
 	 * so use a dummy msix_entry array and copy the allocated
 	 * irq back to the qib_msix_entry array. */
-	msix_entry = kmalloc(nvec * sizeof(*msix_entry), GFP_KERNEL);
+	msix_entry = kmalloc_array(nvec, sizeof(*msix_entry), GFP_KERNEL);
 	if (!msix_entry)
 		goto do_intx;
 

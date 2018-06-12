@@ -1949,8 +1949,9 @@ static int ext3_fill_super (struct super_block *sb, void *data, int silent)
 			       le32_to_cpu(es->s_first_data_block) - 1)
 				       / EXT3_BLOCKS_PER_GROUP(sb)) + 1;
 	db_count = DIV_ROUND_UP(sbi->s_groups_count, EXT3_DESC_PER_BLOCK(sb));
-	sbi->s_group_desc = kmalloc(db_count * sizeof (struct buffer_head *),
-				    GFP_KERNEL);
+	sbi->s_group_desc = kmalloc_array(db_count,
+					  sizeof(struct buffer_head *),
+					  GFP_KERNEL);
 	if (sbi->s_group_desc == NULL) {
 		ext3_msg(sb, KERN_ERR,
 			"error: not enough memory");

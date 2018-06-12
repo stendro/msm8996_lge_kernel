@@ -2611,7 +2611,7 @@ int security_get_bools(int *len, char ***names, int **values)
 		name_len = strlen(sym_name(&policydb, SYM_BOOLS, i)) + 1;
 
 		rc = -ENOMEM;
-		(*names)[i] = kmalloc(sizeof(char) * name_len, GFP_ATOMIC);
+		(*names)[i] = kmalloc(name_len, GFP_ATOMIC);
 		if (!(*names)[i])
 			goto err;
 

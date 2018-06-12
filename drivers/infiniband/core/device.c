@@ -234,10 +234,12 @@ static int read_port_table_lengths(struct ib_device *device)
 
 	num_ports = end_port(device) - start_port(device) + 1;
 
-	device->pkey_tbl_len = kmalloc(sizeof *device->pkey_tbl_len * num_ports,
-				       GFP_KERNEL);
-	device->gid_tbl_len = kmalloc(sizeof *device->gid_tbl_len * num_ports,
-				      GFP_KERNEL);
+	device->pkey_tbl_len = kmalloc_array(num_ports,
+					     sizeof(*device->pkey_tbl_len),
+					     GFP_KERNEL);
+	device->gid_tbl_len = kmalloc_array(num_ports,
+					    sizeof(*device->gid_tbl_len),
+					    GFP_KERNEL);
 	if (!device->pkey_tbl_len || !device->gid_tbl_len)
 		goto err;
 

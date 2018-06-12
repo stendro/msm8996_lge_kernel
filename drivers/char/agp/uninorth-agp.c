@@ -400,7 +400,8 @@ static int uninorth_create_gatt_table(struct agp_bridge_data *bridge)
 	if (table == NULL)
 		return -ENOMEM;
 
-	pages = kmalloc((1 << page_order) * sizeof(struct page*), GFP_KERNEL);
+	pages = kmalloc_array(1 << page_order, sizeof(struct page *),
+			      GFP_KERNEL);
 	if (pages == NULL)
 		goto enomem;
 

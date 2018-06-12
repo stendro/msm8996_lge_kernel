@@ -120,8 +120,8 @@ int line6_pcm_acquire(struct snd_line6_pcm *line6pcm, int channels)
 		/* Invoked multiple times in a row so allocate once only */
 		if (!line6pcm->buffer_in) {
 			line6pcm->buffer_in =
-				kmalloc(LINE6_ISO_BUFFERS * LINE6_ISO_PACKETS *
-					line6pcm->max_packet_size, GFP_KERNEL);
+				kmalloc(array3_size(LINE6_ISO_BUFFERS, LINE6_ISO_PACKETS, line6pcm->max_packet_size),
+					GFP_KERNEL);
 			if (!line6pcm->buffer_in) {
 				err = -ENOMEM;
 				goto pcm_acquire_error;
@@ -156,8 +156,8 @@ int line6_pcm_acquire(struct snd_line6_pcm *line6pcm, int channels)
 		/* Invoked multiple times in a row so allocate once only */
 		if (!line6pcm->buffer_out) {
 			line6pcm->buffer_out =
-				kmalloc(LINE6_ISO_BUFFERS * LINE6_ISO_PACKETS *
-					line6pcm->max_packet_size, GFP_KERNEL);
+				kmalloc(array3_size(LINE6_ISO_BUFFERS, LINE6_ISO_PACKETS, line6pcm->max_packet_size),
+					GFP_KERNEL);
 			if (!line6pcm->buffer_out) {
 				err = -ENOMEM;
 				goto pcm_acquire_error;

@@ -303,7 +303,7 @@ static u64 *rds_iw_map_scatterlist(struct rds_iw_device *rds_iwdev,
 	if (sg->dma_npages > fastreg_message_size)
 		goto out_unmap;
 
-	dma_pages = kmalloc(sizeof(u64) * sg->dma_npages, GFP_ATOMIC);
+	dma_pages = kmalloc_array(sg->dma_npages, sizeof(u64), GFP_ATOMIC);
 	if (!dma_pages) {
 		ret = -ENOMEM;
 		goto out_unmap;

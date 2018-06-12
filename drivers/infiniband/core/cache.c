@@ -362,16 +362,17 @@ static void ib_cache_setup_one(struct ib_device *device)
 	rwlock_init(&device->cache.lock);
 
 	device->cache.pkey_cache =
-		kmalloc(sizeof *device->cache.pkey_cache *
-			(end_port(device) - start_port(device) + 1), GFP_KERNEL);
+		kmalloc_array(end_port(device) - start_port(device) + 1,
+			      sizeof(*device->cache.pkey_cache),
+			      GFP_KERNEL);
 	device->cache.gid_cache =
-		kmalloc(sizeof *device->cache.gid_cache *
-			(end_port(device) - start_port(device) + 1), GFP_KERNEL);
+		kmalloc_array(end_port(device) - start_port(device) + 1,
+			      sizeof(*device->cache.gid_cache),
+			      GFP_KERNEL);
 
-	device->cache.lmc_cache = kmalloc(sizeof *device->cache.lmc_cache *
-					  (end_port(device) -
-					   start_port(device) + 1),
-					  GFP_KERNEL);
+	device->cache.lmc_cache = kmalloc_array(end_port(device) - start_port(device) + 1,
+						sizeof(*device->cache.lmc_cache),
+						GFP_KERNEL);
 
 	if (!device->cache.pkey_cache || !device->cache.gid_cache ||
 	    !device->cache.lmc_cache) {

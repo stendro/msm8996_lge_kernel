@@ -520,8 +520,9 @@ static struct v4l2_ctrl **msm_ba_get_super_cluster(struct msm_ba_inst *inst,
 {
 	int c = 0;
 	int sz = 0;
-	struct v4l2_ctrl **cluster = kmalloc(sizeof(struct v4l2_ctrl *) *
-			BA_NUM_CTRLS, GFP_KERNEL);
+	struct v4l2_ctrl **cluster = kmalloc_array(BA_NUM_CTRLS,
+						   sizeof(struct v4l2_ctrl *),
+						   GFP_KERNEL);
 
 	if (!size || !cluster || !inst)
 		return NULL;

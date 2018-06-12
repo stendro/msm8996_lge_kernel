@@ -714,7 +714,7 @@ static int cx231xx_audio_init(struct cx231xx *dev)
 	adev->num_alt = uif->num_altsetting;
 	cx231xx_info("EndPoint Addr 0x%x, Alternate settings: %i\n",
 		     adev->end_point_addr, adev->num_alt);
-	adev->alt_max_pkt_size = kmalloc(32 * adev->num_alt, GFP_KERNEL);
+	adev->alt_max_pkt_size = kmalloc_array(32, adev->num_alt, GFP_KERNEL);
 
 	if (adev->alt_max_pkt_size == NULL) {
 		cx231xx_errdev("out of memory!\n");
