@@ -502,7 +502,7 @@ fd_execute_write_same(struct se_cmd *cmd)
 	if (!buf)
 		return TCM_LOGICAL_UNIT_COMMUNICATION_FAILURE;
 
-	iov = vzalloc(sizeof(struct iovec) * iov_num);
+	iov = vzalloc(array_size(iov_num, sizeof(struct iovec)));
 	if (!iov) {
 		pr_err("Unable to allocate fd_execute_write_same iovecs\n");
 		kfree(buf);

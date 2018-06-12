@@ -2366,7 +2366,7 @@ int tipc_sk_ref_table_init(u32 req_sz, u32 start)
 	};
 
 	/* allocate table & mark all entries as uninitialized */
-	table = vzalloc(actual_sz * sizeof(struct reference));
+	table = vzalloc(array_size(actual_sz, sizeof(struct reference)));
 	if (table == NULL)
 		return -ENOMEM;
 

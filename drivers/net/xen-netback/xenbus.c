@@ -716,8 +716,7 @@ static void connect(struct backend_info *be)
 	read_xenbus_vif_flags(be);
 
 	/* Use the number of queues requested by the frontend */
-	be->vif->queues = vzalloc(requested_num_queues *
-				  sizeof(struct xenvif_queue));
+	be->vif->queues = vzalloc(array_size(requested_num_queues, sizeof(struct xenvif_queue)));
 	be->vif->num_queues = requested_num_queues;
 	be->vif->stalled_queues = requested_num_queues;
 

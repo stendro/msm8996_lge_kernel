@@ -1297,11 +1297,11 @@ int rtsx_write_cfg_seq(struct rtsx_chip *chip, u8 func, u16 addr, u8 *buf,
 
 	dev_dbg(rtsx_dev(chip), "dw_len = %d\n", dw_len);
 
-	data = vzalloc(dw_len * 4);
+	data = vzalloc(array_size(dw_len, 4));
 	if (!data)
 		TRACE_RET(chip, STATUS_NOMEM);
 
-	mask = vzalloc(dw_len * 4);
+	mask = vzalloc(array_size(dw_len, 4));
 	if (!mask) {
 		vfree(data);
 		TRACE_RET(chip, STATUS_NOMEM);

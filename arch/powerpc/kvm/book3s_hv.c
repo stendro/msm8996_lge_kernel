@@ -2270,7 +2270,7 @@ static void kvmppc_core_free_memslot_hv(struct kvm_memory_slot *free,
 static int kvmppc_core_create_memslot_hv(struct kvm_memory_slot *slot,
 					 unsigned long npages)
 {
-	slot->arch.rmap = vzalloc(npages * sizeof(*slot->arch.rmap));
+	slot->arch.rmap = vzalloc(array_size(npages, sizeof(*slot->arch.rmap)));
 	if (!slot->arch.rmap)
 		return -ENOMEM;
 	slot->arch.slot_phys = NULL;
@@ -2287,7 +2287,7 @@ static int kvmppc_core_prepare_memory_region_hv(struct kvm *kvm,
 	/* Allocate a slot_phys array if needed */
 	phys = memslot->arch.slot_phys;
 	if (!kvm->arch.using_mmu_notifiers && !phys && memslot->npages) {
-		phys = vzalloc(memslot->npages * sizeof(unsigned long));
+		phys = vzalloc(array_size(sizeof(unsigned long), memslot->npages));
 		if (!phys)
 			return -ENOMEM;
 		memslot->arch.slot_phys = phys;
