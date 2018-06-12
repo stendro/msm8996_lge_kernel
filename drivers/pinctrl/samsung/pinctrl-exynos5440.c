@@ -206,7 +206,7 @@ static int exynos5440_dt_node_to_map(struct pinctrl_dev *pctldev,
 	}
 
 	/* Allocate memory for pin-map entries */
-	map = kzalloc(sizeof(*map) * map_cnt, GFP_KERNEL);
+	map = kcalloc(map_cnt, sizeof(*map), GFP_KERNEL);
 	if (!map) {
 		dev_err(dev, "could not alloc memory for pin-maps\n");
 		return -ENOMEM;
@@ -232,7 +232,7 @@ static int exynos5440_dt_node_to_map(struct pinctrl_dev *pctldev,
 		goto skip_cfgs;
 
 	/* Allocate memory for config entries */
-	cfg = kzalloc(sizeof(*cfg) * cfg_cnt, GFP_KERNEL);
+	cfg = kcalloc(cfg_cnt, sizeof(*cfg), GFP_KERNEL);
 	if (!cfg) {
 		dev_err(dev, "failed to alloc memory for configs\n");
 		goto free_gname;

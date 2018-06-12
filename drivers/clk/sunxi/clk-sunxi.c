@@ -842,7 +842,7 @@ static void __init sunxi_gates_clk_setup(struct device_node *node,
 	clk_data = kmalloc(sizeof(struct clk_onecell_data), GFP_KERNEL);
 	if (!clk_data)
 		return;
-	clk_data->clks = kzalloc((qty+1) * sizeof(struct clk *), GFP_KERNEL);
+	clk_data->clks = kcalloc(qty + 1, sizeof(struct clk *), GFP_KERNEL);
 	if (!clk_data->clks) {
 		kfree(clk_data);
 		return;
@@ -964,7 +964,7 @@ static void __init sunxi_divs_clk_setup(struct device_node *node,
 	if (!clk_data)
 		return;
 
-	clks = kzalloc((SUNXI_DIVS_MAX_QTY+1) * sizeof(*clks), GFP_KERNEL);
+	clks = kcalloc(SUNXI_DIVS_MAX_QTY + 1, sizeof(*clks), GFP_KERNEL);
 	if (!clks)
 		goto free_clkdata;
 

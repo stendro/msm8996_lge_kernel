@@ -2926,8 +2926,8 @@ static int __init amd64_edac_init(void)
 		goto err_ret;
 
 	err = -ENOMEM;
-	mcis	  = kzalloc(amd_nb_num() * sizeof(mcis[0]), GFP_KERNEL);
-	ecc_stngs = kzalloc(amd_nb_num() * sizeof(ecc_stngs[0]), GFP_KERNEL);
+	mcis	  = kcalloc(amd_nb_num(), sizeof(mcis[0]), GFP_KERNEL);
+	ecc_stngs = kcalloc(amd_nb_num(), sizeof(ecc_stngs[0]), GFP_KERNEL);
 	if (!(mcis && ecc_stngs))
 		goto err_free;
 

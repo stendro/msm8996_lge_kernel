@@ -769,7 +769,7 @@ static ssize_t debug_gbridge_read_stats(struct file *file, char __user *ubuf,
 	int i;
 	int ret;
 
-	buf = kzalloc(sizeof(char) * 512, GFP_KERNEL);
+	buf = kzalloc(512, GFP_KERNEL);
 	if (!buf)
 		return -ENOMEM;
 

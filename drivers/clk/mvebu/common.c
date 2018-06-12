@@ -120,7 +120,7 @@ void __init mvebu_coreclk_setup(struct device_node *np,
 
 	/* Allocate struct for TCLK, cpu clk, and core ratio clocks */
 	clk_data.clk_num = 2 + desc->num_ratios;
-	clk_data.clks = kzalloc(clk_data.clk_num * sizeof(struct clk *),
+	clk_data.clks = kcalloc(clk_data.clk_num, sizeof(struct clk *),
 				GFP_KERNEL);
 	if (WARN_ON(!clk_data.clks)) {
 		iounmap(base);
@@ -230,7 +230,7 @@ void __init mvebu_clk_gating_setup(struct device_node *np,
 		n++;
 
 	ctrl->num_gates = n;
-	ctrl->gates = kzalloc(ctrl->num_gates * sizeof(struct clk *),
+	ctrl->gates = kcalloc(ctrl->num_gates, sizeof(struct clk *),
 			      GFP_KERNEL);
 	if (WARN_ON(!ctrl->gates))
 		goto gates_out;

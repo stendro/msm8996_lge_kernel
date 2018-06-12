@@ -30,7 +30,7 @@ static const char ** __init clkgen_mux_get_parents(struct device_node *np,
 	if (WARN_ON(nparents <= 0))
 		return ERR_PTR(-EINVAL);
 
-	parents = kzalloc(nparents * sizeof(const char *), GFP_KERNEL);
+	parents = kcalloc(nparents, sizeof(const char *), GFP_KERNEL);
 	if (!parents)
 		return ERR_PTR(-ENOMEM);
 
@@ -413,7 +413,7 @@ void __init st_of_clkgena_divmux_setup(struct device_node *np)
 		goto err;
 
 	clk_data->clk_num = data->num_outputs;
-	clk_data->clks = kzalloc(clk_data->clk_num * sizeof(struct clk *),
+	clk_data->clks = kcalloc(clk_data->clk_num, sizeof(struct clk *),
 				 GFP_KERNEL);
 
 	if (!clk_data->clks)
@@ -726,7 +726,7 @@ void __init st_of_clkgen_vcc_setup(struct device_node *np)
 		goto err;
 
 	clk_data->clk_num = VCC_MAX_CHANNELS;
-	clk_data->clks = kzalloc(clk_data->clk_num * sizeof(struct clk *),
+	clk_data->clks = kcalloc(clk_data->clk_num, sizeof(struct clk *),
 				 GFP_KERNEL);
 
 	if (!clk_data->clks)

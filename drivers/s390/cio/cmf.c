@@ -825,7 +825,7 @@ static int alloc_cmbe(struct ccw_device *cdev)
 	struct cmb_data *cmb_data;
 	int ret;
 
-	cmbe = kzalloc (sizeof (*cmbe) * 2, GFP_KERNEL);
+	cmbe = kcalloc (2, sizeof(*cmbe), GFP_KERNEL);
 	if (!cmbe)
 		return -ENOMEM;
 	cmb_data = kzalloc(sizeof(struct cmb_data), GFP_KERNEL);

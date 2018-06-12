@@ -2819,8 +2819,9 @@ static int  device_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
 		rc = -EOPNOTSUPP;
 		break;
 	case SIOCGIWAPLIST: {
-		char *buffer = kzalloc(IW_MAX_AP * (sizeof(struct sockaddr) +
-				       sizeof(struct iw_quality)), GFP_KERNEL);
+		char *buffer = kcalloc(IW_MAX_AP,
+				       (sizeof(struct sockaddr) + sizeof(struct iw_quality)),
+				       GFP_KERNEL);
 
 		if (!buffer) {
 			rc = -ENOMEM;

@@ -1985,7 +1985,7 @@ static void mlx4_ib_alloc_eqs(struct mlx4_dev *dev, struct mlx4_ib_dev *ibdev)
 
 	total_eqs = dev->caps.num_comp_vectors + added_eqs;
 
-	ibdev->eq_table = kzalloc(total_eqs * sizeof(int), GFP_KERNEL);
+	ibdev->eq_table = kcalloc(total_eqs, sizeof(int), GFP_KERNEL);
 	if (!ibdev->eq_table)
 		return;
 

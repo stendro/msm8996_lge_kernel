@@ -181,8 +181,9 @@ isert_alloc_rx_descriptors(struct isert_conn *isert_conn)
 	u64 dma_addr;
 	int i, j;
 
-	isert_conn->conn_rx_descs = kzalloc(ISERT_QP_MAX_RECV_DTOS *
-				sizeof(struct iser_rx_desc), GFP_KERNEL);
+	isert_conn->conn_rx_descs = kcalloc(ISERT_QP_MAX_RECV_DTOS,
+					    sizeof(struct iser_rx_desc),
+					    GFP_KERNEL);
 	if (!isert_conn->conn_rx_descs)
 		goto fail;
 
@@ -283,8 +284,9 @@ isert_create_device_ib_res(struct isert_device *device)
 		 device->cqs_used, device->ib_device->name,
 		 device->ib_device->num_comp_vectors, device->use_fastreg,
 		 device->pi_capable);
-	device->cq_desc = kzalloc(sizeof(struct isert_cq_desc) *
-				device->cqs_used, GFP_KERNEL);
+	device->cq_desc = kcalloc(device->cqs_used,
+				  sizeof(struct isert_cq_desc),
+				  GFP_KERNEL);
 	if (!device->cq_desc) {
 		pr_err("Unable to allocate device->cq_desc\n");
 		return -ENOMEM;
@@ -2562,7 +2564,7 @@ isert_map_rdma(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
 	data_left = data->len;
 	offset = data->offset;
 
-	ib_sge = kzalloc(sizeof(struct ib_sge) * data->nents, GFP_KERNEL);
+	ib_sge = kcalloc(data->nents, sizeof(struct ib_sge), GFP_KERNEL);
 	if (!ib_sge) {
 		pr_warn("Unable to allocate ib_sge\n");
 		ret = -ENOMEM;
@@ -2571,7 +2573,7 @@ isert_map_rdma(struct iscsi_conn *conn, struct iscsi_cmd *cmd,
 	wr->ib_sge = ib_sge;
 
 	wr->send_wr_num = DIV_ROUND_UP(data->nents, isert_conn->max_sge);
-	wr->send_wr = kzalloc(sizeof(struct ib_send_wr) * wr->send_wr_num,
+	wr->send_wr = kcalloc(wr->send_wr_num, sizeof(struct ib_send_wr),
 				GFP_KERNEL);
 	if (!wr->send_wr) {
 		pr_debug("Unable to allocate wr->send_wr\n");

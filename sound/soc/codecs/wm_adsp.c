@@ -1051,7 +1051,7 @@ static int wm_adsp_setup_algs(struct wm_adsp *dsp)
 		adsp_warn(dsp, "Algorithm list end %x 0x%x != 0xbeadead\n",
 			  term, be32_to_cpu(val));
 
-	alg = kzalloc((term - pos) * 2, GFP_KERNEL | GFP_DMA);
+	alg = kcalloc(term - pos, 2, GFP_KERNEL | GFP_DMA);
 	if (!alg)
 		return -ENOMEM;
 

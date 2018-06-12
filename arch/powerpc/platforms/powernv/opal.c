@@ -675,7 +675,7 @@ static int __init opal_init(void)
 	pr_debug("opal: Found %d interrupts reserved for OPAL\n",
 		 irqs ? (irqlen / 4) : 0);
 	opal_irq_count = irqlen / 4;
-	opal_irqs = kzalloc(opal_irq_count * sizeof(unsigned int), GFP_KERNEL);
+	opal_irqs = kcalloc(opal_irq_count, sizeof(unsigned int), GFP_KERNEL);
 	for (i = 0; irqs && i < (irqlen / 4); i++, irqs++) {
 		unsigned int hwirq = be32_to_cpup(irqs);
 		unsigned int irq = irq_create_mapping(NULL, hwirq);

@@ -102,13 +102,14 @@ int ath10k_htt_tx_alloc(struct ath10k_htt *htt)
 	ath10k_dbg(ar, ATH10K_DBG_BOOT, "htt tx max num pending tx %d\n",
 		   htt->max_num_pending_tx);
 
-	htt->pending_tx = kzalloc(sizeof(*htt->pending_tx) *
-				  htt->max_num_pending_tx, GFP_KERNEL);
+	htt->pending_tx = kcalloc(htt->max_num_pending_tx,
+				  sizeof(*htt->pending_tx),
+				  GFP_KERNEL);
 	if (!htt->pending_tx)
 		return -ENOMEM;
 
-	htt->used_msdu_ids = kzalloc(sizeof(unsigned long) *
-				     BITS_TO_LONGS(htt->max_num_pending_tx),
+	htt->used_msdu_ids = kcalloc(BITS_TO_LONGS(htt->max_num_pending_tx),
+				     sizeof(unsigned long),
 				     GFP_KERNEL);
 	if (!htt->used_msdu_ids) {
 		kfree(htt->pending_tx);

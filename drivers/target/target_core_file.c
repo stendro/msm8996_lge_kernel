@@ -327,7 +327,7 @@ static int fd_do_rw(struct se_cmd *cmd, struct scatterlist *sgl,
 	loff_t pos = (cmd->t_task_lba * se_dev->dev_attrib.block_size);
 	int ret = 0, i;
 
-	iov = kzalloc(sizeof(struct iovec) * sgl_nents, GFP_KERNEL);
+	iov = kcalloc(sgl_nents, sizeof(struct iovec), GFP_KERNEL);
 	if (!iov) {
 		pr_err("Unable to allocate fd_do_readv iov[]\n");
 		return -ENOMEM;

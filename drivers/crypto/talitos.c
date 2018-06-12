@@ -2705,8 +2705,9 @@ static int talitos_probe(struct platform_device *ofdev)
 				  TALITOS_FTR_SHA224_HWINIT |
 				  TALITOS_FTR_HMAC_OK;
 
-	priv->chan = kzalloc(sizeof(struct talitos_channel) *
-			     priv->num_channels, GFP_KERNEL);
+	priv->chan = kcalloc(priv->num_channels,
+			     sizeof(struct talitos_channel),
+			     GFP_KERNEL);
 	if (!priv->chan) {
 		dev_err(dev, "failed to allocate channel management space\n");
 		err = -ENOMEM;
@@ -2727,8 +2728,9 @@ static int talitos_probe(struct platform_device *ofdev)
 	priv->fifo_len = roundup_pow_of_two(priv->chfifo_len);
 
 	for (i = 0; i < priv->num_channels; i++) {
-		priv->chan[i].fifo = kzalloc(sizeof(struct talitos_request) *
-					     priv->fifo_len, GFP_KERNEL);
+		priv->chan[i].fifo = kcalloc(priv->fifo_len,
+					     sizeof(struct talitos_request),
+					     GFP_KERNEL);
 		if (!priv->chan[i].fifo) {
 			dev_err(dev, "failed to allocate request fifo %d\n", i);
 			err = -ENOMEM;

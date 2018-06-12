@@ -2166,7 +2166,8 @@ static int mlx4_init_steering(struct mlx4_dev *dev)
 	int num_entries = dev->caps.num_ports;
 	int i, j;
 
-	priv->steer = kzalloc(sizeof(struct mlx4_steer) * num_entries, GFP_KERNEL);
+	priv->steer = kcalloc(num_entries, sizeof(struct mlx4_steer),
+			      GFP_KERNEL);
 	if (!priv->steer)
 		return -ENOMEM;
 
@@ -2304,9 +2305,9 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
 		if (total_vfs) {
 			mlx4_warn(dev, "Enabling SR-IOV with %d VFs\n",
 				  total_vfs);
-			dev->dev_vfs = kzalloc(
-				total_vfs * sizeof(*dev->dev_vfs),
-				GFP_KERNEL);
+			dev->dev_vfs = kcalloc(total_vfs,
+					       sizeof(*dev->dev_vfs),
+					       GFP_KERNEL);
 			if (NULL == dev->dev_vfs) {
 				mlx4_err(dev, "Failed to allocate memory for VFs\n");
 				err = -ENOMEM;

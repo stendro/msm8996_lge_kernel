@@ -4870,8 +4870,9 @@ lpfc_sli_driver_resource_setup(struct lpfc_hba *phba)
 
 	if (!phba->sli.ring)
 		phba->sli.ring = (struct lpfc_sli_ring *)
-			kzalloc(LPFC_SLI3_MAX_RING *
-			sizeof(struct lpfc_sli_ring), GFP_KERNEL);
+			kcalloc(LPFC_SLI3_MAX_RING,
+				sizeof(struct lpfc_sli_ring),
+				GFP_KERNEL);
 	if (!phba->sli.ring)
 		return -ENOMEM;
 
@@ -5058,9 +5059,9 @@ lpfc_sli4_driver_resource_setup(struct lpfc_hba *phba)
 	 * we will associate a new ring, for each FCP fastpath EQ/CQ/WQ tuple.
 	 */
 	if (!phba->sli.ring)
-		phba->sli.ring = kzalloc(
-			(LPFC_SLI3_MAX_RING + phba->cfg_fcp_io_channel) *
-			sizeof(struct lpfc_sli_ring), GFP_KERNEL);
+		phba->sli.ring = kcalloc(LPFC_SLI3_MAX_RING + phba->cfg_fcp_io_channel,
+					 sizeof(struct lpfc_sli_ring),
+					 GFP_KERNEL);
 	if (!phba->sli.ring)
 		return -ENOMEM;
 
@@ -5295,7 +5296,7 @@ lpfc_sli4_driver_resource_setup(struct lpfc_hba *phba)
 
 	/* Allocate eligible FCF bmask memory for FCF roundrobin failover */
 	longs = (LPFC_SLI4_FCF_TBL_INDX_MAX + BITS_PER_LONG - 1)/BITS_PER_LONG;
-	phba->fcf.fcf_rr_bmask = kzalloc(longs * sizeof(unsigned long),
+	phba->fcf.fcf_rr_bmask = kcalloc(longs, sizeof(unsigned long),
 					 GFP_KERNEL);
 	if (!phba->fcf.fcf_rr_bmask) {
 		lpfc_printf_log(phba, KERN_ERR, LOG_INIT,

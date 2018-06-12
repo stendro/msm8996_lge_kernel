@@ -1173,7 +1173,7 @@ static int efx_sriov_vf_alloc(struct efx_nic *efx)
 	unsigned index;
 	struct efx_vf *vf;
 
-	efx->vf = kzalloc(sizeof(struct efx_vf) * efx->vf_count, GFP_KERNEL);
+	efx->vf = kcalloc(efx->vf_count, sizeof(struct efx_vf), GFP_KERNEL);
 	if (!efx->vf)
 		return -ENOMEM;
 

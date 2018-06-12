@@ -710,7 +710,7 @@ static ssize_t ipa3_read_rt_hw(struct file *file, char __user *ubuf,
 	else
 		num_tbls = IPA_MEM_PART(v6_rt_num_index);
 
-	entry = kzalloc(sizeof(*entry) * IPA_DBG_MAX_RULE_IN_TBL, GFP_KERNEL);
+	entry = kcalloc(IPA_DBG_MAX_RULE_IN_TBL, sizeof(*entry), GFP_KERNEL);
 	if (!entry)
 		return -ENOMEM;
 
@@ -885,7 +885,7 @@ static ssize_t ipa3_read_flt_hw(struct file *file, char __user *ubuf,
 	u32 rt_tbl_idx;
 	u32 bitmap;
 
-	entry = kzalloc(sizeof(*entry) * IPA_DBG_MAX_RULE_IN_TBL, GFP_KERNEL);
+	entry = kcalloc(IPA_DBG_MAX_RULE_IN_TBL, sizeof(*entry), GFP_KERNEL);
 	if (!entry)
 		return -ENOMEM;
 
