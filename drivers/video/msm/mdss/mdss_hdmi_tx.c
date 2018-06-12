@@ -4161,8 +4161,10 @@ static int hdmi_tx_get_dt_clk_data(struct device *dev,
 	switch (module_type) {
 	case HDMI_TX_HPD_PM:
 		mp->num_clk = 4;
-		mp->clk_config = devm_kzalloc(dev, sizeof(struct dss_clk) *
-			mp->num_clk, GFP_KERNEL);
+		mp->clk_config = devm_kcalloc(dev,
+					      mp->num_clk,
+					      sizeof(struct dss_clk),
+					      GFP_KERNEL);
 		if (!mp->clk_config) {
 			DEV_ERR("%s: can't alloc '%s' clk mem\n", __func__,
 				hdmi_tx_pm_name(module_type));
@@ -4194,8 +4196,10 @@ static int hdmi_tx_get_dt_clk_data(struct device *dev,
 
 	case HDMI_TX_CORE_PM:
 		mp->num_clk = 1;
-		mp->clk_config = devm_kzalloc(dev, sizeof(struct dss_clk) *
-			mp->num_clk, GFP_KERNEL);
+		mp->clk_config = devm_kcalloc(dev,
+					      mp->num_clk,
+					      sizeof(struct dss_clk),
+					      GFP_KERNEL);
 		if (!mp->clk_config) {
 			DEV_ERR("%s: can't alloc '%s' clk mem\n", __func__,
 				hdmi_tx_pm_name(module_type));
@@ -4312,8 +4316,10 @@ static int hdmi_tx_get_dt_vreg_data(struct device *dev,
 
 	if (mod_vreg_total > 0) {
 		mp->num_vreg = mod_vreg_total;
-		mp->vreg_config = devm_kzalloc(dev, sizeof(struct dss_vreg) *
-			mod_vreg_total, GFP_KERNEL);
+		mp->vreg_config = devm_kcalloc(dev,
+					       mod_vreg_total,
+					       sizeof(struct dss_vreg),
+					       GFP_KERNEL);
 		if (!mp->vreg_config) {
 			DEV_ERR("%s: can't alloc '%s' vreg mem\n", __func__,
 				hdmi_tx_pm_name(module_type));
@@ -4324,7 +4330,7 @@ static int hdmi_tx_get_dt_vreg_data(struct device *dev,
 		return 0;
 	}
 
-	val_array = devm_kzalloc(dev, sizeof(u32) * dt_vreg_total, GFP_KERNEL);
+	val_array = devm_kcalloc(dev, dt_vreg_total, sizeof(u32), GFP_KERNEL);
 	if (!val_array) {
 		DEV_ERR("%s: can't allocate vreg scratch mem\n", __func__);
 		rc = -ENOMEM;
@@ -4491,8 +4497,9 @@ static int hdmi_tx_get_dt_gpio_data(struct device *dev,
 	DEV_DBG("%s: mp_gpio_cnt = %d\n", __func__, mp_gpio_cnt);
 	mp->num_gpio = mp_gpio_cnt;
 
-	mp->gpio_config = devm_kzalloc(dev, sizeof(struct dss_gpio) *
-		mp_gpio_cnt, GFP_KERNEL);
+	mp->gpio_config = devm_kcalloc(dev,
+				       mp_gpio_cnt, sizeof(struct dss_gpio),
+				       GFP_KERNEL);
 	if (!mp->gpio_config) {
 		DEV_ERR("%s: can't alloc '%s' gpio mem\n", __func__,
 			hdmi_tx_pm_name(module_type));

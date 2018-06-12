@@ -1156,8 +1156,8 @@ static int qbt1000_read_spi_conn_properties(struct device_node *node,
 
 	/* alloc mem for clock array - auto free if probe fails */
 	drvdata->clock_count = clkcnt;
-	drvdata->clocks = devm_kzalloc(drvdata->dev,
-				sizeof(struct clk *) * drvdata->clock_count,
+	drvdata->clocks = devm_kcalloc(drvdata->dev,
+				drvdata->clock_count, sizeof(struct clk *),
 				GFP_KERNEL);
 	if (!drvdata->clocks) {
 			dev_err(drvdata->dev,

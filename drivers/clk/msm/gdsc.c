@@ -527,8 +527,8 @@ static int gdsc_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 
-	sc->clocks = devm_kzalloc(&pdev->dev,
-			sizeof(struct clk *) * sc->clock_count, GFP_KERNEL);
+	sc->clocks = devm_kcalloc(&pdev->dev,
+			sc->clock_count, sizeof(struct clk *), GFP_KERNEL);
 	if (!sc->clocks)
 		return -ENOMEM;
 

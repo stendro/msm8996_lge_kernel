@@ -167,15 +167,17 @@ static int s2mps11_clk_probe(struct platform_device *pdev)
 	struct clk_init_data *clks_init;
 	int i, ret = 0;
 
-	s2mps11_clks = devm_kzalloc(&pdev->dev, sizeof(*s2mps11_clk) *
-					S2MPS11_CLKS_NUM, GFP_KERNEL);
+	s2mps11_clks = devm_kcalloc(&pdev->dev,
+				    S2MPS11_CLKS_NUM, sizeof(*s2mps11_clk),
+				    GFP_KERNEL);
 	if (!s2mps11_clks)
 		return -ENOMEM;
 
 	s2mps11_clk = s2mps11_clks;
 
-	clk_table = devm_kzalloc(&pdev->dev, sizeof(struct clk *) *
-				 S2MPS11_CLKS_NUM, GFP_KERNEL);
+	clk_table = devm_kcalloc(&pdev->dev,
+				 S2MPS11_CLKS_NUM, sizeof(struct clk *),
+				 GFP_KERNEL);
 	if (!clk_table)
 		return -ENOMEM;
 

@@ -167,8 +167,8 @@ static int max77693_pmic_dt_parse_rdata(struct device *dev,
 	if (!np)
 		return -EINVAL;
 
-	rmatch = devm_kzalloc(dev,
-		 sizeof(*rmatch) * ARRAY_SIZE(regulators), GFP_KERNEL);
+	rmatch = devm_kcalloc(dev,
+		 ARRAY_SIZE(regulators), sizeof(*rmatch), GFP_KERNEL);
 	if (!rmatch) {
 		of_node_put(np);
 		return -ENOMEM;
@@ -181,7 +181,7 @@ static int max77693_pmic_dt_parse_rdata(struct device *dev,
 	of_node_put(np);
 	if (matched <= 0)
 		return matched;
-	*rdata = devm_kzalloc(dev, sizeof(**rdata) * matched, GFP_KERNEL);
+	*rdata = devm_kcalloc(dev, matched, sizeof(**rdata), GFP_KERNEL);
 	if (!(*rdata))
 		return -ENOMEM;
 

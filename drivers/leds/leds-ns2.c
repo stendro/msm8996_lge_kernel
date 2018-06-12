@@ -267,7 +267,7 @@ ns2_leds_get_of_pdata(struct device *dev, struct ns2_led_platform_data *pdata)
 	if (!num_leds)
 		return -ENODEV;
 
-	leds = devm_kzalloc(dev, num_leds * sizeof(struct ns2_led),
+	leds = devm_kcalloc(dev, num_leds, sizeof(struct ns2_led),
 			    GFP_KERNEL);
 	if (!leds)
 		return -ENOMEM;

@@ -566,7 +566,7 @@ static int miphy365x_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	chancount = of_get_child_count(np);
-	miphy_dev->phys = devm_kzalloc(&pdev->dev, sizeof(phy) * chancount,
+	miphy_dev->phys = devm_kcalloc(&pdev->dev, chancount, sizeof(phy),
 				       GFP_KERNEL);
 	if (!miphy_dev->phys)
 		return -ENOMEM;

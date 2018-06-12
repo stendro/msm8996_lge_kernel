@@ -2156,9 +2156,10 @@ static int qpnp_pon_probe(struct spmi_device *spmi)
 		/* No PON config., do not register the driver */
 		dev_info(&spmi->dev, "No PON config. specified\n");
 	else
-		pon->pon_cfg = devm_kzalloc(&spmi->dev,
-				sizeof(struct qpnp_pon_config) *
-				pon->num_pon_config, GFP_KERNEL);
+		pon->pon_cfg = devm_kcalloc(&spmi->dev,
+				pon->num_pon_config,
+				sizeof(struct qpnp_pon_config),
+				GFP_KERNEL);
 
 	/* Read PON_PERPH_SUBTYPE register to get PON type */
 	rc = spmi_ext_register_readl(pon->spmi->ctrl, pon->spmi->sid,

@@ -257,8 +257,8 @@ static int int3403_sensor_add(struct int3403_priv *priv)
 
 	if (trip_cnt) {
 		/* We have to cache, thresholds can't be readback */
-		obj->thresholds = devm_kzalloc(&priv->pdev->dev,
-					sizeof(*obj->thresholds) * trip_cnt,
+		obj->thresholds = devm_kcalloc(&priv->pdev->dev,
+					trip_cnt, sizeof(*obj->thresholds),
 					GFP_KERNEL);
 		if (!obj->thresholds) {
 			result = -ENOMEM;

@@ -5202,8 +5202,9 @@ static int android_probe(struct platform_device *pdev)
 		return -EINVAL;
 	} else if (len > 0) {
 		/* one extra for NULL termination */
-		supported_list = devm_kzalloc(
-				&pdev->dev, sizeof(supported_list) * (len + 1),
+		supported_list = devm_kcalloc(
+				&pdev->dev,
+				len + 1, sizeof(supported_list),
 				GFP_KERNEL);
 		if (!supported_list)
 			return -ENOMEM;

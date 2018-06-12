@@ -523,10 +523,10 @@ static int pmecc_data_alloc(struct atmel_nand_host *host)
 	size = (2 * cap + 1) * sizeof(int16_t);
 	host->pmecc_partial_syn = devm_kzalloc(host->dev, size, GFP_KERNEL);
 	host->pmecc_si = devm_kzalloc(host->dev, size, GFP_KERNEL);
-	host->pmecc_lmu = devm_kzalloc(host->dev,
-			(cap + 1) * sizeof(int16_t), GFP_KERNEL);
-	host->pmecc_smu = devm_kzalloc(host->dev,
-			(cap + 2) * size, GFP_KERNEL);
+	host->pmecc_lmu = devm_kcalloc(host->dev,
+			cap + 1, sizeof(int16_t), GFP_KERNEL);
+	host->pmecc_smu = devm_kcalloc(host->dev,
+			cap + 2, size, GFP_KERNEL);
 
 	size = (cap + 1) * sizeof(int);
 	host->pmecc_mu = devm_kzalloc(host->dev, size, GFP_KERNEL);

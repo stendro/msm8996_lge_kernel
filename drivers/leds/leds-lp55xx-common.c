@@ -561,7 +561,7 @@ int lp55xx_of_populate_pdata(struct device *dev, struct device_node *np)
 		return -EINVAL;
 	}
 
-	cfg = devm_kzalloc(dev, sizeof(*cfg) * num_channels, GFP_KERNEL);
+	cfg = devm_kcalloc(dev, num_channels, sizeof(*cfg), GFP_KERNEL);
 	if (!cfg)
 		return -ENOMEM;
 

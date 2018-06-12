@@ -553,8 +553,8 @@ static int msm_cpu_status_probe(struct platform_device *pdev)
 	if (!pdev | !pdev->dev.of_node)
 		return -EFAULT;
 
-	msm_pm_slp_sts = devm_kzalloc(&pdev->dev,
-			sizeof(*msm_pm_slp_sts) * num_possible_cpus(),
+	msm_pm_slp_sts = devm_kcalloc(&pdev->dev,
+			num_possible_cpus(), sizeof(*msm_pm_slp_sts),
 			GFP_KERNEL);
 
 	if (!msm_pm_slp_sts)
