@@ -5492,8 +5492,8 @@ static int get_device_tree_data(struct platform_device *pdev,
 		return -ENODEV;
 	}
 
-	tsens_slope_data = devm_kzalloc(&pdev->dev,
-			tsens_num_sensors * sizeof(u32), GFP_KERNEL);
+	tsens_slope_data = devm_kcalloc(&pdev->dev,
+			tsens_num_sensors, sizeof(u32), GFP_KERNEL);
 	if (!tsens_slope_data)
 		return -ENOMEM;
 
@@ -5525,13 +5525,13 @@ static int get_device_tree_data(struct platform_device *pdev,
 				"qcom,tsens-local-init");
 	tmdev->calib_mode = (u32)(uintptr_t) id->data;
 
-	sensor_id = devm_kzalloc(&pdev->dev,
-		tsens_num_sensors * sizeof(u32), GFP_KERNEL);
+	sensor_id = devm_kcalloc(&pdev->dev,
+		tsens_num_sensors, sizeof(u32), GFP_KERNEL);
 	if (!sensor_id)
 		return -ENOMEM;
 
-	client_id = devm_kzalloc(&pdev->dev,
-		tsens_num_sensors * sizeof(u32), GFP_KERNEL);
+	client_id = devm_kcalloc(&pdev->dev,
+		tsens_num_sensors, sizeof(u32), GFP_KERNEL);
 	if (!client_id)
 		return -ENOMEM;
 
@@ -5618,8 +5618,8 @@ static int get_device_tree_data(struct platform_device *pdev,
 		}
 	}
 
-	temp1_calib_offset_factor = devm_kzalloc(&pdev->dev,
-			tsens_num_sensors * sizeof(u32), GFP_KERNEL);
+	temp1_calib_offset_factor = devm_kcalloc(&pdev->dev,
+			tsens_num_sensors, sizeof(u32), GFP_KERNEL);
 	if (!temp1_calib_offset_factor)
 		return -ENOMEM;
 
@@ -5637,8 +5637,8 @@ static int get_device_tree_data(struct platform_device *pdev,
 						temp1_calib_offset_factor[i];
 	}
 
-	temp2_calib_offset_factor = devm_kzalloc(&pdev->dev,
-			tsens_num_sensors * sizeof(u32), GFP_KERNEL);
+	temp2_calib_offset_factor = devm_kcalloc(&pdev->dev,
+			tsens_num_sensors, sizeof(u32), GFP_KERNEL);
 	if (!temp2_calib_offset_factor)
 		return -ENOMEM;
 

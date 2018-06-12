@@ -850,8 +850,8 @@ int stc311x_parse_dt(struct stc311x_chip *chip)
 			return -EINVAL;
 		}
 
-		chip->cfg_adaptive_capacity_table = devm_kzalloc(chip->dev,
-				sizeof(u16) * NTEMP, GFP_KERNEL);
+		chip->cfg_adaptive_capacity_table = devm_kcalloc(chip->dev,
+				NTEMP, sizeof(u16), GFP_KERNEL);
 		if (!chip->cfg_adaptive_capacity_table)
 			return -ENOMEM;
 
@@ -876,8 +876,8 @@ int stc311x_parse_dt(struct stc311x_chip *chip)
 		return -EINVAL;
 	}
 
-	chip->cfg_ocv_soc_table = devm_kzalloc(chip->dev,
-				sizeof(u16) * OCV_SOC_SIZE, GFP_KERNEL);
+	chip->cfg_ocv_soc_table = devm_kcalloc(chip->dev,
+				OCV_SOC_SIZE, sizeof(u16), GFP_KERNEL);
 	if (!chip->cfg_ocv_soc_table)
 		return -ENOMEM;
 
@@ -903,7 +903,7 @@ int stc311x_parse_dt(struct stc311x_chip *chip)
 	}
 
 	chip->cfg_soc_table = devm_kzalloc(chip->dev,
-				sizeof(u8) * OCV_SOC_SIZE, GFP_KERNEL);
+				OCV_SOC_SIZE, GFP_KERNEL);
 	if (!chip->cfg_soc_table)
 		return -ENOMEM;
 
@@ -927,8 +927,8 @@ int stc311x_parse_dt(struct stc311x_chip *chip)
 		return -EINVAL;
 	}
 
-	chip->cfg_vmtemp_table = devm_kzalloc(chip->dev,
-				sizeof(u16) * NTEMP, GFP_KERNEL);
+	chip->cfg_vmtemp_table = devm_kcalloc(chip->dev,
+				NTEMP, sizeof(u16), GFP_KERNEL);
 	if (!chip->cfg_vmtemp_table)
 		return -ENOMEM;
 
@@ -951,8 +951,8 @@ int stc311x_parse_dt(struct stc311x_chip *chip)
 		return -EINVAL;
 	}
 
-	chip->cfg_temp_table = devm_kzalloc(chip->dev,
-				sizeof(s16) * NTEMP, GFP_KERNEL);
+	chip->cfg_temp_table = devm_kcalloc(chip->dev,
+				NTEMP, sizeof(s16), GFP_KERNEL);
 	if (!chip->cfg_temp_table)
 		return -ENOMEM;
 

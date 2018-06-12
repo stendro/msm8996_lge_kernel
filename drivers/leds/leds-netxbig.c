@@ -356,8 +356,8 @@ static int netxbig_led_probe(struct platform_device *pdev)
 	if (!pdata)
 		return -EINVAL;
 
-	leds_data = devm_kzalloc(&pdev->dev,
-		sizeof(struct netxbig_led_data) * pdata->num_leds, GFP_KERNEL);
+	leds_data = devm_kcalloc(&pdev->dev,
+		pdata->num_leds, sizeof(struct netxbig_led_data), GFP_KERNEL);
 	if (!leds_data)
 		return -ENOMEM;
 

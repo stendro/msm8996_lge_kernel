@@ -956,8 +956,8 @@ static int mvebu_pcie_probe(struct platform_device *pdev)
 		i++;
 	}
 
-	pcie->ports = devm_kzalloc(&pdev->dev, i *
-				   sizeof(struct mvebu_pcie_port),
+	pcie->ports = devm_kcalloc(&pdev->dev,
+				   i, sizeof(struct mvebu_pcie_port),
 				   GFP_KERNEL);
 	if (!pcie->ports)
 		return -ENOMEM;

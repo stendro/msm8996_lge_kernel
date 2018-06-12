@@ -678,8 +678,8 @@ static void rsnd_of_parse_src(struct platform_device *pdev,
 	if (!nr)
 		goto rsnd_of_parse_src_end;
 
-	src_info = devm_kzalloc(dev,
-				sizeof(struct rsnd_src_platform_info) * nr,
+	src_info = devm_kcalloc(dev,
+				nr, sizeof(struct rsnd_src_platform_info),
 				GFP_KERNEL);
 	if (!src_info) {
 		dev_err(dev, "src info allocation error\n");
@@ -724,7 +724,7 @@ int rsnd_src_probe(struct platform_device *pdev,
 	if (!nr)
 		return 0;
 
-	src	= devm_kzalloc(dev, sizeof(*src) * nr, GFP_KERNEL);
+	src	= devm_kcalloc(dev, nr, sizeof(*src), GFP_KERNEL);
 	if (!src) {
 		dev_err(dev, "SRC allocate failed\n");
 		return -ENOMEM;

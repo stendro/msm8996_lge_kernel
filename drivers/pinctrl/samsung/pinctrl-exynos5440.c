@@ -652,7 +652,7 @@ static int exynos5440_pinctrl_parse_dt_pins(struct platform_device *pdev,
 		return -EINVAL;
 	}
 
-	*pin_list = devm_kzalloc(dev, *npins * sizeof(**pin_list), GFP_KERNEL);
+	*pin_list = devm_kcalloc(dev, *npins, sizeof(**pin_list), GFP_KERNEL);
 	if (!*pin_list) {
 		dev_err(dev, "failed to allocate memory for pin list\n");
 		return -ENOMEM;
@@ -683,14 +683,15 @@ static int exynos5440_pinctrl_parse_dt(struct platform_device *pdev,
 	if (!grp_cnt)
 		return -EINVAL;
 
-	groups = devm_kzalloc(dev, grp_cnt * sizeof(*groups), GFP_KERNEL);
+	groups = devm_kcalloc(dev, grp_cnt, sizeof(*groups), GFP_KERNEL);
 	if (!groups) {
 		dev_err(dev, "failed allocate memory for ping group list\n");
 		return -EINVAL;
 	}
 	grp = groups;
 
-	functions = devm_kzalloc(dev, grp_cnt * sizeof(*functions), GFP_KERNEL);
+	functions = devm_kcalloc(dev, grp_cnt, sizeof(*functions),
+				 GFP_KERNEL);
 	if (!functions) {
 		dev_err(dev, "failed to allocate memory for function list\n");
 		return -EINVAL;
@@ -786,8 +787,9 @@ static int exynos5440_pinctrl_register(struct platform_device *pdev,
 	ctrldesc->pmxops = &exynos5440_pinmux_ops;
 	ctrldesc->confops = &exynos5440_pinconf_ops;
 
-	pindesc = devm_kzalloc(&pdev->dev, sizeof(*pindesc) *
-				EXYNOS5440_MAX_PINS, GFP_KERNEL);
+	pindesc = devm_kcalloc(&pdev->dev,
+			       EXYNOS5440_MAX_PINS, sizeof(*pindesc),
+			       GFP_KERNEL);
 	if (!pindesc) {
 		dev_err(&pdev->dev, "mem alloc for pin descriptors failed\n");
 		return -ENOMEM;
@@ -803,8 +805,9 @@ static int exynos5440_pinctrl_register(struct platform_device *pdev,
 	 * allocate space for storing the dynamically generated names for all
 	 * the pins which belong to this pin-controller.
 	 */
-	pin_names = devm_kzalloc(&pdev->dev, sizeof(char) * PIN_NAME_LENGTH *
-					ctrldesc->npins, GFP_KERNEL);
+	pin_names = devm_kzalloc(&pdev->dev,
+				 array3_size(sizeof(char), PIN_NAME_LENGTH, ctrldesc->npins),
+				 GFP_KERNEL);
 	if (!pin_names) {
 		dev_err(&pdev->dev, "mem alloc for pin names failed\n");
 		return -ENOMEM;
@@ -948,7 +951,7 @@ static int exynos5440_gpio_irq_init(struct platform_device *pdev,
 	struct exynos5440_gpio_intr_data *intd;
 	int i, irq, ret;
 
-	intd = devm_kzalloc(dev, sizeof(*intd) * EXYNOS5440_MAX_GPIO_INT,
+	intd = devm_kcalloc(dev, EXYNOS5440_MAX_GPIO_INT, sizeof(*intd),
 					GFP_KERNEL);
 	if (!intd) {
 		dev_err(dev, "failed to allocate memory for gpio intr data\n");

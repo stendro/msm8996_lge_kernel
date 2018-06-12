@@ -1643,9 +1643,10 @@ static int synaptics_rmi4_get_button_map(struct device *dev, char *name,
 		if (!rmi4_pdata->capacitance_button_map)
 			return -ENOMEM;
 
-		rmi4_pdata->capacitance_button_map->map = devm_kzalloc(dev,
-			sizeof(*rmi4_pdata->capacitance_button_map->map) *
-			MAX_NUMBER_OF_BUTTONS, GFP_KERNEL);
+		rmi4_pdata->capacitance_button_map->map = devm_kcalloc(dev,
+			MAX_NUMBER_OF_BUTTONS,
+			sizeof(*rmi4_pdata->capacitance_button_map->map),
+			GFP_KERNEL);
 		if (!rmi4_pdata->capacitance_button_map->map)
 			return -ENOMEM;
 
@@ -1890,9 +1891,10 @@ static int synaptics_rmi4_parse_dt(struct device *dev,
 		if (!rmi4_pdata->capacitance_button_map)
 			return -ENOMEM;
 
-		rmi4_pdata->capacitance_button_map->map = devm_kzalloc(dev,
-			sizeof(*rmi4_pdata->capacitance_button_map->map) *
-			MAX_NUMBER_OF_BUTTONS, GFP_KERNEL);
+		rmi4_pdata->capacitance_button_map->map = devm_kcalloc(dev,
+			MAX_NUMBER_OF_BUTTONS,
+			sizeof(*rmi4_pdata->capacitance_button_map->map),
+			GFP_KERNEL);
 		if (!rmi4_pdata->capacitance_button_map->map)
 			return -ENOMEM;
 
