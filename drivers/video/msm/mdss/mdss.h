@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -244,6 +244,13 @@ struct mdss_scaler_block {
 	u32 *dest_scaler_off;
 	u32 *dest_scaler_lut_off;
 	struct mdss_mdp_qseed3_lut_tbl lut_tbl;
+
+	/*
+	 * Lock is mainly to serialize access to LUT.
+	 * LUT values come asynchronously from userspace
+	 * via ioctl.
+	 */
+	struct mutex scaler_lock;
 };
 
 struct mdss_data_type;
@@ -292,6 +299,7 @@ struct mdss_data_type {
 	bool en_svs_high;
 	u32 max_mdp_clk_rate;
 	struct mdss_util_intf *mdss_util;
+	struct mdss_panel_data *pdata;
 
 	struct platform_device *pdev;
 	struct dss_io_data mdss_io;

@@ -51,8 +51,7 @@ static struct inode *f2fs_new_inode(struct inode *dir, umode_t mode)
 
 	inode->i_ino = ino;
 	inode->i_blocks = 0;
-	inode->i_mtime = inode->i_atime = inode->i_ctime =
-			F2FS_I(inode)->i_crtime = current_time(inode);
+	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
 	inode->i_generation = sbi->s_next_generation++;
 
 	err = insert_inode_locked(inode);
@@ -78,6 +77,11 @@ static struct inode *f2fs_new_inode(struct inode *dir, umode_t mode)
 	/* If the directory encrypted, then we should encrypt the inode. */
 	if (f2fs_encrypted_inode(dir) && f2fs_may_encrypt(inode))
 		f2fs_set_encrypted_inode(inode);
+
+	if (f2fs_sb_has_extra_attr(sbi->sb)) {
+		set_inode_flag(inode, FI_EXTRA_ATTR);
+		F2FS_I(inode)->i_extra_isize = F2FS_TOTAL_EXTRA_ATTR_SIZE;
+	}
 
 	if (f2fs_sb_has_extra_attr(sbi->sb)) {
 		set_inode_flag(inode, FI_EXTRA_ATTR);
@@ -237,9 +241,9 @@ static int f2fs_link(struct dentry *old_dentry, struct inode *dir,
 	if (unlikely(f2fs_cp_error(sbi)))
 		return -EIO;
 
-	err = fscrypt_prepare_link(old_dentry, dir, dentry);
-	if (err)
-		return err;
+	if (f2fs_encrypted_inode(dir) &&
+			!fscrypt_has_permitted_context(dir, inode))
+		return -EPERM;
 
 	if (is_inode_flag_set(dir, FI_PROJ_INHERIT) &&
 			(!projid_eq(F2FS_I(dir)->i_projid,
@@ -347,9 +351,20 @@ static struct dentry *f2fs_lookup(struct inode *dir, struct dentry *dentry,
 
 	trace_f2fs_lookup_start(dir, dentry, flags);
 
-	err = fscrypt_prepare_lookup(dir, dentry, flags);
-	if (err)
-		goto out;
+	if (f2fs_encrypted_inode(dir)) {
+		err = fscrypt_get_encryption_info(dir);
+
+		/*
+		 * DCACHE_ENCRYPTED_WITH_KEY is set if the dentry is
+		 * created while the directory was encrypted and we
+		 * don't have access to the key.
+		 */
+		if (fscrypt_has_encryption_key(dir))
+			fscrypt_set_encrypted_dentry(dentry);
+		fscrypt_set_d_op(dentry);
+		if (err && err != -ENOKEY)
+			goto out;
+	}
 
 	if (dentry->d_name.len > F2FS_NAME_LEN) {
 		err = -ENAMETOOLONG;
@@ -523,7 +538,7 @@ static int f2fs_symlink(struct inode *dir, struct dentry *dentry,
 		struct qstr istr = QSTR_INIT(symname, len);
 		struct fscrypt_str ostr;
 
-		sd = f2fs_kzalloc(sbi, disk_link.len, GFP_NOFS);
+		sd = kzalloc(disk_link.len, GFP_NOFS);
 		if (!sd) {
 			err = -ENOMEM;
 			goto err_out;
@@ -775,6 +790,17 @@ static int f2fs_rename(struct inode *old_dir, struct dentry *old_dentry,
 	if (unlikely(f2fs_cp_error(sbi)))
 		return -EIO;
 
+	if ((f2fs_encrypted_inode(old_dir) &&
+			!fscrypt_has_encryption_key(old_dir)) ||
+			(f2fs_encrypted_inode(new_dir) &&
+			!fscrypt_has_encryption_key(new_dir)))
+		return -ENOKEY;
+
+	if (is_inode_flag_set(new_dir, FI_PROJ_INHERIT) &&
+			(!projid_eq(F2FS_I(new_dir)->i_projid,
+			F2FS_I(old_dentry->d_inode)->i_projid)))
+		return -EXDEV;
+
 	if (is_inode_flag_set(new_dir, FI_PROJ_INHERIT) &&
 			(!projid_eq(F2FS_I(new_dir)->i_projid,
 			F2FS_I(old_dentry->d_inode)->i_projid)))
@@ -912,7 +938,6 @@ static int f2fs_rename(struct inode *old_dir, struct dentry *old_dentry,
 			f2fs_put_page(old_dir_page, 0);
 		f2fs_i_links_write(old_dir, false);
 	}
-	add_ino_entry(sbi, new_dir->i_ino, TRANS_DIR_INO);
 
 	f2fs_unlock_op(sbi);
 
@@ -951,6 +976,20 @@ static int f2fs_cross_rename(struct inode *old_dir, struct dentry *old_dentry,
 
 	if (unlikely(f2fs_cp_error(sbi)))
 		return -EIO;
+
+	if ((f2fs_encrypted_inode(old_dir) &&
+			!fscrypt_has_encryption_key(old_dir)) ||
+			(f2fs_encrypted_inode(new_dir) &&
+			!fscrypt_has_encryption_key(new_dir)))
+		return -ENOKEY;
+
+	if ((is_inode_flag_set(new_dir, FI_PROJ_INHERIT) &&
+			!projid_eq(F2FS_I(new_dir)->i_projid,
+			F2FS_I(old_dentry->d_inode)->i_projid)) ||
+	    (is_inode_flag_set(new_dir, FI_PROJ_INHERIT) &&
+			!projid_eq(F2FS_I(old_dir)->i_projid,
+			F2FS_I(new_dentry->d_inode)->i_projid)))
+		return -EXDEV;
 
 	if ((is_inode_flag_set(new_dir, FI_PROJ_INHERIT) &&
 			!projid_eq(F2FS_I(new_dir)->i_projid,
@@ -1057,9 +1096,6 @@ static int f2fs_cross_rename(struct inode *old_dir, struct dentry *old_dentry,
 		up_write(&F2FS_I(new_dir)->i_sem);
 	}
 	f2fs_mark_inode_dirty_sync(new_dir, false);
-
-	add_ino_entry(sbi, old_dir->i_ino, TRANS_DIR_INO);
-	add_ino_entry(sbi, new_dir->i_ino, TRANS_DIR_INO);
 
 	f2fs_unlock_op(sbi);
 

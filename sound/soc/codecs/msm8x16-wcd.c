@@ -4508,6 +4508,9 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"RX2 MIX1 INP2", "RX3", "I2S RX3"},
 	{"RX2 MIX1 INP2", "IIR1", "IIR1"},
 	{"RX2 MIX1 INP2", "IIR2", "IIR2"},
+	{"RX2 MIX1 INP3", "RX1", "I2S RX1"},
+	{"RX2 MIX1 INP3", "RX2", "I2S RX2"},
+	{"RX2 MIX1 INP3", "RX3", "I2S RX3"},
 
 	{"RX3 MIX1 INP1", "RX1", "I2S RX1"},
 	{"RX3 MIX1 INP1", "RX2", "I2S RX2"},
@@ -4519,6 +4522,9 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"RX3 MIX1 INP2", "RX3", "I2S RX3"},
 	{"RX3 MIX1 INP2", "IIR1", "IIR1"},
 	{"RX3 MIX1 INP2", "IIR2", "IIR2"},
+	{"RX3 MIX1 INP3", "RX1", "I2S RX1"},
+	{"RX3 MIX1 INP3", "RX2", "I2S RX2"},
+	{"RX3 MIX1 INP3", "RX3", "I2S RX3"},
 
 	{"RX1 MIX2 INP1", "IIR1", "IIR1"},
 	{"RX2 MIX2 INP1", "IIR1", "IIR1"},
@@ -5472,7 +5478,7 @@ static struct regulator *wcd8x16_wcd_codec_find_regulator(
 			return msm8x16->supplies[i].consumer;
 	}
 
-	dev_err(msm8x16->dev, "Error: regulator not found:%s\n"
+	dev_dbg(msm8x16->dev, "Error: regulator not found:%s\n"
 				, name);
 	return NULL;
 }
@@ -5751,6 +5757,7 @@ static int msm8x16_wcd_codec_probe(struct snd_soc_codec *codec)
 	struct msm8x16_wcd *msm8x16_wcd;
 	struct msm8x16_wcd_pdata *pdata;
 	int i, ret;
+	const char *subsys_name = NULL;
 
 	dev_dbg(codec->dev, "%s()\n", __func__);
 
@@ -5880,9 +5887,19 @@ static int msm8x16_wcd_codec_probe(struct snd_soc_codec *codec)
 	/* Set initial cap mode */
 	msm8x16_wcd_configure_cap(codec, false, false);
 	registered_codec = codec;
-	adsp_state_notifier =
-	    subsys_notif_register_notifier("adsp",
-					   &adsp_state_notifier_block);
+	ret = of_property_read_string(codec->dev->of_node,
+				"qcom,subsys-name",
+				&subsys_name);
+	if (ret) {
+		dev_dbg(codec->dev, "missing subsys-name entry in dt node\n");
+		adsp_state_notifier =
+			subsys_notif_register_notifier("adsp",
+			&adsp_state_notifier_block);
+	} else {
+		adsp_state_notifier =
+			subsys_notif_register_notifier(subsys_name,
+			&adsp_state_notifier_block);
+	}
 	if (!adsp_state_notifier) {
 		dev_err(codec->dev, "Failed to register adsp state notifier\n");
 		iounmap(msm8x16_wcd->dig_base);

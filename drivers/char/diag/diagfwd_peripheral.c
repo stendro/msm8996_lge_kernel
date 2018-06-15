@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -240,12 +240,13 @@ static void diagfwd_data_read_done(struct diagfwd_info *fwd_info,
 
 	mutex_lock(&driver->hdlc_disable_mutex);
 	mutex_lock(&fwd_info->data_mutex);
+	mutex_lock(&driver->md_session_lock);
 	session_info = diag_md_session_get_peripheral(fwd_info->peripheral);
 	if (session_info)
 		hdlc_disabled = session_info->hdlc_disabled;
 	else
 		hdlc_disabled = driver->hdlc_disabled;
-
+	mutex_unlock(&driver->md_session_lock);
 	if (!driver->feature[fwd_info->peripheral].encode_hdlc) {
 		if (fwd_info->buf_1 && fwd_info->buf_1->data == buf) {
 			temp_buf = fwd_info->buf_1;
@@ -484,6 +485,7 @@ void diagfwd_peripheral_exit(void)
 	uint8_t peripheral;
 	uint8_t type;
 	struct diagfwd_info *fwd_info = NULL;
+	int transport = 0;
 
 	diag_smd_exit();
 	diag_socket_exit();
@@ -506,7 +508,10 @@ void diagfwd_peripheral_exit(void)
 		driver->diagfwd_dci_cmd[peripheral] = NULL;
 	}
 
-	kfree(early_init_info);
+	for (transport = 0; transport < NUM_TRANSPORT; transport++) {
+		kfree(early_init_info[transport]);
+		early_init_info[transport] = NULL;
+	}
 }
 
 int diagfwd_cntl_register(uint8_t transport, uint8_t peripheral, void *ctxt,
