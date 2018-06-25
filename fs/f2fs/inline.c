@@ -26,7 +26,7 @@ bool f2fs_may_inline_data(struct inode *inode)
 	if (i_size_read(inode) > MAX_INLINE_DATA(inode))
 		return false;
 
-	if (f2fs_encrypted_file(inode))
+	if (f2fs_post_read_required(inode))
 		return false;
 
 	return true;
@@ -157,6 +157,7 @@ int f2fs_convert_inline_page(struct dnode_of_data *dn, struct page *page)
 
 	/* write data page to try to make data consistent */
 	set_page_writeback(page);
+	ClearPageError(page);
 	fio.old_blkaddr = dn->data_blkaddr;
 	set_inode_flag(dn->inode, FI_HOT_DATA);
 	write_data_page(dn, &fio);
@@ -387,8 +388,7 @@ static int f2fs_move_inline_dirents(struct inode *dir, struct page *ipage,
 	f2fs_wait_on_page_writeback(page, DATA, true);
 	zero_user_segment(page, MAX_INLINE_DATA(dir), PAGE_SIZE);
 
-	make_dentry_ptr_inline(dir, &src, inline_dentry);
-	make_dentry_ptr_block(dir, &dst, dentry_blk);
+	dentry_blk = page_address(page);
 
 	make_dentry_ptr_inline(dir, &src, inline_dentry);
 	make_dentry_ptr_block(dir, &dst, dentry_blk);
