@@ -6,7 +6,7 @@
 ** Description: 
 **     High Resolution Time helper functions for Linux.
 **
-** Portions Copyright (c) 2010-2014 Immersion Corporation. All Rights Reserved. 
+** Portions Copyright (c) 2010-2017 Immersion Corporation. All Rights Reserved. 
 **
 ** This file contains Original Code and/or Modifications of Original Code 
 ** as defined in and that are subject to the GNU Public License v2 - 
@@ -70,7 +70,10 @@ static inline int VibeSemIsLocked(struct semaphore *lock)
 static enum hrtimer_restart VibeOSKernelTimerProc(struct hrtimer *timer)
 {
     /* Return right away if timer is not supposed to run */
-    if (!g_bTimerStarted) return  HRTIMER_NORESTART;
+    if (!g_bTimerStarted) {
+		pr_err("%s: g_bTimerStarted : %d\n", __func__, g_bTimerStarted);
+		return  HRTIMER_NORESTART;
+	}
 
     /* Scheduling next timeout value right away */
     if (++g_nWatchdogCounter < WATCHDOG_TIMEOUT)
@@ -130,10 +133,14 @@ static void VibeOSKernelLinuxStartTimer(void)
 
         /* Start the timer */
         g_ktTimerPeriod = ktime_set(0, g_nTimerPeriodMs * 1000000);
-		hrtimer_cancel(&g_tspTimer);
+        hrtimer_cancel(&g_tspTimer);
         hrtimer_start(&g_tspTimer, g_ktTimerPeriod, HRTIMER_MODE_REL);
     }
+#ifdef IMMVIBESPI_USE_BUFFERFULL
+    if (ImmVibeSPI_ForceOut_BufferFull()) do
+#else
     else
+#endif
     {
         int res;  
         /* 
@@ -146,7 +153,13 @@ static void VibeOSKernelLinuxStartTimer(void)
             DbgOutInfo(("VibeOSKernelLinuxStartTimer: down_interruptible interrupted by a signal.\n"));
         }
     }
+#ifdef IMMVIBESPI_USE_BUFFERFULL
+    /* wait if amplifier buffer is full or emptying buffer to realign silence with real time */
+    while (ImmVibeSPI_ForceOut_BufferFull() > 0);
+#endif
+
     VibeOSKernelProcessData(NULL);
+
     /* 
     ** Because of possible NACK handling, the  VibeOSKernelProcessData() call above could take more than
     ** 5 ms on some piezo devices that are buffering output samples; when this happens, the timer
@@ -176,6 +189,10 @@ static void VibeOSKernelLinuxStopTimer(void)
     if (g_bTimerStarted)
     {
         g_bTimerStarted = false;
+	if (VibeSemIsLocked(&g_hSemaphore)) {
+  	    pr_err("%s, VibeSemIsLocked wake up semaphore\n", __func__);
+            up(&g_hSemaphore);
+        }
     }
 
     /* Reset samples buffers */

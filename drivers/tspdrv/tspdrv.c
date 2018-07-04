@@ -6,7 +6,7 @@
 ** Description:
 **     TouchSense Kernel Module main entry-point.
 **
-** Portions Copyright (c) 2008-2015 Immersion Corporation. All Rights Reserved.
+** Portions Copyright (c) 2008-2017 Immersion Corporation. All Rights Reserved.
 **
 ** This file contains Original Code and/or Modifications of Original Code
 ** as defined in and that are subject to the GNU Public License v2 -
@@ -54,7 +54,7 @@ static atomic_t g_bRuntimeRecord;
 #endif
 
 /* Device name and version information */
-#define VERSION_STR " v5.3.19.0\n"                   /* DO NOT CHANGE - this is auto-generated */
+#define VERSION_STR " v5.4.4.1\n"                   /* DO NOT CHANGE - this is auto-generated */
 #define VERSION_STR_LEN 16                          /* account extra space for future extra digits in version number */
 static char g_szDeviceName[  (VIBE_MAX_DEVICE_NAME_LENGTH
                             + VERSION_STR_LEN)
@@ -505,6 +505,11 @@ static int ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsig
 
         case TSPDRV_GET_NUM_ACTUATORS:
             return NUM_ACTUATORS;
+
+#ifdef IMMVIBESPI_DEVICE_GETSTATUS_SUPPORT
+        case TSPDRV_GET_DEVICE_STATUS:
+            return ImmVibeSPI_Device_GetStatus(arg);
+#endif
 
 #ifdef IMMVIBESPI_MULTIPARAM_SUPPORT
         case TSPDRV_GET_PARAM_FILE_ID:

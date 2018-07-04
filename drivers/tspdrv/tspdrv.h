@@ -6,7 +6,7 @@
 ** Description:
 **     Constants and type definitions for the TouchSense Kernel Module.
 **
-** Portions Copyright (c) 2008-2014 Immersion Corporation. All Rights Reserved.
+** Portions Copyright (c) 2008-2017 Immersion Corporation. All Rights Reserved.
 **
 ** This file contains Original Code and/or Modifications of Original Code
 ** as defined in and that are subject to the GNU Public License v2 -
@@ -47,6 +47,7 @@
 #define TSPDRV_SET_RUNTIME_RECORD_BUF_SIZE  _IO(TSPDRV_IOCTL_GROUP, 11)
 #define TSPDRV_GET_RUNTIME_RECORD_BUF_SIZE  _IO(TSPDRV_IOCTL_GROUP, 12)
 #define TSPDRV_GET_PARAM_FILE_ID            _IO(TSPDRV_IOCTL_GROUP, 13)
+#define TSPDRV_GET_DEVICE_STATUS            _IO(TSPDRV_IOCTL_GROUP, 14)
 /*
 ** Frequency constant parameters to control force output values and signals.
 */

@@ -51,6 +51,7 @@
 #define NUM_ACTUATORS       1
 
 #define QPNP_HAP_VMAX_MIN_MV 116
+#define QPNP_HAP_INIT_VMAX_MAX_MV 2088
 
 IMMVIBESPIAPI VibeStatus ImmVibeSPI_ForceOut_SetSamples(VibeUInt8 nActuatorIndex, VibeUInt16 nOutputSignalBitDepth, VibeUInt16 nBufferSizeInBytes, VibeInt8* pForceOutputBuffer);
 
@@ -120,7 +121,7 @@ IMMVIBESPIAPI VibeStatus ImmVibeSPI_ForceOut_Initialize(void)
     }
 
     /* retrieve initial vmax setting (range of actuator) and set initial strength to minimum */
-    vmax_rng = qpnp_haptic_timed_vmax(tdev, 0, 0);
+    vmax_rng = qpnp_haptic_timed_vmax(tdev, QPNP_HAP_INIT_VMAX_MAX_MV, 0);
 
     return tdev ? VIBE_S_SUCCESS : VIBE_E_FAIL;
 }
