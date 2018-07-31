@@ -22,6 +22,7 @@
 #include <linux/syscore_ops.h>
 #include <linux/cpufreq.h>
 #include <trace/events/sched.h>
+#include <clocksource/arm_arch_timer.h>
 #include "sched.h"
 #include "walt.h"
 
@@ -74,7 +75,15 @@ static cpumask_t mpc_mask = CPU_MASK_ALL;
 __read_mostly unsigned int walt_ravg_window = 20000000;
 
 /* Min window size (in ns) = 10ms */
+#ifdef CONFIG_HZ_300
+/*
+ * Tick interval becomes to 3333333 due to
+ * rounding error when HZ=300.
+ */
+#define MIN_SCHED_RAVG_WINDOW (3333333 * 6)
+#else
 #define MIN_SCHED_RAVG_WINDOW 10000000
+#endif
 
 /* Max window size (in ns) = 1s */
 #define MAX_SCHED_RAVG_WINDOW 1000000000
@@ -178,7 +187,6 @@ static int __init set_walt_ravg_window(char *str)
 
 early_param("walt_ravg_window", set_walt_ravg_window);
 
-extern u64 arch_counter_get_cntpct(void);
 static void
 update_window_start(struct rq *rq, u64 wallclock)
 {
@@ -188,7 +196,7 @@ update_window_start(struct rq *rq, u64 wallclock)
 	delta = wallclock - rq->window_start;
 	/* If the MPM global timer is cleared, set delta as 0 to avoid kernel BUG happening */
 	if (delta < 0) {
-		if (arch_counter_get_cntpct() == 0)
+		if (arch_timer_read_counter() == 0)
 			delta = 0;
 		else
 			BUG_ON(1);

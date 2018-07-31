@@ -357,7 +357,8 @@ static int report_latency(struct trace_array *tr, cycle_t delta)
 }
 
 static void
-probe_wakeup_migrate_task(void *ignore, struct task_struct *task, int cpu)
+probe_wakeup_migrate_task(void *ignore, struct task_struct *task, int cpu,
+							unsigned int load)
 {
 	if (task != wakeup_task)
 		return;
@@ -460,7 +461,7 @@ static void wakeup_reset(struct trace_array *tr)
 }
 
 static void
-probe_wakeup(void *ignore, struct task_struct *p)
+probe_wakeup(void *ignore, struct task_struct *p, int success)
 {
 	struct trace_array_cpu *data;
 	int cpu = smp_processor_id();
