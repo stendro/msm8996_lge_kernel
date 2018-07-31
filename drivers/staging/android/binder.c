@@ -52,7 +52,6 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <asm/cacheflush.h>
-#include <linux/atomic.h>
 #include <linux/fdtable.h>
 #include <linux/file.h>
 #include <linux/freezer.h>
@@ -2994,9 +2993,7 @@ static void binder_transaction(struct binder_proc *proc,
 						&return_error);
 			else
 				return_error = BR_DEAD_REPLY;
-				return_error_line = __LINE__;
-				goto err_no_context_mgr_node;
-			}
+			mutex_unlock(&context->context_mgr_node_lock);
 			if (target_node && target_proc == proc) {
 				binder_user_error("%d:%d got transaction to context manager from process owning it\n",
 						  proc->pid, thread->pid);
@@ -3005,7 +3002,6 @@ static void binder_transaction(struct binder_proc *proc,
 				return_error_line = __LINE__;
 				goto err_invalid_target_handle;
 			}
-			mutex_unlock(&context->context_mgr_node_lock);
 		}
 		if (!target_node) {
 			/*
