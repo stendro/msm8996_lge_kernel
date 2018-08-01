@@ -421,7 +421,7 @@ int wl_cfg80211_set_btcoex_allow_bt_inquiry(struct net_device *dev, char *comman
 	#define  BTCX_BT_TASK_INQUIRY_BIT 9
 	static uint32 saved_reg50, modified_reg50;
 	static bool saved_status = FALSE;
-	int ret;
+	int ret = -1;
 	uint32 regaddr = 50;
 
 	if (enabled) {
