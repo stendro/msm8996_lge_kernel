@@ -576,7 +576,7 @@ int lge_get_fota_mode(void)
 
 int __init lge_android_fota(char *s)
 {
-	if(!strncmp(s,"true",strlen("true")) == 0)
+	if(!(strncmp(s,"true",strlen("true")) == 0))
 		android_fota = 1;
 	else
 		android_fota = 0;
