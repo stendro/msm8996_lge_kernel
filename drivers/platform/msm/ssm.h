@@ -54,13 +54,13 @@ enum modem_mode_status {
 };
 
 /* tzapp encode mode request.*/
-__packed struct tzapp_mode_enc_req {
+struct __packed tzapp_mode_enc_req {
 	uint32_t tzapp_ssm_cmd;
 	uint8_t  mode_info[4];
 };
 
 /* tzapp encode mode response.*/
-__packed struct tzapp_mode_enc_rsp {
+struct __packed tzapp_mode_enc_rsp {
 	uint32_t tzapp_ssm_cmd;
 	uint8_t enc_mode_info[ENC_MODE_MAX_SIZE];
 	uint32_t enc_mode_len;
@@ -68,12 +68,12 @@ __packed struct tzapp_mode_enc_rsp {
 };
 
 /* tzapp get mode request.*/
-__packed struct tzapp_get_mode_info_req {
+struct __packed tzapp_get_mode_info_req {
 	uint32_t tzapp_ssm_cmd;
 };
 
 /* tzapp get mode response.*/
-__packed struct tzapp_get_mode_info_rsp {
+struct __packed tzapp_get_mode_info_rsp {
 	uint32_t tzapp_ssm_cmd;
 	uint8_t  enc_mode_info[ENC_MODE_MAX_SIZE];
 	uint32_t enc_mode_len;
