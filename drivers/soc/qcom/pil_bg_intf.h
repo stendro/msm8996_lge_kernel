@@ -26,14 +26,14 @@ enum bg_tz_commands {
 };
 
 /* tzapp bg request.*/
-__packed struct tzapp_bg_req {
+struct __packed tzapp_bg_req {
 	uint8_t tzapp_bg_cmd;
 	phys_addr_t address_fw;
 	size_t size_fw;
 };
 
 /* tzapp bg response.*/
-__packed struct tzapp_bg_rsp {
+struct __packed tzapp_bg_rsp {
 	uint32_t tzapp_bg_cmd;
 	uint32_t bg_info_len;
 	uint32_t status;
