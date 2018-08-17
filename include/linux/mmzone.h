@@ -60,6 +60,9 @@ enum {
 #ifdef CONFIG_MEMORY_ISOLATION
 	MIGRATE_ISOLATE,	/* can't allocate from here */
 #endif
+#ifdef CONFIG_MIGRATE_HIGHORDER
+	MIGRATE_HIGHORDER,
+#endif
 	MIGRATE_TYPES
 };
 
@@ -173,6 +176,9 @@ enum zone_stat_item {
 	NR_ANON_TRANSPARENT_HUGEPAGES,
 	NR_FREE_CMA_PAGES,
 	NR_SWAPCACHE,
+#ifdef CONFIG_MIGRATE_HIGHORDER
+	NR_FREE_HIGHORDER_PAGES,
+#endif
 	NR_VM_ZONE_STAT_ITEMS };
 
 /*
@@ -908,6 +914,9 @@ int min_free_kbytes_sysctl_handler(struct ctl_table *, int,
 extern int sysctl_lowmem_reserve_ratio[MAX_NR_ZONES-1];
 int lowmem_reserve_ratio_sysctl_handler(struct ctl_table *, int,
 					void __user *, size_t *, loff_t *);
+int wmark_tune_level_sysctl_handler(struct ctl_table *, int,
+		void __user *, size_t *, loff_t *);
+
 int percpu_pagelist_fraction_sysctl_handler(struct ctl_table *, int,
 					void __user *, size_t *, loff_t *);
 int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *, int,

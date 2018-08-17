@@ -18,6 +18,10 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 
+#if defined(CONFIG_LGE_MMC_DYNAMIC_LOG)
+#include <linux/mmc/debug_log.h>
+#endif
+
 struct mmc_gpio {
 	struct gpio_desc *ro_gpio;
 	struct gpio_desc *cd_gpio;
@@ -27,13 +31,58 @@ struct mmc_gpio {
 	char cd_label[0];
 };
 
+#ifdef CONFIG_LGE_TRAY_EVENT //support the TRAY uevent
+static int send_sd_slot_tray_state (struct mmc_host *host, int state) {
+	char event_string[20]; /* check the event string length */
+	char *envp[2] = { event_string, NULL };
+
+	if (state)
+		sprintf(event_string, "TRAY_STATE=INSERTED");
+	else
+		sprintf(event_string, "TRAY_STATE=EJECTED");
+
+	pr_info("%s: %s", __func__, envp[0]);
+	return kobject_uevent_env(&host->class_dev.kobj, KOBJ_CHANGE, envp);
+}
+#endif
+
+#ifdef CONFIG_MACH_LGE
+extern unsigned int is_damaged_sd;
+#endif
 static irqreturn_t mmc_gpio_cd_irqt(int irq, void *dev_id)
 {
 	/* Schedule a card detection after a debounce timeout */
 	struct mmc_host *host = dev_id;
 
 	host->trigger_card_event = true;
+
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE, 2015-10-04, H1-BSP-FS@lge.com
+	 * Insertion log of slot detection
+	 */
+	if(!(host->caps & MMC_CAP_NONREMOVABLE))
+		is_damaged_sd = 0;
+
+	pr_info("[LGE][MMC][CCAudit]%s: slot status change detected(%s), GPIO_ACTIVE_%s\n",
+		mmc_hostname(host), mmc_gpio_get_cd(host) ?
+		"INSERTED" : "EJECTED",
+		(host->caps2 & MMC_CAP2_CD_ACTIVE_HIGH) ?
+		"HIGH" : "LOW");
+#endif
+
+#ifdef CONFIG_MACH_LGE
+	/* LGE_CHANGE, 2015-09-23, H1-BSP-FS@lge.com
+	 * Reduce debounce time to make it more sensitive
+	 */
+	mmc_detect_change(host, 0);
+#else
 	mmc_detect_change(host, msecs_to_jiffies(200));
+#endif
+
+#ifdef CONFIG_LGE_TRAY_EVENT //support the TRAY uevent
+	if (send_sd_slot_tray_state(host, mmc_gpio_get_cd(host)) < 0)
+		pr_err("%s: send_sd_slot_tray_state was failed.\n", __func__);
+#endif
 
 	return IRQ_HANDLED;
 }

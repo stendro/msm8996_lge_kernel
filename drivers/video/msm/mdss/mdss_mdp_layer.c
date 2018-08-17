@@ -509,6 +509,12 @@ static int __configure_pipe_params(struct msm_fb_data_type *mfd,
 		pipe->flags |= MDP_BWC_EN;
 	if (layer->flags & MDP_LAYER_PP)
 		pipe->flags |= MDP_OVERLAY_PP_CFG_EN;
+#if defined(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI)
+	if (layer->flags & MDP_LAYER_AOD_FONT_DOWNLOAD_SESSION){
+		if (mfd->watch.font_download_state == FONT_STATE_NONE)
+			mfd->watch.font_download_state = FONT_LAYER_REQUESTED;
+	}
+#endif
 
 	pipe->is_fg = layer->flags & MDP_LAYER_FORGROUND;
 	pipe->img_width = layer->buffer.width & 0x3fff;
@@ -1648,7 +1654,11 @@ static int __validate_layers(struct msm_fb_data_type *mfd,
 	u32 mixer_mux, dst_x;
 	int layer_count = commit->input_layer_cnt;
 
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	struct mdss_mdp_pipe *pipe = NULL, *tmp, *left_blend_pipe;
+#else
 	struct mdss_mdp_pipe *pipe, *tmp, *left_blend_pipe;
+#endif
 	struct mdss_mdp_pipe *right_plist[MAX_PIPES_PER_LM] = {0};
 	struct mdss_mdp_pipe *left_plist[MAX_PIPES_PER_LM] = {0};
 	struct mdss_overlay_private *mdp5_data = mfd_to_mdp5_data(mfd);

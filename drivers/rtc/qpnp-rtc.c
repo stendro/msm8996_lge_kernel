@@ -45,6 +45,10 @@
 #define TO_SECS(arr)		(arr[0] | (arr[1] << 8) | (arr[2] << 16) | \
 							(arr[3] << 24))
 
+#ifdef CONFIG_RTC_DRV_QPNP_YEAR
+static unsigned long rtc_offset_secs;
+#endif
+
 /* Module parameter to control power-on-alarm */
 bool poweron_alarm;
 module_param(poweron_alarm, bool, 0644);
@@ -107,6 +111,10 @@ qpnp_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	struct qpnp_rtc *rtc_dd = dev_get_drvdata(dev);
 
 	rtc_tm_to_time(tm, &secs);
+
+#ifdef CONFIG_RTC_DRV_QPNP_YEAR
+	secs -= rtc_offset_secs;
+#endif
 
 	value[0] = secs & 0xFF;
 	value[1] = (secs >> 8) & 0xFF;
@@ -265,7 +273,11 @@ qpnp_rtc_read_time(struct device *dev, struct rtc_time *tm)
 		}
 	}
 
+#ifdef CONFIG_RTC_DRV_QPNP_YEAR
+	secs = rtc_offset_secs + TO_SECS(value);
+#else
 	secs = TO_SECS(value);
+#endif
 
 	rtc_time_to_tm(secs, tm);
 
@@ -303,11 +315,21 @@ qpnp_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_LGE_PM
+	dev_err(dev, "h:m:s == %d:%d:%d, d/m/y = %d/%d/%d\n",
+			rtc_tm.tm_hour, rtc_tm.tm_min, rtc_tm.tm_sec,
+			rtc_tm.tm_mday, rtc_tm.tm_mon, rtc_tm.tm_year);
+#endif
+
 	rtc_tm_to_time(&rtc_tm, &secs_rtc);
 	if (secs < secs_rtc) {
 		dev_err(dev, "Trying to set alarm in the past\n");
 		return -EINVAL;
 	}
+
+#ifdef CONFIG_RTC_DRV_QPNP_YEAR
+	secs -= rtc_offset_secs;
+#endif
 
 	value[0] = secs & 0xFF;
 	value[1] = (secs >> 8) & 0xFF;
@@ -337,10 +359,15 @@ qpnp_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 
 	rtc_dd->alarm_ctrl_reg1 = ctrl_reg;
 
+#ifdef CONFIG_LGE_PM
+	dev_err(dev, "Alarm Set for h:r:s=%d:%d:%d, d/m/y=%d/%d/%d\n",
+#else
 	dev_dbg(dev, "Alarm Set for h:r:s=%d:%d:%d, d/m/y=%d/%d/%d\n",
+#endif
 			alarm->time.tm_hour, alarm->time.tm_min,
 			alarm->time.tm_sec, alarm->time.tm_mday,
 			alarm->time.tm_mon, alarm->time.tm_year);
+
 rtc_rw_fail:
 	spin_unlock_irqrestore(&rtc_dd->alarm_ctrl_lock, irq_flags);
 	return rc;
@@ -362,7 +389,12 @@ qpnp_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		return rc;
 	}
 
+#ifdef CONFIG_RTC_DRV_QPNP_YEAR
+	secs = rtc_offset_secs + TO_SECS(value);
+#else
 	secs = TO_SECS(value);
+#endif
+
 	rtc_time_to_tm(secs, &alarm->time);
 
 	rc = rtc_valid_tm(&alarm->time);
@@ -479,6 +511,10 @@ static int qpnp_rtc_probe(struct spmi_device *spmi)
 	struct qpnp_rtc *rtc_dd;
 	struct resource *resource;
 	struct spmi_resource *spmi_resource;
+
+#ifdef CONFIG_RTC_DRV_QPNP_YEAR
+	rtc_offset_secs = mktime(CONFIG_RTC_DRV_QPNP_YEAR, 1, 1, 0, 0, 0);
+#endif
 
 	rtc_dd = devm_kzalloc(&spmi->dev, sizeof(*rtc_dd), GFP_KERNEL);
 	if (rtc_dd == NULL) {

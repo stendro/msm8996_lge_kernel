@@ -332,8 +332,9 @@ static int usb6fire_control_line_phono_info(struct snd_kcontrol *kcontrol,
 	uinfo->value.enumerated.items = 2;
 	if (uinfo->value.enumerated.item > 1)
 		uinfo->value.enumerated.item = 1;
-	strcpy(uinfo->value.enumerated.name,
-			line_phono_texts[uinfo->value.enumerated.item]);
+	strlcpy(uinfo->value.enumerated.name,
+			line_phono_texts[uinfo->value.enumerated.item],
+            sizeof(uinfo->value.enumerated.name));
 	return 0;
 }
 
@@ -366,8 +367,9 @@ static int usb6fire_control_opt_coax_info(struct snd_kcontrol *kcontrol,
 	uinfo->value.enumerated.items = 2;
 	if (uinfo->value.enumerated.item > 1)
 		uinfo->value.enumerated.item = 1;
-	strcpy(uinfo->value.enumerated.name,
-			opt_coax_texts[uinfo->value.enumerated.item]);
+	strlcpy(uinfo->value.enumerated.name,
+			opt_coax_texts[uinfo->value.enumerated.item],
+            sizeof(uinfo->value.enumerated.name));
 	return 0;
 }
 

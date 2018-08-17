@@ -95,6 +95,9 @@ module_param(modem_dbg_cfg, uint, S_IRUGO | S_IWUSR);
 
 static void modem_log_rmb_regs(void __iomem *base)
 {
+	if (system_state == SYSTEM_RESTART || system_state == SYSTEM_POWER_OFF)
+		return;
+
 	pr_err("RMB_MBA_IMAGE: %08x\n", readl_relaxed(base + RMB_MBA_IMAGE));
 	pr_err("RMB_PBL_STATUS: %08x\n", readl_relaxed(base + RMB_PBL_STATUS));
 	pr_err("RMB_MBA_COMMAND: %08x\n",
@@ -338,6 +341,12 @@ int __pil_mss_deinit_image(struct pil_desc *pil, bool err_path)
 
 	if (q6_drv->ahb_clk_vote)
 		clk_disable_unprepare(q6_drv->ahb_clk);
+
+	if (system_state == SYSTEM_RESTART ||
+		system_state == SYSTEM_POWER_OFF) {
+		pr_err("Leaking MBA memory to prevent access during lockdown\n");
+		return ret;
+	}
 
 	/* In case of any failure where reclaiming MBA and DP memory
 	 * could not happen, free the memory here */
@@ -749,11 +758,12 @@ static int pil_msa_mss_reset_mba_load_auth_mdt(struct pil_desc *pil,
 		phys_addr_t modem_reg, size_t sz_modem_reg)
 {
 	int ret;
-
+	dev_info(pil->dev, "pil : mss reset and load mba\n");
 	ret = pil_mss_reset_load_mba(pil);
 	if (ret)
 		return ret;
 
+	dev_info(pil->dev, "pil : msa auth modem.mdt.\n");
 	return pil_msa_auth_modem_mdt(pil, metadata, size,
 			modem_reg, sz_modem_reg);
 }

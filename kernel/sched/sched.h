@@ -1138,6 +1138,10 @@ dec_cumulative_runnable_avg(struct hmp_sched_stats *stats,
 
 	BUG_ON((s64)stats->cumulative_runnable_avg < 0);
 
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	asm volatile ("isb\n");
+#endif
+
 	set_pred_demands_sum(stats, stats->pred_demands_sum -
 			     p->ravg.pred_demand);
 	verify_pred_demands_sum(stats);
@@ -1351,9 +1355,17 @@ static inline void clear_reserved(int cpu)
 
 static inline u64 cpu_cravg_sync(int cpu, int sync)
 {
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	struct rq *rq = NULL;
+#else
 	struct rq *rq = cpu_rq(cpu);
+#endif
 	u64 load;
 
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	asm volatile ("isb\n");
+	rq = cpu_rq(cpu);
+#endif
 	load = rq->hmp_stats.cumulative_runnable_avg;
 
 	/*

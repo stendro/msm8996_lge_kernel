@@ -373,6 +373,22 @@ static struct ctl_table net_core_table[] = {
 		.extra1		= &one,
 		.extra2		= &max_skb_frags,
 	},
+    /* 2017-05-19 yunsik.lee@lge.com LGP_DATA_UDP_PREVENT_ICMPv6_WITH_CLAT_IID [START] */
+    {
+        .procname	= "clat_iid1",
+        .data		= &sysctl_clat_iid1,
+        .maxlen 	= sizeof(unsigned int),
+        .mode		= 0644,
+        .proc_handler	= proc_dointvec,
+    },
+    {
+        .procname	= "clat_iid2",
+        .data		= &sysctl_clat_iid2,
+        .maxlen 	= sizeof(unsigned int),
+        .mode		= 0644,
+        .proc_handler	= proc_dointvec,
+    },
+    /* 2017-05-19 yunsik.lee@lge.com LGP_DATA_UDP_PREVENT_ICMPv6_WITH_CLAT_IID [END] */
 	{ }
 };
 

@@ -331,6 +331,16 @@ static int sdcardfs_read_super(struct vfsmount *mnt, struct super_block *sb,
 
 	/* setup permission policy */
 	sb_info->obbpath_s = kzalloc(PATH_MAX, GFP_KERNEL);
+#ifdef CONFIG_MACH_LGE
+	/*
+	 * Fix WBT test (NPD.FUNC.MUST)
+	 */
+	if (!sb_info->obbpath_s) {
+		pr_crit("sdcardfs: read_super: out of memory 2\n");
+		err = -ENOMEM;
+		goto out_freeroot;
+	}
+#endif
 	mutex_lock(&sdcardfs_super_list_lock);
 	if (sb_info->options.multiuser) {
 		setup_derived_state(sb->s_root->d_inode, PERM_PRE_ROOT,

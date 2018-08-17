@@ -36,7 +36,7 @@ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
 
 	ecryptfs_printk(KERN_DEBUG, "Auth tok at mem loc [%p]:\n",
 			auth_tok);
-	if (auth_tok->flags & ECRYPTFS_PRIVATE_KEY) {
+	if (auth_tok->token_type & ECRYPTFS_PRIVATE_KEY) {
 		ecryptfs_printk(KERN_DEBUG, " * private key type\n");
 	} else {
 		ecryptfs_printk(KERN_DEBUG, " * passphrase type\n");
@@ -118,7 +118,7 @@ void ecryptfs_dump_hex(char *data, int bytes)
 	if (add_newline)
 		printk("\n");
 }
-
+#ifndef CONFIG_MACH_LGE
 void ecryptfs_dump_salt_hex(char *data, int key_size,
 		const struct ecryptfs_crypt_stat *crypt_stat)
 {
@@ -148,3 +148,4 @@ void ecryptfs_dump_cipher(struct ecryptfs_crypt_stat *stat)
 				stat->cipher_mode);
 
 }
+#endif

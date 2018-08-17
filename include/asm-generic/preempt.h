@@ -7,10 +7,13 @@
 
 static __always_inline int preempt_count(void)
 {
-	return current_thread_info()->preempt_count;
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	asm volatile ("isb\n");
+#endif
+	return READ_ONCE(current_thread_info()->preempt_count);
 }
 
-static __always_inline int *preempt_count_ptr(void)
+static __always_inline volatile int *preempt_count_ptr(void)
 {
 	return &current_thread_info()->preempt_count;
 }
@@ -53,12 +56,24 @@ static __always_inline bool test_preempt_need_resched(void)
 
 static __always_inline void __preempt_count_add(int val)
 {
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	volatile int *ptr = preempt_count_ptr();
+	asm volatile ("isb\n");
+	*ptr += val;
+#else
 	*preempt_count_ptr() += val;
+#endif
 }
 
 static __always_inline void __preempt_count_sub(int val)
 {
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	volatile int *ptr = preempt_count_ptr();
+	asm volatile ("isb\n");
+	*ptr -= val;
+#else
 	*preempt_count_ptr() -= val;
+#endif
 }
 
 static __always_inline bool __preempt_count_dec_and_test(void)

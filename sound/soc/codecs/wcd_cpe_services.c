@@ -418,6 +418,7 @@ unlock_and_exit:
 
 static void cpe_create_worker_thread(struct cpe_info *t_info)
 {
+	pr_debug("%s:\n", __func__);
 	INIT_LIST_HEAD(&t_info->main_queue);
 	init_completion(&t_info->cmd_complete);
 	init_completion(&t_info->thread_comp);
@@ -1002,6 +1003,8 @@ static enum cpe_process_result cpe_boot_initialize(struct cpe_info *t_info,
 	struct cpe_svc_notification payload;
 	struct cmi_core_svc_event_system_boot *p = NULL;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (CMI_GET_OPCODE(t_info->tgt->outbox) !=
 		CPE_CORE_SVC_EVENT_SYSTEM_BOOT) {
 		broacast_boot_failed();
@@ -1036,6 +1039,7 @@ static enum cpe_process_result cpe_boot_initialize(struct cpe_info *t_info,
 	(*cpe_rc) = cpe_send_msg_to_inbox(t_info,
 			CPE_CORE_SVC_CMD_SHARED_MEM_ALLOC, NULL);
 	rc = CPE_PROC_SUCCESS;
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 	return rc;
 }
 
@@ -1145,6 +1149,7 @@ static enum cpe_process_result cpe_boot_complete(
 {
 	struct cmi_core_svc_cmdrsp_shared_mem_alloc *p = NULL;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
 	if (CMI_GET_OPCODE(t_info->tgt->outbox) !=
 		CPE_CORE_SVC_CMDRSP_SHARED_MEM_ALLOC) {
 		broacast_boot_failed();
@@ -1175,7 +1180,7 @@ static enum cpe_process_result cpe_boot_complete(
 				__func__);
 	}
 
-	pr_debug("%s: boot complete\n", __func__);
+	pr_info("%s: boot complete\n", __func__);
 	return CPE_SVC_SUCCESS;
 }
 
@@ -1540,6 +1545,8 @@ void *cpe_svc_initialize(
 		(struct cpe_svc_init_param *) context;
 	void *client_context = NULL;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (cpe_d.cpe_default_handle &&
 	    cpe_d.cpe_default_handle->initialized == true)
 		return (void *)cpe_d.cpe_default_handle;
@@ -1612,7 +1619,7 @@ void *cpe_svc_initialize(
 	t_info->cpe_start_notification = broadcast_boot_event;
 	mutex_init(&cpe_d.cpe_api_mutex);
 	mutex_init(&cpe_d.cpe_svc_lock);
-	pr_debug("%s: cpe services initialized\n", __func__);
+	pr_info("%s: cpe services initialized\n", __func__);
 	t_info->state = CPE_STATE_INITIALIZED;
 	t_info->initialized = true;
 
@@ -1743,6 +1750,8 @@ enum cpe_svc_result cpe_svc_boot(void *cpe_handle, int debug_mode)
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
 	struct cpe_info *t_info = (struct cpe_info *)cpe_handle;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	CPE_SVC_GRAB_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
 	if (!t_info)
 		t_info = cpe_d.cpe_default_handle;
@@ -1765,6 +1774,9 @@ enum cpe_svc_result cpe_svc_boot(void *cpe_handle, int debug_mode)
 	}
 
 	CPE_SVC_REL_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
+
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
+
 	return rc;
 }
 
@@ -1873,6 +1885,8 @@ enum cpe_svc_result cpe_svc_reset(void *cpe_handle)
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
 	struct cpe_info *t_info = (struct cpe_info *)cpe_handle;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	CPE_SVC_GRAB_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
 	if (!t_info)
 		t_info = cpe_d.cpe_default_handle;
@@ -1894,6 +1908,8 @@ enum cpe_svc_result cpe_svc_reset(void *cpe_handle)
 		t_info->substate = CPE_SS_IDLE;
 	}
 	CPE_SVC_REL_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
+
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return rc;
 }
@@ -2572,6 +2588,8 @@ static enum cpe_svc_result cpe_tgt_wcd9335_boot(int debug_mode)
 {
 	enum cpe_svc_result rc = CPE_SVC_SUCCESS;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (!debug_mode)
 		rc |= cpe_update_bits(
 				WCD9335_CPE_SS_WDOG_CFG,
@@ -2590,6 +2608,7 @@ static enum cpe_svc_result cpe_tgt_wcd9335_boot(int debug_mode)
 			__func__, rc);
 		rc = CPE_SVC_FAILED;
 	}
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return rc;
 }
@@ -2742,6 +2761,8 @@ static enum cpe_svc_result cpe_tgt_wcd9335_read_RAM(struct cpe_info *t_info,
 	u32 ptr_update = true;
 	bool autoinc;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (!mem_seg) {
 		pr_err("%s: Invalid buffer\n", __func__);
 		return CPE_SVC_INVALID_HANDLE;
@@ -2803,6 +2824,7 @@ static enum cpe_svc_result cpe_tgt_wcd9335_read_RAM(struct cpe_info *t_info,
 	if (rc)
 		pr_err("%s: Failed to read registers, err = %d\n",
 			__func__, rc);
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return rc;
 }
@@ -2817,6 +2839,8 @@ static enum cpe_svc_result cpe_tgt_wcd9335_write_RAM(struct cpe_info *t_info,
 	u8 *temp_ptr = NULL;
 	u32 temp_size = 0;
 	bool autoinc;
+
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
 
 	if (!mem_seg) {
 		pr_err("%s: Invalid mem segment\n",
@@ -2863,8 +2887,14 @@ static enum cpe_svc_result cpe_tgt_wcd9335_write_RAM(struct cpe_info *t_info,
 			return CPE_SVC_FAILED;
 		}
 
-		cpe_register_write_repeat(WCD9335_CPE_SS_MEM_BANK_0,
-			temp_ptr, to_write);
+		rc = cpe_register_write_repeat(WCD9335_CPE_SS_MEM_BANK_0,
+		     temp_ptr, to_write);
+		if (rc) {
+			pr_err("%s: cpe_register_write_repeat error rc=%d\n", __func__,rc);
+			cpe_register_write(WCD9335_CPE_SS_MEM_CTRL, 0);
+			return rc;
+		}
+
 		temp_size += CHUNK_SIZE;
 		temp_ptr += CHUNK_SIZE;
 	}
@@ -2874,6 +2904,8 @@ static enum cpe_svc_result cpe_tgt_wcd9335_write_RAM(struct cpe_info *t_info,
 	if (rc)
 		pr_err("%s: Failed to write registers, err = %d\n",
 			__func__, rc);
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
+
 	return rc;
 }
 
@@ -2972,6 +3004,8 @@ static enum cpe_svc_result cpe_tgt_wcd9335_init(
 	if (!param)
 		return CPE_SVC_INVALID_HANDLE;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (codec_info->id == CPE_SVC_CODEC_WCD9335) {
 		param->tgt_boot = cpe_tgt_wcd9335_boot;
 		param->tgt_cpar_init_done = cpe_tgt_wcd9335_is_cpar_init_done;
@@ -3006,6 +3040,7 @@ static enum cpe_svc_result cpe_tgt_wcd9335_init(
 			return CPE_SVC_NO_MEMORY;
 		}
 	}
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return CPE_SVC_SUCCESS;
 }

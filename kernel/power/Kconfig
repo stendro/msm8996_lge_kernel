@@ -119,6 +119,10 @@ config PM_AUTOSLEEP
 	Allow the kernel to trigger a system transition into a global sleep
 	state automatically whenever there are no active wakeup sources.
 
+config PM_SUSPEND_BG_SYNC
+	bool "Background sync in supsend"
+	def_bool y
+
 config PM_WAKELOCKS
 	bool "User space wakeup sources interface"
 	depends on PM_SLEEP
@@ -136,7 +140,7 @@ config PM_WAKELOCKS_LIMIT
 config PM_WAKELOCKS_GC
 	bool "Garbage collector for user space wakeup sources"
 	depends on PM_WAKELOCKS
-	default y
+	default n
 
 config PM_RUNTIME
 	bool "Run-time PM core functionality"

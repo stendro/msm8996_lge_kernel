@@ -9,7 +9,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-
 #include <linux/module.h>
 #include <linux/firmware.h>
 #include <linux/device.h>
@@ -371,6 +370,9 @@ static int wcd_cpe_enable_cpe_clks(struct wcd_cpe_core *core, bool enable)
 {
 	int ret, ret1;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
+
 	if (!core || !core->cpe_cdc_cb ||
 	    !core->cpe_cdc_cb->cpe_clk_en) {
 		pr_err("%s: invalid handle\n",
@@ -404,6 +406,8 @@ static int wcd_cpe_enable_cpe_clks(struct wcd_cpe_core *core, bool enable)
 
 	if (enable)
 		core->cpe_clk_ref++;
+
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return 0;
 
@@ -780,6 +784,9 @@ static int wcd_cpe_check_new_image(struct wcd_cpe_core *core)
 	int rc = 0;
 	char temp_img_name[WCD_CPE_IMAGE_FNAME_MAX];
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
+
 	if (!strcmp(core->fname, core->dyn_fname) &&
 	    core->ssr_type != WCD_CPE_INITIALIZED) {
 		dev_dbg(core->dev,
@@ -798,6 +805,9 @@ static int wcd_cpe_check_new_image(struct wcd_cpe_core *core)
 		WCD_CPE_IMAGE_FNAME_MAX);
 
 	rc = wcd_cpe_load_fw(core, ELF_FLAG_EXECUTE);
+
+	pr_info("CPE load fw func : %s , line : %d\n", __func__, __LINE__);
+
 	if (rc) {
 		dev_err(core->dev,
 			"%s: Failed to dload new image %s, err = %d\n",
@@ -814,6 +824,9 @@ static int wcd_cpe_check_new_image(struct wcd_cpe_core *core)
 		dev_info(core->dev, "%s: fw changed to %s\n",
 			 __func__, core->fname);
 	}
+
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
+
 done:
 	return rc;
 }
@@ -822,6 +835,8 @@ static int wcd_cpe_enable(struct wcd_cpe_core *core,
 		bool enable)
 {
 	int ret = 0;
+	int timeout = 0;
+	int err_cnt = 0;
 
 	if (enable) {
 		/* Reset CPE first */
@@ -844,8 +859,20 @@ static int wcd_cpe_enable(struct wcd_cpe_core *core,
 		if (ret)
 			goto fail_boot;
 
-		/* Dload data section */
-		ret = wcd_cpe_load_fw(core, ELF_FLAG_RW);
+		for(err_cnt = 0; err_cnt < 10; err_cnt++){
+			/* Dload data section */
+			ret = wcd_cpe_load_fw(core, ELF_FLAG_RW);
+			if (ret) {
+				pr_err("%s: wcd_cpe_load_fw error ret=%d. retry.\n", __func__,ret);
+				msleep(5);
+			} else {
+				if(err_cnt > 0){
+					pr_err("%s: wcd_cpe_load_fw error count=%d.\n", __func__,err_cnt);
+				}
+				break;
+			}
+		}
+
 		if (ret) {
 			dev_err(core->dev,
 				"%s: Failed to dload data section, err = %d\n",
@@ -875,7 +902,14 @@ static int wcd_cpe_enable(struct wcd_cpe_core *core,
 			"%s: waiting for CPE bootup\n",
 			__func__);
 
-		wait_for_completion(&core->online_compl);
+		timeout = wait_for_completion_timeout(&core->online_compl, msecs_to_jiffies(1000));
+		if (!timeout) {
+			dev_err(core->dev,
+				"%s: Timeout boot CPE.\n",
+				__func__);
+			ret = -EINVAL;
+			goto fail_boot;
+		}
 
 		dev_dbg(core->dev,
 			"%s: CPE bootup done\n",
@@ -1454,6 +1488,8 @@ static int wcd_cpe_setup_irqs(struct wcd_cpe_core *core)
 	struct wcd9xxx *wcd9xxx = dev_get_drvdata(codec->dev->parent);
 	struct wcd9xxx_core_resource *core_res = &wcd9xxx->core_res;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	ret = wcd9xxx_request_irq(core_res,
 				  core->irq_info.cpe_engine_irq,
 				  svass_engine_irq, "SVASS_Engine", core);
@@ -1487,6 +1523,8 @@ static int wcd_cpe_setup_irqs(struct wcd_cpe_core *core)
 			__func__);
 		goto fail_exception_irq;
 	}
+
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return 0;
 
@@ -1636,9 +1674,15 @@ static int wcd_cpe_vote(struct wcd_cpe_core *core,
 			ret = wcd_cpe_enable(core, enable);
 			if (ret) {
 				dev_err(core->dev,
-					"%s: CPE enable failed, err = %d\n",
+					"%s: CPE enable failed: retrying, err = %d\n",
 					__func__, ret);
-				goto done;
+				ret = wcd_cpe_enable(core, enable);
+				if (ret) {
+					dev_err(core->dev,
+						"%s: CPE enable failed, err = %d\n",
+						__func__, ret);
+					goto done;
+				}
 			}
 		} else {
 			dev_dbg(core->dev,
@@ -3554,6 +3598,8 @@ static int wcd_cpe_lsm_lab_control(
 
 	pr_debug("%s: enter payload_size = %d Enable %d\n",
 		 __func__, pld_size, enable);
+
+	memset(&cpe_lab_enable, 0, sizeof(cpe_lab_enable));
 
 	if (fill_lsm_cmd_header_v0_inband(&cpe_lab_enable.hdr, session->id,
 		(u8) pld_size, CPE_LSM_SESSION_CMD_SET_PARAMS_V2)) {

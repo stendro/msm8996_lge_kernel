@@ -294,8 +294,12 @@ static void __cache_size_refresh(void)
 		dm_bufio_cache_size_latch = dm_bufio_default_cache_size;
 	}
 
+#ifdef CONFIG_MACH_LGE
+	dm_bufio_cache_size_per_client = 64*1024*1024;
+#else
 	dm_bufio_cache_size_per_client = dm_bufio_cache_size_latch /
 					 (dm_bufio_client_count ? : 1);
+#endif
 }
 
 /*
@@ -591,6 +595,66 @@ static void use_inline_bio(struct dm_buffer *b, int rw, sector_t block,
 
 	submit_bio(rw, &b->bio);
 }
+
+#ifdef CONFIG_LGE_DM_VERITY_RECOVERY
+void* dm_direct_read(sector_t block, struct dm_bufio_client *bufio)
+{
+	void* data = NULL;
+	unsigned block_size = bufio->block_size;
+	struct block_device *bdev = bufio->bdev;
+	gfp_t gfp_mask = GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN;
+
+	if (block_size <= PAGE_SIZE) {
+		data = (void*)__get_free_pages(gfp_mask, 0);
+	}
+	else {
+		// vmalloc case is not support yet. Now, UFS/eMMC block size is not greather than 4KB.
+		goto return_data;
+	}
+
+	if(data) {
+		struct bio bio;
+		struct bio_vec bio_vec;
+	    unsigned char sectors_per_block_bits = ffs(block_size) - 1 - SECTOR_SHIFT;
+
+		bio_init(&bio);
+		bio.bi_max_vecs = 1;
+		bio.bi_io_vec = &bio_vec;
+		bio.bi_max_vecs = DM_BUFIO_INLINE_VECS;
+		bio.bi_iter.bi_sector = block << sectors_per_block_bits;
+		bio.bi_bdev = bdev;
+
+		if (!bio_add_page(&bio, virt_to_page(data),
+				  PAGE_SIZE, virt_to_phys(data) & (PAGE_SIZE - 1))) {
+			free_pages((unsigned long)data, 0);
+			data = NULL;
+			goto return_data;
+		}
+
+		submit_bio_wait(READ, &bio);
+		printk(KERN_ERR "%s block:%d, data:%p(page:%p)(phys:%p)\n",__func__, (int)block, data, (void*)virt_to_page(data), (void*)virt_to_phys(data));
+	}
+return_data:
+	return data;
+}
+
+void dm_direct_free(void* data)
+{
+	printk(KERN_ERR "%s data:%p(page:%p)(phys:%p)\n",__func__, data, (void*)virt_to_page(data), (void*)virt_to_phys(data));
+	if(data)
+		free_pages((unsigned long)data, 0);
+}
+
+void dm_verity_recovery_lock(struct dm_bufio_client *bufio)
+{
+	dm_bufio_lock(bufio);
+}
+
+void dm_verity_recovery_unlock(struct dm_bufio_client *bufio)
+{
+	dm_bufio_unlock(bufio);
+}
+#endif
 
 static void submit_io(struct dm_buffer *b, int rw, sector_t block,
 		      bio_end_io_t *end_io)
@@ -1523,9 +1587,7 @@ dm_bufio_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
 	unsigned long count;
 
 	c = container_of(shrink, struct dm_bufio_client, shrinker);
-	if (sc->gfp_mask & __GFP_FS)
-		dm_bufio_lock(c);
-	else if (!dm_bufio_trylock(c))
+	if (!dm_bufio_trylock(c))
 		return 0;
 
 	count = c->n_buffers[LIST_CLEAN] + c->n_buffers[LIST_DIRTY];

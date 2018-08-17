@@ -1197,8 +1197,12 @@ static void timekeeping_resume(void)
 		sleeptime_injected = true;
 	}
 
-	if (sleeptime_injected)
+	if (sleeptime_injected){
 		__timekeeping_inject_sleeptime(tk, &ts_delta);
+
+		pr_info("Suspended for %lu.%03lu seconds\n", ts_delta.tv_sec,
+			ts_delta.tv_nsec / NSEC_PER_MSEC);
+	}
 
 	/* Re-base the last cycle value */
 	tk->tkr_mono.cycle_last = cycle_now;

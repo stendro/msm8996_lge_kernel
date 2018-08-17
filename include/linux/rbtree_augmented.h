@@ -108,12 +108,14 @@ rbstatic const struct rb_augment_callbacks rbname = {			\
 
 static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p)
 {
+	asm volatile ("isb\n");
 	rb->__rb_parent_color = rb_color(rb) | (unsigned long)p;
 }
 
 static inline void rb_set_parent_color(struct rb_node *rb,
 				       struct rb_node *p, int color)
 {
+	asm volatile ("isb\n");
 	rb->__rb_parent_color = (unsigned long)p | color;
 }
 
@@ -121,6 +123,7 @@ static inline void
 __rb_change_child(struct rb_node *old, struct rb_node *new,
 		  struct rb_node *parent, struct rb_root *root)
 {
+	asm volatile ("isb\n");
 	if (parent) {
 		if (parent->rb_left == old)
 			WRITE_ONCE(parent->rb_left, new);
@@ -133,6 +136,59 @@ __rb_change_child(struct rb_node *old, struct rb_node *new,
 extern void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new));
 
+#include <asm/cacheflush.h>
+
+#define BUG_ON_SANITY_CHECK_FAILURE			1	/* used to trigger BUG when an error condition is detected */
+#define USE_RB_ERASE_SANITY_CHECK_BEFORE	0	/* used to check RB node before removal, node should be either parent->rb_left or parent->rb_right */
+#define USE_RB_ERASE_SANITY_CHECK_AFTER		1	/* used to check RB node after removal, node->rb_left and node->rb_right should be pointing to a new parent */
+
+#if USE_RB_ERASE_SANITY_CHECK_BEFORE
+static noinline void __rb_erase_sanity_check_before(struct rb_node *node)
+{
+	struct rb_node *parent = rb_parent(node);
+	if (parent && (parent->rb_left != node) && (parent->rb_right != node)) {
+		pr_info("[%s] + %p, %lx => ", __func__, node, node->__rb_parent_color);
+		__dma_flush_range((void *)node, (void *)node + sizeof(struct rb_node));
+		pr_info("[%s] - %p, %lx\n", __func__, node, node->__rb_parent_color);
+
+#if BUG_ON_SANITY_CHECK_FAILURE
+		BUG();
+#endif
+	}
+
+	return;
+}
+#endif
+
+#if USE_RB_ERASE_SANITY_CHECK_AFTER
+static noinline void __rb_erase_sanity_check_after(struct rb_node *node)
+{
+	if (node->rb_left && (rb_parent(node->rb_left) == node)) {
+		pr_info("[%s] + %p, %p, %p => ", __func__, node, node->rb_left, rb_parent(node->rb_left));
+		__dma_flush_range((void *)node, (void *)node + sizeof(struct rb_node));
+		__dma_flush_range((void *)node->rb_left, (void *)node->rb_left + sizeof(struct rb_node));
+		pr_info("[%s] - %p, %p, %p\n", __func__, node, node->rb_left, rb_parent(node->rb_left));
+		goto error;
+	}
+
+	if (node->rb_right && (rb_parent(node->rb_right) == node)) {
+		pr_info("[%s] ++ %p, %p, %p => ", __func__, node, node->rb_right, rb_parent(node->rb_right));
+		__dma_flush_range((void *)node, (void *)node + sizeof(struct rb_node));
+		__dma_flush_range((void *)node->rb_right, (void *)node->rb_right + sizeof(struct rb_node));
+		pr_info("[%s] -- %p, %p, %p\n", __func__, node, node->rb_right, rb_parent(node->rb_right));
+		goto error;
+	}
+	
+	return;
+
+error:
+#if BUG_ON_SANITY_CHECK_FAILURE
+	BUG();
+#endif
+
+	return;
+}
+#endif
 static __always_inline struct rb_node *
 __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 		     const struct rb_augment_callbacks *augment)
@@ -142,6 +198,10 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 	struct rb_node *parent, *rebalance;
 	unsigned long pc;
 
+#if USE_RB_ERASE_SANITY_CHECK_BEFORE
+	__rb_erase_sanity_check_before(node);
+#endif
+	asm volatile ("isb\n");
 	if (!tmp) {
 		/*
 		 * Case 1: node to erase has no more than 1 child (easy!)
@@ -234,6 +294,10 @@ __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
 	}
 
 	augment->propagate(tmp, NULL);
+
+#if USE_RB_ERASE_SANITY_CHECK_AFTER
+	__rb_erase_sanity_check_after(node);
+#endif
 	return rebalance;
 }
 

@@ -53,6 +53,11 @@
 #include <trace/events/skb.h>
 #include "udp_impl.h"
 
+/* 2017-05-19 yunsik.lee@lge.com LGP_DATA_UDP_PREVENT_ICMPv6_WITH_CLAT_IID [START] */
+unsigned int sysctl_clat_iid1 __read_mostly = 0;
+unsigned int sysctl_clat_iid2 __read_mostly = 0;
+/* 2017-05-19 yunsik.lee@lge.com LGP_DATA_UDP_PREVENT_ICMPv6_WITH_CLAT_IID [END] */
+
 static u32 udp6_ehashfn(const struct net *net,
 			const struct in6_addr *laddr,
 			const u16 lport,
@@ -919,6 +924,14 @@ int __udp6_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 		goto csum_error;
 
 	UDP6_INC_STATS_BH(net, UDP_MIB_NOPORTS, proto == IPPROTO_UDPLITE);
+
+    /* 2017-05-19 yunsik.lee@lge.com LGP_DATA_UDP_PREVENT_ICMPv6_WITH_CLAT_IID [START] */
+    if ((sysctl_clat_iid1 == ntohl(daddr->s6_addr32[2])) && (sysctl_clat_iid2 == ntohl(daddr->s6_addr32[3]))) {
+        kfree_skb(skb);
+        return 0;
+    }
+    /* 2017-05-19 yunsik.lee@lge.com LGP_DATA_UDP_PREVENT_ICMPv6_WITH_CLAT_IID [END] */
+
 	icmpv6_send(skb, ICMPV6_DEST_UNREACH, ICMPV6_PORT_UNREACH, 0);
 
 	kfree_skb(skb);

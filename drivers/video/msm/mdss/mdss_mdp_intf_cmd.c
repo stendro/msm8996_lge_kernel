@@ -22,6 +22,10 @@
 #include "mdss_mdp_trace.h"
 #include "mdss_dsi_clk.h"
 #include <linux/interrupt.h>
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+#include <linux/input/lge_touch_notify.h>
+#include <soc/qcom/lge/board_lge.h>
+#endif
 
 #define MAX_RECOVERY_TRIALS 10
 #define MAX_SESSIONS 2
@@ -33,6 +37,11 @@
 #define CMD_MODE_IDLE_TIMEOUT msecs_to_jiffies(16 * 4)
 #define INPUT_EVENT_HANDLER_DELAY_USECS (16000 * 4)
 #define AUTOREFRESH_MAX_FRAME_CNT 6
+
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+extern int panel_not_connected;
+extern int skip_lcd_error_check;
+#endif
 
 static DEFINE_MUTEX(cmd_clk_mtx);
 
@@ -1909,7 +1918,6 @@ static int mdss_mdp_cmd_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
 		pr_err("invalid ctx\n");
 		return -ENODEV;
 	}
-
 	pdata = ctl->panel_data;
 
 	MDSS_XLOG(ctl->num, atomic_read(&ctx->koff_cnt), ctl->roi_bkup.w,
@@ -1944,7 +1952,11 @@ static int mdss_mdp_cmd_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
 		rc = atomic_read(&ctx->koff_cnt) == 0;
 	}
 
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+	if (rc <= 0 && !panel_not_connected) {
+#else
 	if (rc <= 0) {
+#endif
 		pr_err("%s:wait4pingpong timed out ctl=%d rc=%d cnt=%d koff_cnt=%d\n",
 				__func__,
 				ctl->num, rc, ctx->pp_timeout_report_cnt,
@@ -2125,10 +2137,13 @@ static int mdss_mdp_cmd_panel_on(struct mdss_mdp_ctl *ctl,
 					NULL, CTL_INTF_EVENT_FLAG_DEFAULT);
 			WARN(rc, "intf %d panel on error (%d)\n",
 					ctl->intf_num, rc);
-
 		}
-
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+		if (!skip_lcd_error_check)
+			rc = mdss_mdp_tearcheck_enable(ctl, true);
+#else
 		rc = mdss_mdp_tearcheck_enable(ctl, true);
+#endif
 		WARN(rc, "intf %d tearcheck enable error (%d)\n",
 				ctl->intf_num, rc);
 

@@ -69,8 +69,8 @@ static void configfs_d_iput(struct dentry * dentry,
 		if (atomic_read(&sd->s_count) <= 2)
 			sd->s_dentry = NULL;
 
-		spin_unlock(&configfs_dirent_lock);
 		configfs_put(sd);
+		spin_unlock(&configfs_dirent_lock);
 	}
 	iput(inode);
 }

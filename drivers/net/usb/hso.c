@@ -2462,8 +2462,10 @@ static void hso_create_rfkill(struct hso_device *hso_dev,
 	char *rfkn;
 
 	rfkn = kzalloc(20, GFP_KERNEL);
-	if (!rfkn)
+	if (!rfkn) {
 		dev_err(dev, "%s - Out of memory\n", __func__);
+        return;
+    }
 
 	snprintf(rfkn, 20, "hso-%d",
 		 interface->altsetting->desc.bInterfaceNumber);

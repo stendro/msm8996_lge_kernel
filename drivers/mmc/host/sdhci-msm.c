@@ -31,6 +31,9 @@
 #include <linux/delay.h>
 #include <linux/scatterlist.h>
 #include <linux/slab.h>
+#ifdef CONFIG_MACH_LGE
+#include "../core/mmc_ops.h"
+#endif
 #include <linux/mmc/slot-gpio.h>
 #include <linux/dma-mapping.h>
 #include <linux/iopoll.h>
@@ -960,6 +963,10 @@ int sdhci_msm_execute_tuning(struct sdhci_host *host, u32 opcode)
 	u8 drv_type = 0;
 	bool drv_type_changed = false;
 	struct mmc_card *card = host->mmc->card;
+#ifdef CONFIG_LGE_MMC_SPECIAL_SDR104
+	int i, st_err = 0;
+	u32 status;
+#endif
 	int sts_retry;
 	u8 last_good_phase = 0;
 
@@ -1066,7 +1073,11 @@ retry:
 			sts_cmd.opcode = MMC_SEND_STATUS;
 			sts_cmd.arg = card->rca << 16;
 			sts_cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
+		#ifdef CONFIG_MACH_MSM8996_H1
+			sts_retry = 100;
+		#else
 			sts_retry = 5;
+		#endif
 			while (sts_retry) {
 				mmc_wait_for_cmd(mmc, &sts_cmd, 0);
 
@@ -1154,8 +1165,24 @@ retry:
 		if (rc)
 			goto kfree;
 		msm_host->saved_tuning_phase = phase;
-		pr_debug("%s: %s: finally setting the tuning phase to %d\n",
+		pr_debug("[FS] %s: %s: finally setting the tuning phase to %d\n",
 				mmc_hostname(mmc), __func__, phase);
+#ifdef CONFIG_LGE_MMC_SPECIAL_SDR104
+		if (card && card->host)
+		{
+		  for(i = 0 ; i < 5 ; i++){
+		    if(mmc_card_sd(card)){
+		      st_err = mmc_send_status(card, &status);
+		      if(st_err)
+			printk(KERN_INFO "[LGE][%-18s( )] Fail to get card status(CMD13), Err no : %d)\n", __func__, st_err);
+		      else {
+			printk(KERN_INFO "[LGE][%-18s( )] Success to get card status\n",__func__);
+			break;
+		      }
+		    }
+		  }
+		}
+#endif
 	} else {
 		if (--tuning_seq_cnt)
 			goto retry;
@@ -3654,7 +3681,11 @@ void sdhci_msm_pm_qos_cpu_init(struct sdhci_host *host,
 		cpumask_copy(&group->req.cpus_affine,
 			&msm_host->pdata->pm_qos_data.cpu_group_map.mask[i]);
 		/* For initialization phase, set the performance mode latency */
+#ifdef CONFIG_MACH_LGE
+		group->latency = PM_QOS_DEFAULT_VALUE;
+#else
 		group->latency = latency[i].latency[SDHCI_PERFORMANCE_MODE];
+#endif
 		pm_qos_add_request(&group->req, PM_QOS_CPU_DMA_LATENCY,
 			group->latency);
 		pr_info("%s (): voted for group #%d (mask=0x%lx) latency=%d (0x%p)\n",
@@ -4275,7 +4306,13 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	msm_host->mmc->caps2 |= msm_host->pdata->caps2;
 	msm_host->mmc->caps2 |= MMC_CAP2_BOOTPART_NOACC;
 	msm_host->mmc->caps2 |= MMC_CAP2_HS400_POST_TUNING;
+#if defined(CONFIG_LGE_MMC_CLK_SCALE_DISABLE)
+	/* do not apply MMC_CAP2_CLK_SCALE */
+	msm_host->mmc->caps2 &= ~MMC_CAP2_CLK_SCALE;
+#else
+	/* default */
 	msm_host->mmc->caps2 |= MMC_CAP2_CLK_SCALE;
+#endif
 	msm_host->mmc->caps2 |= MMC_CAP2_SANITIZE;
 	msm_host->mmc->caps2 |= MMC_CAP2_MAX_DISCARD_SIZE;
 	msm_host->mmc->caps2 |= MMC_CAP2_SLEEP_AWAKE;

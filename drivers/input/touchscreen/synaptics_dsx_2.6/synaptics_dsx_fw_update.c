@@ -30,7 +30,7 @@
  * TOTAL CUMULATIVE LIABILITY TO ANY PARTY SHALL NOT EXCEED ONE HUNDRED U.S.
  * DOLLARS.
  */
-
+#include <linux/ctype.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -2200,15 +2200,15 @@ static int fwu_read_f34_blocks(unsigned short block_cnt, unsigned char cmd)
 static int fwu_get_image_firmware_id(unsigned int *fw_id)
 {
 	int retval;
-	unsigned char index = 0;
-	char *strptr;
 	char *firmware_id;
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 
 	if (fwu->img.contains_firmware_id) {
 		*fw_id = fwu->img.firmware_id;
 	} else {
-		strptr = strnstr(fwu->image_name, "PR", MAX_IMAGE_NAME_LEN);
+		size_t index, max_index;
+		unsigned char *strptr = strnstr(fwu->image_name, "PR", MAX_IMAGE_NAME_LEN);
+
 		if (!strptr) {
 			dev_err(rmi4_data->pdev->dev.parent,
 					"%s: No valid PR number (PRxxxxxxx) found in image file name (%s)\n",
@@ -2224,8 +2224,11 @@ static int fwu_get_image_firmware_id(unsigned int *fw_id)
 					__func__);
 			return -ENOMEM;
 		}
-		while ((index < MAX_FIRMWARE_ID_LEN - 1) && strptr[index] >= '0'
-						&& strptr[index] <= '9') {
+
+		max_index = min((ptrdiff_t)(MAX_FIRMWARE_ID_LEN - 1),
+				&fwu->image_name[MAX_IMAGE_NAME_LEN] - strptr);
+		index = 0;
+		while (index < max_index && isdigit(strptr[index])) {
 			firmware_id[index] = strptr[index];
 			index++;
 		}
@@ -4110,6 +4113,15 @@ static ssize_t fwu_sysfs_image_name_store(struct device *dev,
 {
 	int retval;
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
+
+	if (!buf || count > MAX_IMAGE_NAME_LEN) {
+		dev_err(rmi4_data->pdev->dev.parent,
+				"%s: Failed to copy image file name\n",
+				__func__);
+		return -EINVAL;
+	}
+	if (!mutex_trylock(&fwu_sysfs_mutex))
+		return -EBUSY;
 
 	retval = secure_memcpy(fwu->image_name, MAX_IMAGE_NAME_LEN,
 			buf, count, count);

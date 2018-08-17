@@ -91,6 +91,37 @@ static int __xfrm4_output(struct sk_buff *skb)
 	}
 #endif
 
+#ifdef CONFIG_XFRM_FRAG_ESP_BEFORE_TUNNEL_ENC
+    if (x->props.mode == XFRM_MODE_TUNNEL &&
+            skb != NULL && skb->protocol == htons(ETH_P_IP) &&
+            skb->sk != NULL && skb->sk->sk_protocol != IPPROTO_TCP &&
+            skb_dst(skb)->next != NULL && skb_dst(skb)->next->xfrm != NULL &&
+            !(skb_dst(skb)->next->xfrm->outer_mode->flags & XFRM_MODE_FLAG_TUNNEL)) {
+        int mtu;
+
+        if (skb->protocol == htons(ETH_P_IP))
+            mtu = ip_skb_dst_mtu(skb);
+        else
+            mtu = dst_mtu(skb_dst(skb));
+
+        if (skb->len > mtu && (ip_hdr(skb)->frag_off & htons(IP_DF))) {
+            xfrm_local_error(skb, mtu);
+            return -EMSGSIZE;
+        }
+        if (!skb->ignore_df && skb->len > mtu && skb->sk) {
+            xfrm_local_error(skb, mtu);
+            return -EMSGSIZE;
+        }
+
+        if (x->props.mode == XFRM_MODE_TUNNEL &&
+                ((skb->len > mtu && !skb_is_gso(skb)) ||
+                 dst_allfrag(skb_dst(skb)))) {
+            printk("XFRM_FRAG_ESP_BEFORE_TUNNEL_ENC go fragment\n");
+            return ip_fragment(skb, x->outer_mode->afinfo->output_finish);
+        }
+    }
+#endif
+
 	return x->outer_mode->afinfo->output_finish(skb);
 }
 

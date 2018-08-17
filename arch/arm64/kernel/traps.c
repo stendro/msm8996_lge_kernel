@@ -186,6 +186,10 @@ void show_stack(struct task_struct *tsk, unsigned long *sp)
 #endif
 #define S_SMP " SMP"
 
+#ifdef CONFIG_MACH_LGE
+extern DEFINE_PER_CPU(struct pt_regs, regs_before_stop);
+#endif
+
 static int __die(const char *str, int err, struct thread_info *thread,
 		 struct pt_regs *regs)
 {
@@ -203,6 +207,9 @@ static int __die(const char *str, int err, struct thread_info *thread,
 
 	print_modules();
 	__show_regs(regs);
+#ifdef CONFIG_MACH_LGE
+        per_cpu(regs_before_stop, raw_smp_processor_id()) = *regs;
+#endif
 	pr_emerg("Process %.*s (pid: %d, stack limit = 0x%p)\n",
 		 TASK_COMM_LEN, tsk->comm, task_pid_nr(tsk), thread + 1);
 
@@ -371,6 +378,8 @@ exit:
 	return fn ? fn(regs, instr) : 1;
 }
 
+extern void freeze_l1_dcache(void);
+
 asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 {
 	siginfo_t info;
@@ -382,6 +391,9 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 
 	if (call_undef_hook(regs) == 0)
 		return;
+
+	if (!user_mode(regs))
+		freeze_l1_dcache();
 
 	trace_undef_instr(regs, (void *)pc);
 

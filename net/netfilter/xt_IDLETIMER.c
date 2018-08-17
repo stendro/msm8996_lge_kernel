@@ -395,7 +395,9 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
 
 	BUG_ON(!info->timer);
 
+	spin_lock_bh(&timestamp_lock);
 	info->timer->active = true;
+	spin_unlock_bh(&timestamp_lock);
 
 	if (time_before(info->timer->timer.expires, now)) {
 		schedule_work(&info->timer->work);

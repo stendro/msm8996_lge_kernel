@@ -24,6 +24,14 @@
 #include <linux/stat.h>
 #include <linux/types.h>
 
+#if defined(CONFIG_LGE_USB_ANX7418)
+#ifdef CONFIG_LGE_ALICE_FRIENDS
+#include <soc/qcom/lge/board_lge.h>
+#endif
+
+#define DUAL_ROLE_NOTIFICATION_DELAY 1000
+#endif
+
 #define DUAL_ROLE_NOTIFICATION_TIMEOUT 2000
 
 static ssize_t dual_role_store_property(struct device *dev,
@@ -46,6 +54,15 @@ static struct device_attribute dual_role_attrs[] = {
 	DUAL_ROLE_ATTR(power_role),
 	DUAL_ROLE_ATTR(data_role),
 	DUAL_ROLE_ATTR(powers_vconn),
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_ATTR(cc1),
+	DUAL_ROLE_ATTR(cc2),
+	DUAL_ROLE_ATTR(pdo1),
+	DUAL_ROLE_ATTR(pdo2),
+	DUAL_ROLE_ATTR(pdo3),
+	DUAL_ROLE_ATTR(pdo4),
+	DUAL_ROLE_ATTR(rdo),
+#endif
 };
 
 struct class *dual_role_class;
@@ -72,11 +89,26 @@ static char *kstrdupcase(const char *str, gfp_t gfp, bool to_upper)
 
 static void dual_role_changed_work(struct work_struct *work)
 {
+#if defined(CONFIG_LGE_USB_ANX7418)
+	struct dual_role_phy_instance *dual_role =
+	    container_of(work, struct dual_role_phy_instance,
+			 changed_work.work);
+#else
 	struct dual_role_phy_instance *dual_role =
 	    container_of(work, struct dual_role_phy_instance,
 			 changed_work);
-
+#endif
+#ifdef CONFIG_LGE_USB
+	 struct attribute *temp;
+#endif
 	dev_dbg(&dual_role->dev, "%s\n", __func__);
+#ifdef CONFIG_LGE_USB
+	temp = __dual_role_attrs[DUAL_ROLE_PROP_MODE];
+	__dual_role_attrs[DUAL_ROLE_PROP_MODE] = __dual_role_attrs[DUAL_ROLE_PROP_MODE+1];
+#endif
+#ifdef CONFIG_LGE_USB
+	__dual_role_attrs[DUAL_ROLE_PROP_MODE] = temp;
+#endif
 	kobject_uevent(&dual_role->dev.kobj, KOBJ_CHANGE);
 }
 
@@ -84,7 +116,23 @@ void dual_role_instance_changed(struct dual_role_phy_instance *dual_role)
 {
 	dev_dbg(&dual_role->dev, "%s\n", __func__);
 	pm_wakeup_event(&dual_role->dev, DUAL_ROLE_NOTIFICATION_TIMEOUT);
+#if defined(CONFIG_LGE_USB_ANX7418)
+#ifdef CONFIG_LGE_ALICE_FRIENDS
+	if (lge_get_alice_friends() == LGE_ALICE_FRIENDS_NONE) {
+		cancel_delayed_work_sync(&dual_role->changed_work);
+		schedule_delayed_work(&dual_role->changed_work,
+				msecs_to_jiffies(DUAL_ROLE_NOTIFICATION_DELAY));
+	} else {
+		schedule_delayed_work(&dual_role->changed_work, 0);
+	}
+#else
+	cancel_delayed_work_sync(&dual_role->changed_work);
+	schedule_delayed_work(&dual_role->changed_work,
+			msecs_to_jiffies(DUAL_ROLE_NOTIFICATION_DELAY));
+#endif
+#else
 	schedule_work(&dual_role->changed_work);
+#endif
 }
 EXPORT_SYMBOL_GPL(dual_role_instance_changed);
 
@@ -152,7 +200,11 @@ __dual_role_register(struct device *parent,
 	if (rc)
 		goto dev_set_name_failed;
 
+#if defined(CONFIG_LGE_USB_ANX7418)
+	INIT_DELAYED_WORK(&dual_role->changed_work, dual_role_changed_work);
+#else
 	INIT_WORK(&dual_role->changed_work, dual_role_changed_work);
+#endif
 
 	rc = device_init_wakeup(dev, true);
 	if (rc)
@@ -179,7 +231,11 @@ dev_set_name_failed:
 static void dual_role_instance_unregister(struct dual_role_phy_instance
 					  *dual_role)
 {
+#if defined(CONFIG_LGE_USB_ANX7418)
+	cancel_delayed_work_sync(&dual_role->changed_work);
+#else
 	cancel_work_sync(&dual_role->changed_work);
+#endif
 	device_init_wakeup(&dual_role->dev, false);
 	device_unregister(&dual_role->dev);
 }
@@ -244,28 +300,51 @@ EXPORT_SYMBOL_GPL(dual_role_get_drvdata);
 
 /* port type */
 static char *supported_modes_text[] = {
+#ifdef CONFIG_LGE_USB_TYPE_C
+	"ufp dfp", "dfp", "ufp", "ufp dfp fault"
+#else
 	"ufp dfp", "dfp", "ufp"
+#endif
 };
 
 /* current mode */
 static char *mode_text[] = {
+#ifdef CONFIG_LGE_USB_TYPE_C
+	"ufp", "dfp", "fault", "none"
+#else
 	"ufp", "dfp", "none"
+#endif
 };
 
 /* Power role */
 static char *pr_text[] = {
+#ifdef CONFIG_LGE_USB_TYPE_C
+	"source", "sink", "fault", "none"
+#else
 	"source", "sink", "none"
+#endif
 };
 
 /* Data role */
 static char *dr_text[] = {
+#ifdef CONFIG_LGE_USB_TYPE_C
+	"host", "device", "fault", "none"
+#else
 	"host", "device", "none"
+#endif
 };
 
 /* Vconn supply */
 static char *vconn_supply_text[] = {
 	"n", "y"
 };
+
+#ifdef CONFIG_LGE_USB_TYPE_C
+/* CC */
+static char *cc_text[] = {
+	"Open", "Rp Default", "Rp 1.5A", "Rp 3.0A", "Rd", "Ra"
+};
+#endif
 
 static ssize_t dual_role_show_property(struct device *dev,
 				       struct device_attribute *attr, char *buf)
@@ -331,6 +410,70 @@ static ssize_t dual_role_show_property(struct device *dev,
 					vconn_supply_text[value]);
 		else
 			return -EIO;
+#ifdef CONFIG_LGE_USB_TYPE_C
+	} else if (off == DUAL_ROLE_PROP_CC1 ||
+		   off == DUAL_ROLE_PROP_CC2) {
+		BUILD_BUG_ON(DUAL_ROLE_PROP_CC_TOTAL != ARRAY_SIZE(cc_text));
+		if (value < DUAL_ROLE_PROP_CC_TOTAL)
+			return snprintf(buf, PAGE_SIZE, "%s\n",
+					cc_text[value]);
+		else
+			return -EIO;
+	} else if (off == DUAL_ROLE_PROP_PDO1 ||
+		   off == DUAL_ROLE_PROP_PDO2 ||
+		   off == DUAL_ROLE_PROP_PDO3 ||
+		   off == DUAL_ROLE_PROP_PDO4) {
+		if (value == 0) {
+			*buf = '\0';
+			return 0;
+		}
+
+		switch (DUAL_ROLE_PROP_PDO_GET_TYPE(value)) {
+		case DUAL_ROLE_PROP_PDO_TYPE_FIXED:
+			return snprintf(buf, PAGE_SIZE, "[F] %umV, %umA\n",
+					DUAL_ROLE_PROP_PDO_GET_FIXED_VOLT(value),
+					DUAL_ROLE_PROP_PDO_GET_FIXED_CURR(value));
+		case DUAL_ROLE_PROP_PDO_TYPE_BATTERY:
+			return snprintf(buf, PAGE_SIZE, "[B] Max %umV, Min %umV, %umW \n",
+					DUAL_ROLE_PROP_PDO_GET_BATTERY_MAX_VOLT(value),
+					DUAL_ROLE_PROP_PDO_GET_BATTERY_MIN_VOLT(value),
+					DUAL_ROLE_PROP_PDO_GET_BATTERY_MAX_POWER(value));
+		case DUAL_ROLE_PROP_PDO_TYPE_VARIABLE:
+			return snprintf(buf, PAGE_SIZE, "[V] Max %umV, Min %umV, %umA\n",
+					DUAL_ROLE_PROP_PDO_GET_VARIABLE_MAX_VOLT(value),
+					DUAL_ROLE_PROP_PDO_GET_VARIABLE_MIN_VOLT(value),
+					DUAL_ROLE_PROP_PDO_GET_VARIABLE_MAX_CURR(value));
+		default:
+			*buf = '\0';
+			return 0;
+		}
+	} else if (off == DUAL_ROLE_PROP_RDO) {
+		unsigned int pdo;
+
+		if (value == 0) {
+			*buf = '\0';
+			return 0;
+		}
+
+		ret = dual_role_get_property(dual_role,
+		     DUAL_ROLE_PROP_PDO1 + (DUAL_ROLE_PROP_RDO_GET_OBJ_POS(value) - 1),
+		     &pdo);
+
+		switch (DUAL_ROLE_PROP_PDO_GET_TYPE(pdo)) {
+		case DUAL_ROLE_PROP_PDO_TYPE_FIXED:
+		case DUAL_ROLE_PROP_PDO_TYPE_VARIABLE:
+			return snprintf(buf, PAGE_SIZE, "[%u] %umA\n",
+					DUAL_ROLE_PROP_RDO_GET_OBJ_POS(value),
+					DUAL_ROLE_PROP_RDO_GET_OP_CURR(value));
+		case DUAL_ROLE_PROP_PDO_TYPE_BATTERY:
+			return snprintf(buf, PAGE_SIZE, "[%u] %umW\n",
+					DUAL_ROLE_PROP_RDO_GET_OBJ_POS(value),
+					DUAL_ROLE_PROP_RDO_GET_OP_POWER(value));
+		default:
+			*buf = '\0';
+			return 0;
+		}
+#endif
 	} else
 		return -EIO;
 }
@@ -348,6 +491,9 @@ static ssize_t dual_role_store_property(struct device *dev,
 	bool result = false;
 
 	dup_buf = kstrdupcase(buf, GFP_KERNEL, false);
+	if (!dup_buf)
+		return -ENOMEM;
+
 	switch (off) {
 	case DUAL_ROLE_PROP_MODE:
 		total = DUAL_ROLE_PROP_MODE_TOTAL;

@@ -127,6 +127,12 @@ void *dm_bufio_get_block_data(struct dm_buffer *b);
 void *dm_bufio_get_aux_data(struct dm_buffer *b);
 struct dm_bufio_client *dm_bufio_get_client(struct dm_buffer *b);
 
+#ifdef CONFIG_LGE_DM_VERITY_RECOVERY
+void* dm_direct_read(sector_t block, struct dm_bufio_client *bufio);
+void dm_direct_free(void* data);
+void dm_verity_recovery_lock(struct dm_bufio_client *bufio);
+void dm_verity_recovery_unlock(struct dm_bufio_client *bufio);
+#endif
 /*----------------------------------------------------------------*/
 
 #endif

@@ -776,6 +776,8 @@ static int msm_cpe_lsm_open(struct snd_pcm_substream *substream)
 	struct wcd_cpe_lsm_ops *lsm_ops;
 	int rc = 0;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (!cpe || !cpe->codec) {
 		dev_err(rtd->dev,
 			"%s: Invalid private data\n",
@@ -865,6 +867,7 @@ static int msm_cpe_lsm_open(struct snd_pcm_substream *substream)
 	atomic_set(&lsm_d->event_avail, 0);
 	atomic_set(&lsm_d->event_stop, 0);
 	runtime->private_data = lsm_d;
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return 0;
 
@@ -897,6 +900,8 @@ static int msm_cpe_lsm_close(struct snd_pcm_substream *substream)
 	struct wcd_cpe_afe_ops *afe_ops;
 	struct wcd_cpe_afe_port_cfg *afe_cfg;
 	int rc = 0;
+
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
 
 	if (!cpe || !cpe->core_handle) {
 		dev_err(rtd->dev,
@@ -949,6 +954,7 @@ static int msm_cpe_lsm_close(struct snd_pcm_substream *substream)
 	runtime->private_data = NULL;
 	mutex_destroy(&lsm_d->lsm_api_lock);
 	kfree(lsm_d);
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return rc;
 }
@@ -1729,6 +1735,21 @@ static int msm_cpe_lsm_set_epd(struct snd_pcm_substream *substream,
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -1777,6 +1798,21 @@ static int msm_cpe_lsm_set_mode(struct snd_pcm_substream *substream,
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -1825,6 +1861,21 @@ static int msm_cpe_lsm_set_gain(struct snd_pcm_substream *substream,
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -1873,6 +1924,21 @@ static int msm_cpe_lsm_set_conf(struct snd_pcm_substream *substream,
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -1910,12 +1976,29 @@ static int msm_cpe_lsm_reg_model(struct snd_pcm_substream *substream,
 	size_t offset;
 	u8 *snd_model_ptr;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (!msm_cpe_lsm_is_valid_stream(substream, __func__))
 		return -EINVAL;
 
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -1963,6 +2046,8 @@ static int msm_cpe_lsm_reg_model(struct snd_pcm_substream *substream,
 			__func__, rc);
 		goto dealloc_shmem;
 	}
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
+
 	return 0;
 
 dealloc_shmem:
@@ -1983,12 +2068,29 @@ static int msm_cpe_lsm_dereg_model(struct snd_pcm_substream *substream,
 	struct wcd_cpe_lsm_ops *lsm_ops;
 	int rc;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (!msm_cpe_lsm_is_valid_stream(substream, __func__))
 		return -EINVAL;
 
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -1999,6 +2101,8 @@ static int msm_cpe_lsm_dereg_model(struct snd_pcm_substream *substream,
 		dev_err(rtd->dev,
 			"%s: dereg_snd_model failed\n",
 			__func__);
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
+
 	return lsm_ops->lsm_shmem_dealloc(cpe->core_handle, session);
 }
 
@@ -2019,6 +2123,21 @@ static int msm_cpe_lsm_set_custom(struct snd_pcm_substream *substream,
 	rtd = substream->private_data;
 	lsm_d = cpe_get_lsm_data(substream);
 	cpe = cpe_get_private_data(substream);
+
+	if (!cpe || !cpe->core_handle) {
+		dev_err(rtd->dev,
+			"%s: Invalid private data\n",
+			__func__);
+		return -EINVAL;
+	}
+
+	if (!lsm_d || !lsm_d->lsm_session) {
+		dev_err(rtd->dev,
+			"%s: Invalid session data\n",
+			__func__);
+		return -EINVAL;
+	}
+
 	session = lsm_d->lsm_session;
 	lsm_ops = &cpe->lsm_ops;
 
@@ -2066,6 +2185,8 @@ static int msm_cpe_lsm_process_params(struct snd_pcm_substream *substream,
 
 	p_info = (struct lsm_params_info *) params;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	for (i = 0; i < p_data->num_params; i++) {
 		dev_dbg(rtd->dev,
 			"%s: param (%d), module_id = 0x%x, param_id = 0x%x, param_size = 0x%x, param_type = 0x%x\n",
@@ -2110,6 +2231,7 @@ static int msm_cpe_lsm_process_params(struct snd_pcm_substream *substream,
 
 		p_info++;
 	}
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return rc;
 }
@@ -2123,6 +2245,8 @@ static int msm_cpe_lsm_ioctl(struct snd_pcm_substream *substream,
 	struct cpe_lsm_data *lsm_d = NULL;
 	struct cpe_lsm_session *session = NULL;
 	struct wcd_cpe_lsm_ops *lsm_ops;
+
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
 
 	if (!substream || !substream->private_data) {
 		pr_err("%s: invalid substream (%pK)\n",
@@ -2398,6 +2522,7 @@ static int msm_cpe_lsm_ioctl(struct snd_pcm_substream *substream,
 done:
 	MSM_CPE_LSM_REL_LOCK(&lsm_d->lsm_api_lock,
 			     "lsm_api_lock");
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 	return err;
 }
 
@@ -2450,6 +2575,8 @@ static int msm_cpe_lsm_ioctl_compat(struct snd_pcm_substream *substream,
 	struct cpe_lsm_data *lsm_d = NULL;
 	struct cpe_lsm_session *session = NULL;
 	struct wcd_cpe_lsm_ops *lsm_ops;
+
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
 
 	if (!substream || !substream->private_data) {
 		pr_err("%s: invalid substream (%pK)\n",
@@ -2865,6 +2992,7 @@ static int msm_cpe_lsm_ioctl_compat(struct snd_pcm_substream *substream,
 done:
 	MSM_CPE_LSM_REL_LOCK(&lsm_d->lsm_api_lock,
 			     "lsm_api_lock");
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 	return err;
 }
 
@@ -2891,6 +3019,8 @@ static int msm_cpe_lsm_prepare(struct snd_pcm_substream *substream)
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct lsm_hw_params lsm_param;
 	struct wcd_cpe_lsm_ops *lsm_ops;
+
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
 
 	if (!cpe || !cpe->core_handle) {
 		dev_err(rtd->dev,
@@ -3001,6 +3131,8 @@ static int msm_cpe_lsm_prepare(struct snd_pcm_substream *substream)
 			__func__, rc);
 	else
 		lsm_d->cpe_prepared = true;
+
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 
 	return rc;
 }
@@ -3245,6 +3377,8 @@ static int msm_asoc_cpe_lsm_probe(struct snd_soc_platform *platform)
 	int ret = 0;
 	int i;
 
+	pr_info("Enter func : %s , line : %d\n", __func__, __LINE__);
+
 	if (!platform || !platform->component.card) {
 		pr_err("%s: Invalid platform or card\n",
 			__func__);
@@ -3299,6 +3433,7 @@ static int msm_asoc_cpe_lsm_probe(struct snd_soc_platform *platform)
 	snd_soc_platform_set_drvdata(platform, cpe_priv);
 	kcontrol = &msm_cpe_kcontrols[0];
 	snd_ctl_add(card->snd_card, snd_ctl_new1(kcontrol, cpe_priv));
+	pr_info("Exit func : %s , line : %d\n", __func__, __LINE__);
 	return 0;
 }
 
