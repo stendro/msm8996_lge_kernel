@@ -172,3 +172,22 @@ obj-$(CONFIG_BIF)		+= bif/
 
 obj-$(CONFIG_SENSORS)		+= sensors/
 obj-$(CONFIG_SENSORS_SSC)	+= sensors/
+
+#TDMB
+obj-$(CONFIG_LGE_BROADCAST_TDMB) += broadcast/
+
+# LGE_BROADCAST_ISDBT_JAPAN
+obj-$(CONFIG_LGE_BROADCAST_ISDBT_JAPAN) += broadcast/
+
+# <t-base drivers
+obj-$(CONFIG_TRUSTONIC_TEE)	+= gud/
+
+#FeliCa
+obj-$(CONFIG_CXD224X_FELICA_F3)	+= felica/
+
+#immersion tsp3000
+obj-$(CONFIG_TSPDRV) += tspdrv/
+
+# Broadcom V4L2 solution
+#obj-$(CONFIG_BRCM_V4L2)         += brcm_v4l2/
+obj-y                           += brcm_v4l2/

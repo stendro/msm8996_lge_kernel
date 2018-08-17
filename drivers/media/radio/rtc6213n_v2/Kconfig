@@ -1,0 +1,12 @@
+config I2C_RTC6213N_V2
+	tristate "Richwave RTC6213N V2 FM Radio Receiver support with I2C"
+	depends on I2C && RADIO_RTC6213N_V2
+	---help---
+	  This is a driver for I2C devices with the Richwave RTC6213N
+	  chip.
+
+	  Say Y here if you want to connect this type of radio to your
+	  computer's I2C port.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called radio-i2c-RTC6213N_V2.
