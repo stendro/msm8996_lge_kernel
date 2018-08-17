@@ -196,4 +196,14 @@ source "drivers/firmware/Kconfig"
 
 source "drivers/bif/Kconfig"
 
+source "drivers/broadcast/Kconfig"
+
+source "drivers/felica/Kconfig"
+
+source "drivers/brcm_v4l2/Kconfig"
+
+source "drivers/tspdrv/Kconfig"
+
+source "drivers/gud/Kconfig"
+
 endmenu
