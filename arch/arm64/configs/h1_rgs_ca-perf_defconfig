@@ -1,0 +1,3 @@
+include h1_rgs_ca_common
+include h1_common-perf
+CONFIG_PRE_SELF_DIAGNOSIS=y

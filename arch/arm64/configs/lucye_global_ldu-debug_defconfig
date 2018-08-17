@@ -1,0 +1,3 @@
+include lucye_global_ldu_common
+include lucye_common-debug
+CONFIG_MEM_SHARE_QMI_SERVICE=y
