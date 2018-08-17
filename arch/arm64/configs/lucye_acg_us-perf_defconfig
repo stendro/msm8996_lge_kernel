@@ -1,0 +1,3 @@
+include lucye_acg_us_common
+include lucye_common-perf
+CONFIG_LGE_USB_DIAG_LOCK_VZW=y

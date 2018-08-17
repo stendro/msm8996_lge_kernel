@@ -12,14 +12,16 @@
  */
 / {
 	aliases {
-		spi9 = &spi_9;
+		//spi9 = &spi_9;
 		spi10 = &spi_10;
 		spi12 = &spi_12;
 	};
 };
 
 &soc {
-	blsp1_uart3: uart@7571000 { /* BLSP1 UART3 */
+//[ANNA_ISDBT_BRINGUP_S] : duplicated
+/*
+	blsp1_uart3: uart@7571000 { //  BLSP1 UART3
 		compatible = "qcom,msm-hsuart-v14";
 		reg = <0x7571000 0x200>,
 		    <0x7544000 0x2b000>;
@@ -55,10 +57,10 @@
 			    <86 512 500 800>;
 		status = "disabled";
 	};
-
-
-	blsp1_uart6: uart@7574000 { /* BLSP1 UART6 */
-		compatible = "qcom,msm-hsuart-v14";
+*/
+//[ANNA_ISDBT_BRINGUP_E]
+/*	blsp1_uart6: uart@7574000 { *//* BLSP1 UART6 */
+/*		compatible = "qcom,msm-hsuart-v14";
 		reg = <0x7574000 0x200>,
 		    <0x7544000 0x2b000>;
 		reg-names = "core_mem", "bam_mem";
@@ -92,10 +94,11 @@
 			    <86 512 0 0>,
 			    <86 512 500 800>;
 		status = "disabled";
-	};
+	};*/
 
-	spi_9: spi@75B7000 { /* BLSP2 QUP3 */
-		compatible = "qcom,spi-qup-v2";
+//[CHANGE_LGE_SENSOR_FOR_FINGERPRINT]
+/*	spi_9: spi@75B7000 { *//* BLSP2 QUP3 */
+/*		compatible = "qcom,spi-qup-v2";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		reg-names = "spi_physical", "spi_bam_physical";
@@ -118,7 +121,7 @@
 		clocks = <&clock_gcc clk_gcc_blsp2_ahb_clk>,
 			 <&clock_gcc clk_gcc_blsp2_qup3_spi_apps_clk>;
 		status = "disabled";
-	};
+	};*/
 
 	spi_10: spi@75B8000 { /* BLSP2 QUP4 */
 		compatible = "qcom,spi-qup-v2";
