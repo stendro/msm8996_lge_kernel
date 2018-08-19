@@ -237,7 +237,7 @@ static void abt_ksocket_start_for_pctool(struct device *dev)
 {
 	static int client_connected;
 	int size, err;
-	unsigned char *buf;
+	unsigned char *buf = NULL;
 	struct socket *sock;
 
 	/* kernel thread initialization */

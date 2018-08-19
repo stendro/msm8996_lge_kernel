@@ -783,6 +783,12 @@ static int soc_pcm_prepare(struct snd_pcm_substream *substream)
 		}
 	}
 
+	if (!codec_dai) {
+		dev_err(codec_dai->dev, "ASoC: DAI not found\n");
+		ret = -EINVAL;
+		goto out;
+	}
+
 	if (cpu_dai->driver->ops && cpu_dai->driver->ops->prepare) {
 		ret = cpu_dai->driver->ops->prepare(substream, cpu_dai);
 		if (ret < 0) {

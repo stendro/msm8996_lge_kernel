@@ -697,7 +697,7 @@ static void free_rule_params(struct rules_def *node_rule)
 static bool __rule_unregister(int num_rules, struct bus_rule_type *rule,
 					struct notifier_block *nb)
 {
-	int i;
+	int i = 0;
 	struct rule_node_info *node = NULL;
 	struct rule_node_info *node_tmp = NULL;
 	struct rules_def *node_rule;
