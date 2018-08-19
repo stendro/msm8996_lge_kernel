@@ -2,6 +2,7 @@
 # USB peripheral controller drivers
 #
 
+ccflags-y			+= $(call cc-option,-Wno-array-bounds,)
 ccflags-y			:= -I$(srctree)/drivers/usb/gadget/
 ccflags-y			+= -I$(srctree)/drivers/usb/gadget/udc/
 
