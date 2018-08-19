@@ -102,3 +102,7 @@ tools/gator/daemon/defaults_xml.h
 tools/gator/daemon/escape
 tools/gator/daemon/events.xml
 tools/gator/daemon/events_xml.h
+
+# Build output folder
+/build/
+/out/
