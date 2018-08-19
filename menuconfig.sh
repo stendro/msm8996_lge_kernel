@@ -40,8 +40,14 @@ fi
 if [ "$DEVICE" = "US997" ]; then
   DEVICE_DEFCONFIG=lucye_nao_us-perf_defconfig
 fi
+if [ "$DEVICE" = "H872" ]; then
+  DEVICE_DEFCONFIG=lucye_tmo_us-perf_defconfig
+fi
 if [ "$DEVICE" = "H990DS" ]; then
   DEVICE_DEFCONFIG=elsa_global_com-perf_defconfig
+fi
+if [ "$DEVICE" = "H990TR" ]; then
+  DEVICE_DEFCONFIG=elsa_cno_cn-perf_defconfig
 fi
 if [ "$DEVICE" = "US996" ]; then
   DEVICE_DEFCONFIG=elsa_nao_us-perf_defconfig
@@ -53,13 +59,16 @@ if [ "$DEVICE" = "LS997" ]; then
   DEVICE_DEFCONFIG=elsa_spr_us-perf_defconfig
 fi
 if [ "$DEVICE" = "VS995" ]; then
-  DEVICE_DEFCONFIG=elsa_vzw_us-perf_defconfig
+  DEVICE_DEFCONFIG=elsa_vzw-perf_defconfig
 fi
 if [ "$DEVICE" = "H918" ]; then
   DEVICE_DEFCONFIG=elsa_tmo_us-perf_defconfig
 fi
 if [ "$DEVICE" = "H910" ]; then
   DEVICE_DEFCONFIG=elsa_att_us-perf_defconfig
+fi
+if [ "$DEVICE" = "F800K" ]; then
+  DEVICE_DEFCONFIG=elsa_kt_kr-perf_defconfig
 fi
 
 [ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||
