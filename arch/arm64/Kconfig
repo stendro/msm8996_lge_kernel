@@ -395,7 +395,7 @@ menu "ARM errata workarounds via the alternatives framework"
 
 config ARM64_ERRATUM_826319
 	bool "Cortex-A53: 826319: System might deadlock if a write cannot complete until read data is accepted"
-	default y
+	default n
 	help
 	  This option adds an alternative code sequence to work around ARM
 	  erratum 826319 on Cortex-A53 parts up to r0p2 with an AMBA 4 ACE or
@@ -416,7 +416,7 @@ config ARM64_ERRATUM_826319
 
 config ARM64_ERRATUM_827319
 	bool "Cortex-A53: 827319: Data cache clean instructions might cause overlapping transactions to the interconnect"
-	default y
+	default n
 	help
 	  This option adds an alternative code sequence to work around ARM
 	  erratum 827319 on Cortex-A53 parts up to r0p2 with an AMBA 5 CHI
@@ -437,7 +437,7 @@ config ARM64_ERRATUM_827319
 
 config ARM64_ERRATUM_824069
 	bool "Cortex-A53: 824069: Cache line might not be marked as clean after a CleanShared snoop"
-	default y
+	default n
 	help
 	  This option adds an alternative code sequence to work around ARM
 	  erratum 824069 on Cortex-A53 parts up to r0p2 when it is connected
@@ -459,7 +459,7 @@ config ARM64_ERRATUM_824069
 
 config ARM64_ERRATUM_819472
 	bool "Cortex-A53: 819472: Store exclusive instructions might cause data corruption"
-	default y
+	default n
 	help
 	  This option adds an alternative code sequence to work around ARM
 	  erratum 819472 on Cortex-A53 parts up to r0p1 with an L2 cache
@@ -480,7 +480,7 @@ config ARM64_ERRATUM_819472
 
 config ARM64_ERRATUM_832075
 	bool "Cortex-A57: 832075: possible deadlock on mixing exclusive memory accesses with device loads"
-	default y
+	default n
 	help
 	  This option adds an alternative code sequence to work around ARM
 	  erratum 832075 on Cortex-A57 parts up to r1p2.
@@ -499,7 +499,7 @@ config ARM64_ERRATUM_832075
 config ARM64_ERRATUM_845719
 	bool "Cortex-A53: 845719: a load might read incorrect data"
 	depends on COMPAT
-	default y
+	default n
 	help
 	  This option adds an alternative code sequence to work around ARM
 	  erratum 845719 on Cortex-A53 parts up to r0p4.
@@ -893,7 +893,7 @@ menu "ARMv8.1 architectural features"
 
 config ARM64_PAN
 	bool "Enable support for Privileged Access Never (PAN)"
-	default y
+	default n
 	help
 	 Privileged Access Never (PAN; part of the ARMv8.1 Extensions)
 	 prevents the kernel or hypervisor from accessing user-space (EL0)
@@ -909,7 +909,7 @@ endmenu
 
 config ARM64_UAO
 	bool "Enable support for User Access Override (UAO)"
-	default y
+	default n
 	help
 	  User Access Override (UAO; part of the ARMv8.2 Extensions)
 	  causes the 'unprivileged' variant of the load/store instructions to
@@ -1238,7 +1238,7 @@ source "drivers/cpufreq/Kconfig"
 config ARM64_ERRATUM_843419
 	bool "Cortex-A53: 843419: A load or store might access an incorrect address"
 	depends on MODULES
-	default y
+	default n
 	help
 	  This option builds kernel modules using the large memory model in
 	  order to avoid the use of the ADRP instruction, which can cause
