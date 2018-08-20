@@ -14,7 +14,7 @@ if INPUT_MOUSE
 
 config MOUSE_PS2
 	tristate "PS/2 mouse"
-	default y
+	default n
 	select SERIO
 	select SERIO_LIBPS2
 	select SERIO_I8042 if ARCH_MIGHT_HAVE_PC_SERIO
