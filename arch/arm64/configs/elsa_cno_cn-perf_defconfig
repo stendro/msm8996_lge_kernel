@@ -1,2 +1,30 @@
 include elsa_cno_cn_common
 include elsa_common-perf
+#############################################################
+#   Fix kernel command-line (may or may not be important)   #
+#############################################################
+CONFIG_CMDLINE="lge.sim_num=1 lge.dsds=none androidboot.bl_unlock_complete=false androidboot.authorized_kernel=true"
+CONFIG_CMDLINE_EXTEND=y
+CONFIG_CMDLINE_SEARCHREPLACE=y
+CONFIG_CMDLINE_SAR_VERIFY_GREEN=y
+CONFIG_CMDLINE_SAR_ENABLE0=y
+CONFIG_CMDLINE_SAR_SEARCH0=" model.name=LG-US996 "
+CONFIG_CMDLINE_SAR_REPLACE0=" model.name=LG-H990tr "
+CONFIG_CMDLINE_SAR_ENABLE1=y
+CONFIG_CMDLINE_SAR_SEARCH1=" androidboot.serialno=LGUS996"
+CONFIG_CMDLINE_SAR_REPLACE1=" androidboot.serialno=LGH990"
+CONFIG_CMDLINE_SAR_ENABLE2=y
+CONFIG_CMDLINE_SAR_SEARCH2=" slub_debug=FZPU "
+CONFIG_CMDLINE_SAR_REPLACE2=" "
+CONFIG_CMDLINE_SAR_ENABLE3=y
+CONFIG_CMDLINE_SAR_SEARCH3=" androidboot.enable_dm_verity="
+CONFIG_CMDLINE_SAR_REPLACE3=" "
+CONFIG_CMDLINE_SAR_ENABLE4=y
+CONFIG_CMDLINE_SAR_SEARCH4=" androidboot.veritymode="
+CONFIG_CMDLINE_SAR_REPLACE4=" "
+CONFIG_CMDLINE_SAR_ENABLE5=y
+CONFIG_CMDLINE_SAR_SEARCH5=" androidboot.secboot="
+CONFIG_CMDLINE_SAR_REPLACE5=" "
+
+# Fix the modem memory
+CONFIG_DIRTYSANTA_FIXUP=y
