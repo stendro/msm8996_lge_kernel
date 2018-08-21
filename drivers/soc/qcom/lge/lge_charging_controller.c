@@ -256,7 +256,7 @@ static void step_charging_check_work(struct work_struct *work)
 	union power_supply_propval pval = {0, };
 	int vbat_mv, prev_fcc_ma;
 #ifdef CONFIG_LGE_USB_TYPE_C
-	int c_type, c_mA, rc;
+	int c_type, c_mA = 0, rc;
 
 	if (!the_controller->ctype_psy)
 		the_controller->ctype_psy = power_supply_get_by_name("usb_pd");

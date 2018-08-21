@@ -1060,7 +1060,7 @@ int brcm_hci_uart_tx_wakeup(struct hci_uart *hu)
         clear_bit(HCI_UART_TX_WAKEUP, &hu->tx_state);
 
         while ((skb = brcm_hci_uart_dequeue(hu))) {
-            int len;
+            int len = 0;
             spin_lock_irqsave(&hu->lock, lock_flags);
 
 //BT_S : [CONBT-5457] Handling of tty null exceptions
