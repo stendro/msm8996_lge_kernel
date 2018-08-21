@@ -3510,13 +3510,6 @@ int msm_vidc_comm_cmd(void *instance, union msm_v4l2_cmd *cmd)
 		u32 *ptr = NULL;
 		struct hal_buffer_requirements *output_buf;
 
-		if (inst->session_type != MSM_VIDC_DECODER) {
-			dprintk(VIDC_ERR,
-				"Session type is not MSM_VIDC_DECODER\n");
-			rc = -EINVAL;
-			break;
-		}
-
 		rc = msm_comm_try_get_bufreqs(inst);
 		if (rc) {
 			dprintk(VIDC_ERR,
