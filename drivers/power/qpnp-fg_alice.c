@@ -3534,7 +3534,7 @@ static int estimate_battery_age(struct fg_chip *chip, int *actual_capacity)
 {
 	int64_t ocv_cutoff_new, ocv_cutoff_aged, temp_rs_to_rslow;
 	int64_t esr_actual, battery_esr, val;
-	int soc_cutoff_aged, soc_cutoff_new, rc;
+	int soc_cutoff_aged, soc_cutoff_new, rc = 0;
 	int battery_soc, unusable_soc, batt_temp;
 	u8 buffer[3];
 
@@ -7541,7 +7541,7 @@ static int fg_dischg_gain_dt_init(struct fg_chip *chip)
 {
 	struct device_node *node = chip->spmi->dev.of_node;
 	struct property *prop;
-	int rc, i;
+	int i, rc = 0;
 	size_t size;
 
 	prop = of_find_property(node, "qcom,fg-dischg-voltage-gain-soc",
@@ -9323,7 +9323,8 @@ static int fg_setup_memif_offset(struct fg_chip *chip)
 		return rc;
 	}
 
-	switch (chip->revision[DIG_MAJOR]) {
+	dig_major = chip->revision[DIG_MAJOR];
+	switch (dig_major) {
 	case DIG_REV_1:
 	case DIG_REV_2:
 		chip->offset = offset[0].address;
