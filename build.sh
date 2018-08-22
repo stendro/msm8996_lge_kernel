@@ -27,6 +27,9 @@
 # H910		= AT&T (US)
 #		LGH910   (LG V20)
 #
+# H915		= Canada (CA)
+#		LGH915   (LG V20)
+#
 # H918		= T-Mobile (US)
 #		LGH918   (LG V20)
 #
@@ -135,6 +138,9 @@ if [ "$DEVICE" = "H918" ]; then
 fi
 if [ "$DEVICE" = "H910" ]; then
   DEVICE_DEFCONFIG=elsa_att_us-perf_defconfig
+fi
+if [ "$DEVICE" = "H915" ]; then
+  DEVICE_DEFCONFIG=elsa_global_ca-perf_defconfig
 fi
 if [ "$DEVICE" = "F800K" ]; then
   DEVICE_DEFCONFIG=elsa_kt_kr-perf_defconfig

@@ -67,6 +67,9 @@ fi
 if [ "$DEVICE" = "H910" ]; then
   DEVICE_DEFCONFIG=elsa_att_us-perf_defconfig
 fi
+if [ "$DEVICE" = "H915" ]; then
+  DEVICE_DEFCONFIG=elsa_global_ca-perf_defconfig
+fi
 if [ "$DEVICE" = "F800K" ]; then
   DEVICE_DEFCONFIG=elsa_kt_kr-perf_defconfig
 fi
