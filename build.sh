@@ -90,7 +90,7 @@ ABORT() {
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=xda
 export ARCH=arm64
-export USE_CCACHE=1
+export USE_CCACHE=0
 export CROSS_COMPILE=$TOOLCHAIN
 
 [ "$1" ] && DEVICE=$1
@@ -144,6 +144,9 @@ if [ "$DEVICE" = "H915" ]; then
 fi
 if [ "$DEVICE" = "F800K" ]; then
   DEVICE_DEFCONFIG=elsa_kt_kr-perf_defconfig
+fi
+if [ "$DEVICE" = "F800L" ]; then
+  DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
 fi
 
 [ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||

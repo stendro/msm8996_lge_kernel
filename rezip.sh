@@ -39,11 +39,11 @@ COPY_AK() {
 	if grep -q 'BETA' $RDIR/VERSION; then
 	  cp $BANNER_BETA $DDIR/banner \
 		|| ABORT "Failed to copy banner"
-	  echo "  $BVER" > $DDIR/version
+	  echo "  ${BVER} Oreo" > $DDIR/version
 	else
 	  cp $BANNER $DDIR \
 		|| ABORT "Failed to copy banner"
-	  echo "  $VER" > $DDIR/version
+	  echo "  ${VER} Oreo" > $DDIR/version
 	fi
 	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
 		|| ABORT "Failed to copy *anykernel.sh*"

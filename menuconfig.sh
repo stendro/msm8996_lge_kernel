@@ -73,6 +73,9 @@ fi
 if [ "$DEVICE" = "F800K" ]; then
   DEVICE_DEFCONFIG=elsa_kt_kr-perf_defconfig
 fi
+if [ "$DEVICE" = "F800L" ]; then
+  DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
+fi
 
 [ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||
 ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
