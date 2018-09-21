@@ -147,7 +147,7 @@ fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
 	touch/lucye/lucye_limit_mfts.txt
 endif
 ifdef CONFIG_MACH_MSM8996_H1
-/* UNUSED: PLG468-V1.20-PR1901334-DS5.2.200.1.1002_50055194504C47343638.img, h1_hdk_limit_mfts_curved.txt, h1_hdk_limit_mfts_flat.txt, h1_hdk_limit_mfts_folder.txt */
+## UNUSED: PLG468-V1.20-PR1901334-DS5.2.200.1.1002_50055194504C47343638.img, h1_hdk_limit_mfts_curved.txt, h1_hdk_limit_mfts_flat.txt, h1_hdk_limit_mfts_folder.txt ##
 fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
 	touch/h1/H1_LG4945_0.01.img \
 	touch/h1/L0L53P1_1_14.img \
@@ -156,7 +156,7 @@ fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
 	touch/h1/h1_limit_mfts.txt
 endif
 ifdef CONFIG_MACH_MSM8996_ELSA
-/* UNUSED: L1L52P1_1_05.img, L1L52P1_1_13.img, L1L57P1_1_14.img */
+## UNUSED: L1L52P1_1_05.img, L1L52P1_1_13.img, L1L57P1_1_14.img ##
 fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
 	touch/elsa/L0L57P1_1_35.img \
 	touch/elsa/L0L57P1_2_00.img \
