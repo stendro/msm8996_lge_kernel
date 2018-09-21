@@ -11,3 +11,4 @@ CONFIG_LOCALVERSION="-"
 # CONFIG_RCU_CPU_STALL_VERBOSE is not set
 # CONFIG_UEVENT_HELPER is not set
 # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+include mk2000_defconfig

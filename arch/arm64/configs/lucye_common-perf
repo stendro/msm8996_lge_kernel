@@ -10,3 +10,4 @@ CONFIG_LOCALVERSION="-"
 # CONFIG_SYSRQ_SCHED_DEBUG is not set
 # CONFIG_RCU_CPU_STALL_VERBOSE is not set
 # CONFIG_UEVENT_HELPER is not set
+include mk2000_defconfig
