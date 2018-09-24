@@ -65,31 +65,29 @@
 #
 ###################### CONFIG ######################
 
-# root directory of LGE msm8996 git repo (default is this script's location)
+# root directory of this kernel (this script's location)
 RDIR=$(pwd)
 
-[ "$VER" ] ||
 # version number
 VER=$(cat "$RDIR/VERSION")
 
+# twrp configuration
 [ "$2" ] && IS_TWRP=$2
 if [ "$IS_TWRP" = "twrp" ]; then
-  echo "Compiling with TWRP configuration..."
+  echo "TWRP configuration selected"
 fi
 
-# directory containing cross-compile arm64 toolchain
-TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
-
+# select cpu threads
 CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
-# amount of cpu threads to use in kernel make process
-# I'm using a VM on a slow pc...
-THREADS=2
-#THREADS=$((CPU_THREADS + 1))
+THREADS=$((CPU_THREADS + 1))
+
+# directory containing cross-compiler
+TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
 
 ############## SCARY NO-TOUCHY STUFF ###############
 
 ABORT() {
-	[ "$1" ] && echo "Error: $*"
+	echo "Error: $*"
 	exit 1
 }
 
@@ -99,8 +97,11 @@ export ARCH=arm64
 export USE_CCACHE=0
 export CROSS_COMPILE=$TOOLCHAIN
 
+# selected device
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified"
+
+export LOCALVERSION=${DEVICE}_${VER}-mk2000
 
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
@@ -158,15 +159,14 @@ if [ "$DEVICE" = "F800S" ]; then
   DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
 fi
 
-[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||
-ABORT "Device config $DEVICE_DEFCONFIG not found in $ARCH configs!"
+# check for stuff
+[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] \
+	|| ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
 
-[ -x "${CROSS_COMPILE}gcc" ] ||
-ABORT "Unable to find gcc cross-compiler at location: ${CROSS_COMPILE}gcc"
+[ -x "${CROSS_COMPILE}gcc" ] \
+	|| ABORT "Cross-compiler not found at: ${CROSS_COMPILE}gcc"
 
-KDIR="$RDIR/build/arch/$ARCH/boot"
-export LOCALVERSION=${DEVICE}_${VER}-mk2000
-
+# build commands
 CLEAN_BUILD() {
 	echo "Cleaning build..."
 	rm -rf build
@@ -185,7 +185,7 @@ SETUP_BUILD() {
 }
 
 BUILD_KERNEL() {
-	echo "Starting build for $LOCALVERSION..."
+	echo "Compiling..."
 	while ! make -C "$RDIR" O=build -j"$THREADS"; do
 		read -rp "Build failed. Retry? " do_retry
 		case $do_retry in
@@ -206,10 +206,10 @@ INSTALL_MODULES() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
-echo "Starting build for ${DEVICE} ${VER}"
+echo "Building $LOCALVERSION..."
 
 CLEAN_BUILD &&
 SETUP_BUILD &&
 BUILD_KERNEL &&
 INSTALL_MODULES &&
-echo "Finished building $LOCALVERSION - Run ./copy_finished.sh"
+echo "Finished building $LOCALVERSION -- Run ./copy_finished.sh"
