@@ -11,6 +11,7 @@
 # once you've set up the config section how you like it, you can simply run
 # ./build.sh [VARIANT]
 #
+# optional: specify "twrp" after [VARIANT] to enable TWRP config options.
 ##################### VARIANTS #####################
 #
 # H850		= International (Global)
@@ -70,6 +71,11 @@ RDIR=$(pwd)
 [ "$VER" ] ||
 # version number
 VER=$(cat "$RDIR/VERSION")
+
+[ "$2" ] && IS_TWRP=$2
+if [ "$IS_TWRP" = "twrp" ]; then
+  echo "Compiling with TWRP configuration..."
+fi
 
 # directory containing cross-compile arm64 toolchain
 TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
@@ -170,6 +176,9 @@ SETUP_BUILD() {
 		|| ABORT "Failed to reflect device"
 	make -C "$RDIR" O=build "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build"
+	if [ "$IS_TWRP" = "twrp" ]; then
+	  echo "include mk2000_twrp_conf" >> build/.config
+	fi
 }
 
 BUILD_KERNEL() {
