@@ -38,19 +38,19 @@
 #		LGUS996  (LG V20)
 #
 # US996Santa	= US Cellular & Unlocked (US)
-#		LGUS996  (LG V20) (Unlocked with Kernel Exploit)
+#		LGUS996  (LG V20) (Unlocked with Engineering Bootloader)
 #
 # VS995		= Verizon (US)
 #		LGVS995  (LG V20)
 #
 # H990DS/TR	= International (Global)
-#		LGH990   (LG V20)
+#		LGH990   (LG V20) (TR = Single sim)
 #
 # LS997		= Sprint (US)
 #		LGLS997  (LG V20)
 #
-# F800K		= Korea (KR)
-#		LGF800K  (LG V20)
+# F800K/L/S	= Korea (KR)
+#		LGF800   (LG V20)
 #
 #   *************************
 #
@@ -153,6 +153,9 @@ if [ "$DEVICE" = "F800K" ]; then
 fi
 if [ "$DEVICE" = "F800L" ]; then
   DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
+fi
+if [ "$DEVICE" = "F800S" ]; then
+  DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
 fi
 
 [ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||
