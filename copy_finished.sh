@@ -17,6 +17,9 @@ ABORT() {
 DEVICE=$(cat "${BDIR}/DEVICE") \
 		|| ABORT "No device file found in ${BDIR}"
 
+COMP=$(cat "${BDIR}/COMPRESSION") \
+		|| ABORT "No compression file found in ${BDIR}"
+
 VER=$(cat "${RDIR}/VERSION") \
 		|| ABORT "No version file found in ${RDIR}"
 
@@ -75,19 +78,14 @@ COPY_INIT() {
 }
 
 COPY_KERNEL() {
-	if [ "$DEVICE" = "H850" ] || [ "$DEVICE" = "H830" ] || [ "$DEVICE" = "RS988" ]; then
-	  echo "Copying kernel and modules (G5)..."
-	  cp $KERN_DIR/Image.lz4 $DDIR \
+	echo "Copying kernel..."
+	cp $KERN_DIR/Image.${COMP}-dtb $DDIR \
 		|| ABORT "Failed to copy kernel"
-	  python $RDISK/dtbTool -o $DDIR/dt.img -s 4096 $KERN_DIR/dts \
-		|| ABORT "Failed to create dt.img - do you have libfdt installed?"
-	else
-	  echo "Copying kernel and modules..."
-	  cp $KERN_DIR/Image.lz4-dtb $DDIR \
-		|| ABORT "Failed to copy kernel"
-	fi
-	find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/modules \; \
+	if grep -q 'CONFIG_MODULES=y' $BDIR/.config; then
+	  echo "Copying modules..."
+	  find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/modules \; \
 		|| ABORT "Failed to copy modules"
+	fi
 }
 
 ZIP_UP() {

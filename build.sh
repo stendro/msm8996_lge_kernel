@@ -175,8 +175,6 @@ CLEAN_BUILD() {
 SETUP_BUILD() {
 	echo "Creating kernel config..."
 	mkdir -p build
-	echo "$DEVICE" > build/DEVICE \
-		|| ABORT "Failed to reflect device"
 	make -C "$RDIR" O=build "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build"
 	if [ "$IS_TWRP" = "twrp" ]; then
@@ -205,6 +203,18 @@ INSTALL_MODULES() {
 	rm build/lib/modules/*/build build/lib/modules/*/source
 }
 
+PREPARE_NEXT() {
+	echo "$DEVICE" > build/DEVICE \
+		|| echo "Failed to reflect device"
+	if grep -q 'KERNEL_COMPRESSION_LZ4=y' build/.config; then
+	  echo lz4 > build/COMPRESSION \
+		|| echo "Failed to reflect compression method"
+	else
+	  echo gz > build/COMPRESSION \
+		|| echo "Failed to reflect compression method"
+	fi
+}
+
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
 echo "Building $LOCALVERSION..."
 
@@ -212,4 +222,5 @@ CLEAN_BUILD &&
 SETUP_BUILD &&
 BUILD_KERNEL &&
 INSTALL_MODULES &&
+PREPARE_NEXT &&
 echo "Finished building $LOCALVERSION -- Run ./copy_finished.sh"

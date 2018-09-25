@@ -1,26 +1,24 @@
 #!/bin/bash
 # simple script for executing menuconfig
 # -modified by stendro (source: jcadduono)
-#
-# root directory of LGE msm8996 git repo (default is this script's location)
+
+# root directory of this kernel (this script's location)
 RDIR=$(pwd)
 OUTDIR=$(dirname "$RDIR")
 OUTFILE=defconfig_regen
 
-# directory containing cross-compile arm64 toolchain
+# directory containing cross-compiler
 TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
 
 export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN
 
 ABORT() {
-	[ "$1" ] && echo "Error: $*"
+	echo "Error: $*"
 	exit 1
 }
 
-[ -x "${CROSS_COMPILE}gcc" ] ||
-ABORT "Unable to find gcc cross-compiler at location: ${CROSS_COMPILE}gcc"
-
+# selected device
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified"
 
@@ -76,9 +74,16 @@ fi
 if [ "$DEVICE" = "F800L" ]; then
   DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
 fi
+if [ "$DEVICE" = "F800S" ]; then
+  DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
+fi
 
-[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||
-ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
+# check for stuff
+[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] \
+	|| ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
+
+[ -x "${CROSS_COMPILE}gcc" ] \
+	|| ABORT "Cross-compiler not found at: ${CROSS_COMPILE}gcc"
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
 
