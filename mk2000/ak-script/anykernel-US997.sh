@@ -35,12 +35,11 @@ chown -R root:root $ramdisk/*;
 dump_boot;
 
 ## Ramdisk modifications
-# prop - make sure adb is working, enable blu_active tweaks, disable rctd & triton
+# prop - make sure adb is working, enable blu_active tweaks and disable triton
 patch_prop default.prop "ro.secure" "1";
 patch_prop default.prop "ro.adb.secure" "1";
 append_file init.rc blu_active "init_rc-mod";
-remove_section init.lge.rc "service rctd" " ";
-replace_section init.lucye.power.rc "service triton" " " "service triton /system/bin/triton\n   class main\n   user root\n   group system\n   socket triton-client stream 660 system system\n   disabled\n   oneshot\n";
+replace_section init.lucye.power.rc "service triton" " " "service triton /system/vendor/bin/triton\n   class main\n   user root\n   group system\n   socket triton-client stream 660 system system\n   disabled\n   oneshot\n";
 
 write_boot;
 ## end install
