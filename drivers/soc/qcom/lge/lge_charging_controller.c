@@ -71,14 +71,40 @@ typedef enum vzw_chg_state {
 } chg_state;
 #endif
 
-enum qpnp_quick_charging_status {
-	QC20_STATUS_NONE,
-	QC20_STATUS_LCD_ON,
-	QC20_STATUS_LCD_OFF,
-	QC20_STATUS_CALL_ON,
-	QC20_STATUS_CALL_OFF,
-	QC20_STATUS_THERMAL_ON,
-	QC20_STATUS_THERMAL_OFF,
+enum lgcc_vote_reason {
+	LGCC_REASON_DEFAULT,
+	LGCC_REASON_LCD,
+	LGCC_REASON_CALL,
+	LGCC_REASON_TDMB,
+	LGCC_REASON_UHD_RECORD,
+	LGCC_REASON_MIRACAST,
+	LGCC_REASON_MAX,
+};
+
+static char *restricted_chg_name[] = {
+	[LGCC_REASON_DEFAULT] 		= "DEFAULT",
+	[LGCC_REASON_LCD] 		= "LCD",
+	[LGCC_REASON_CALL]		= "CALL",
+	[LGCC_REASON_TDMB]		= "TDMB",
+	[LGCC_REASON_UHD_RECORD]	= "UHDREC",
+	[LGCC_REASON_MIRACAST]		= "WFD",
+	[LGCC_REASON_MAX]		= NULL,
+};
+
+enum {
+	RESTRICTED_CHG_STATUS_OFF,
+	RESTRICTED_CHG_STATUS_ON,
+	RESTRICTED_CHG_STATUS_MODE1,
+	RESTRICTED_CHG_STATUS_MODE2,
+	RESTRICTED_CHG_STATUS_MAX,
+};
+
+static char *retricted_chg_status[] = {
+	[RESTRICTED_CHG_STATUS_OFF]	= "OFF",
+	[RESTRICTED_CHG_STATUS_ON]	= "ON",
+	[RESTRICTED_CHG_STATUS_MODE1]	= "MODE1",
+	[RESTRICTED_CHG_STATUS_MODE2]	= "MODE2",
+	[RESTRICTED_CHG_STATUS_MAX]	= NULL,
 };
 
 extern int lgcc_is_charger_present(void);
@@ -894,6 +920,132 @@ static int lgcc_set_iusb_control(const char *val,
 module_param_call(lgcc_iusb_control, lgcc_set_iusb_control,
 	param_get_int, &lgcc_iusb_control, 0644);
 
+static char *restricted_charging;
+static int restricted_charging_param_set(const char *, const struct kernel_param *);
+static struct kernel_param_ops restricted_charging_param_ops = {
+	.set 	=	restricted_charging_param_set,
+	.get 	=	param_get_charp,
+	.free	=	param_free_charp,
+};
+
+module_param_cb(restricted_charging, &restricted_charging_param_ops,
+		&restricted_charging, 0644);
+
+static int restricted_charging_set_current(int reason, int status)
+{
+	int chg_curr;
+
+	switch (reason) {
+		case LGCC_REASON_CALL:
+			if (status == RESTRICTED_CHG_STATUS_ON) {
+				chg_curr = RESTRICTED_CHG_CURRENT;
+				lgcc_set_ibat_current(RESTRICTED_CHG_FCC_VOTER,true,chg_curr);
+#ifdef CONFIG_LGE_ALICE_FRIENDS
+				atomic_set(&in_call_status, 1);
+#endif
+			} else {
+				chg_curr = NORMAL_CHG_CURRENT_MAX;
+				lgcc_set_ibat_current(RESTRICTED_CHG_FCC_VOTER,true,chg_curr);
+#ifdef CONFIG_LGE_ALICE_FRIENDS
+				atomic_set(&in_call_status, 0);
+#endif
+			}
+			break;
+		case LGCC_REASON_TDMB:
+			if (status == RESTRICTED_CHG_STATUS_MODE1 ||
+					status == RESTRICTED_CHG_STATUS_MODE2) {
+				lgcc_set_tdmb_mode(1);
+				chg_curr = RESTRICTED_CHG_CURRENT;
+			} else {
+				lgcc_set_tdmb_mode(0);
+				chg_curr = NORMAL_CHG_CURRENT_MAX;
+			}
+			lgcc_set_ibat_current(USER_FCC_VOTER,true, chg_curr);
+			break;
+		case LGCC_REASON_LCD:
+		case LGCC_REASON_UHD_RECORD:
+		case LGCC_REASON_MIRACAST:
+			chg_curr = -EINVAL;
+			break;
+		case LGCC_REASON_DEFAULT:
+		default:
+			chg_curr = NORMAL_CHG_CURRENT_MAX;
+			lgcc_set_ibat_current(USER_FCC_VOTER,true, chg_curr);
+			lgcc_set_ibat_current(USER_FCC_VOTER,true, chg_curr);
+			break;
+	}
+
+	return chg_curr;
+}
+
+static int restricted_charging_find_name(char *name)
+{
+	int i;
+
+	for (i = 0; i < LGCC_REASON_MAX; i++) {
+		// exclude voters which is not registered in the user space.
+		if (restricted_chg_name[i] == NULL)
+			continue;
+
+		if (!strcmp(name, restricted_chg_name[i]))
+			return i;
+	}
+
+	return -EINVAL;
+}
+
+static int restricted_charging_find_status(char *status)
+{
+	int i;
+
+	for (i = 0; i < RESTRICTED_CHG_STATUS_MAX; i++) {
+
+		if (!strcmp(status, retricted_chg_status[i]))
+			return i;
+	}
+
+	return -EINVAL;
+}
+
+static int restricted_charging_param_set(const char *val, const struct kernel_param *kp)
+{
+	char *s = strstrip((char *)val);
+	char *voter_name, *voter_status;
+	int chg_curr, name, status, ret;
+
+	if (s == NULL) {
+		pr_err("Restrict charging param is NULL! \n");
+		return -EINVAL;
+	}
+
+	pr_info("Restricted charging param = %s \n", s);
+
+	ret = param_set_charp(val, kp);
+
+	if (ret) {
+		pr_err("Error setting param %d\n", ret);
+		return ret;
+	}
+
+	voter_name = strsep(&s, " ");
+	voter_status = s;
+
+	name = restricted_charging_find_name(voter_name);
+	status = restricted_charging_find_status(voter_status);
+
+	if (name == -EINVAL || status == -EINVAL) {
+		pr_err("Restrict charging param is invalid! \n");
+		return -EINVAL;
+	}
+
+	chg_curr = restricted_charging_set_current(name, status);
+	pr_info("voter_name = %s[%d], voter_status = %s[%d], chg_curr = %d \n",
+				voter_name, name, voter_status, status, chg_curr);
+
+
+	return 0;
+}
+
 static int lgcc_thermal_mitigation = 0;
 static int lgcc_set_thermal_chg_current(const char *val,
 		struct kernel_param *kp){
@@ -927,46 +1079,6 @@ static int lgcc_set_thermal_chg_current(const char *val,
 module_param_call(lgcc_thermal_mitigation, lgcc_set_thermal_chg_current,
 	param_get_int, &lgcc_thermal_mitigation, 0644);
 
-static int quick_charging_state;
-static int set_quick_charging_state(const char *val, struct kernel_param *kp)
-{
-	int ret;
-
-	ret = param_set_int(val, kp);
-	if (ret) {
-		pr_err("quick_charging_state error = %d\n", ret);
-		return ret;
-	}
-
-	switch (quick_charging_state) {
-	case QC20_STATUS_NONE:
-		break;
-
-	case QC20_STATUS_CALL_ON:
-		lgcc_set_ibat_current(RESTRICTED_CHG_FCC_VOTER, true,
-				RESTRICTED_CHG_CURRENT);
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-		atomic_set(&in_call_status, 1);
-#endif
-		break;
-
-	case QC20_STATUS_CALL_OFF:
-		lgcc_set_ibat_current(RESTRICTED_CHG_FCC_VOTER, true,
-				NORMAL_CHG_CURRENT_MAX);
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-		atomic_set(&in_call_status, 0);
-#endif
-		break;
-	default:
-		break;
-	}
-	pr_err("set quick_charging_state[%d]\n",
-			quick_charging_state);
-
-	return 0;
-}
-module_param_call(quick_charging_state, set_quick_charging_state,
-		param_get_int, &quick_charging_state, 0644);
 
 #define OTP_CHG_NORMAL_IBAT     3100
 #define OTP_CHG_DECCUR_IBAT     450

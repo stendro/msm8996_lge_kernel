@@ -8723,6 +8723,10 @@ skip_current_for_non_sdp:
 					if ((chip->ctype_rp == 1) &&
 						(usb_supply_type ==
 							 POWER_SUPPLY_TYPE_USB_DCP)) {
+#ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
+						pr_smb(PR_LGE, "hvdcp detected status = %d\n",chip->incompatible_hvdcp_detected);
+						if(chip->incompatible_hvdcp_detected != INCOMPATIBLE_DETECTED)
+#endif
 						schedule_delayed_work(&chip->hvdcp_det_prepare_work,
 							msecs_to_jiffies(500));
 					}
