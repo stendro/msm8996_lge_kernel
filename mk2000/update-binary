@@ -161,16 +161,6 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   mount -o ro,remount -t auto /vendor 2>/dev/null;
 fi;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.postboot)" == 1 ]; then
-  mount -o rw,remount -t auto /system;
-  if ! grep -q 'sys.post_boot.parsed' /system/etc/init.qcom.post_boot.sh; then
-    ui_print " ";
-    ui_print "Patching init.qcom.post_boot.sh...";
-    sed -i '$a setprop sys.post_boot.parsed 1' /system/etc/init.qcom.post_boot.sh;
-  fi;
-  mount -o ro,remount -t auto /system;
-fi;
-
 debugging;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then

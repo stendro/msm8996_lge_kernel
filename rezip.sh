@@ -47,10 +47,12 @@ COPY_AK() {
 	fi
 	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
 		|| ABORT "Failed to copy *anykernel.sh*"
+	cp $RDISK/update-binary $DDIR/META-INF/com/google/android \
+		|| ABORT "Failed to copy *update-binary*"
 }
 
 COPY_INIT() {
-	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ]; then
+	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; then
 	  echo "Copying init file (G6)..."
 	  cp $INIT_FILE_G6 $DDIR/ramdisk/init.blu_active.rc \
 		|| ABORT "Failed to copy init file"
