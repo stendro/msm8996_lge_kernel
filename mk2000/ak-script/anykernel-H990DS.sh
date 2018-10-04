@@ -6,6 +6,7 @@
 properties() { '
 kernel.string=H990DS mk2000
 do.devicecheck=1
+do.droidcheck=1
 do.modules=1
 do.cleanup=1
 do.cleanuponabort=0
