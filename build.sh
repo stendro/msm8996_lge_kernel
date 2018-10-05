@@ -82,7 +82,11 @@ CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
 THREADS=$((CPU_THREADS + 1))
 
 # directory containing cross-compiler
-TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+GCC_COMP=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+
+# compiler version
+GCC_VER=$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
+cut -f2 -d'(')
 
 ############## SCARY NO-TOUCHY STUFF ###############
 
@@ -95,7 +99,8 @@ export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=xda
 export ARCH=arm64
 export USE_CCACHE=0
-export CROSS_COMPILE=$TOOLCHAIN
+export CROSS_COMPILE=$GCC_COMP
+export KBUILD_COMPILER_STRING=$GCC_VER
 
 # selected device
 [ "$1" ] && DEVICE=$1
@@ -166,6 +171,8 @@ fi
 [ -x "${CROSS_COMPILE}gcc" ] \
 	|| ABORT "Cross-compiler not found at: ${CROSS_COMPILE}gcc"
 
+[ "$GCC_VER" ] || ABORT "Couldn't get GCC version"
+
 # build commands
 CLEAN_BUILD() {
 	echo "Cleaning build..."
@@ -217,6 +224,7 @@ PREPARE_NEXT() {
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
 echo "Building $LOCALVERSION..."
+echo "Using $GCC_VER..."
 
 CLEAN_BUILD &&
 SETUP_BUILD &&
