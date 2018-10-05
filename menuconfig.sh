@@ -25,56 +25,39 @@ ABORT() {
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
   DEVICE_DEFCONFIG=h1_global_com-perf_defconfig
-fi
-if [ "$DEVICE" = "H830" ]; then
+elif [ "$DEVICE" = "H830" ]; then
   DEVICE_DEFCONFIG=h1_tmo_us-perf_defconfig
-fi
-if [ "$DEVICE" = "RS988" ]; then
+elif [ "$DEVICE" = "RS988" ]; then
   DEVICE_DEFCONFIG=h1_lra_us-perf_defconfig
-fi
-if [ "$DEVICE" = "H870" ]; then
+elif [ "$DEVICE" = "H870" ]; then
   DEVICE_DEFCONFIG=lucye_global_com-perf_defconfig
-fi
-if [ "$DEVICE" = "US997" ]; then
+elif [ "$DEVICE" = "US997" ]; then
   DEVICE_DEFCONFIG=lucye_nao_us-perf_defconfig
-fi
-if [ "$DEVICE" = "H872" ]; then
+elif [ "$DEVICE" = "H872" ]; then
   DEVICE_DEFCONFIG=lucye_tmo_us-perf_defconfig
-fi
-if [ "$DEVICE" = "H990DS" ]; then
+elif [ "$DEVICE" = "H990DS" ]; then
   DEVICE_DEFCONFIG=elsa_global_com-perf_defconfig
-fi
-if [ "$DEVICE" = "H990TR" ]; then
+elif [ "$DEVICE" = "H990TR" ]; then
   DEVICE_DEFCONFIG=elsa_cno_cn-perf_defconfig
-fi
-if [ "$DEVICE" = "US996" ]; then
+elif [ "$DEVICE" = "US996" ]; then
   DEVICE_DEFCONFIG=elsa_nao_us-perf_defconfig
-fi
-if [ "$DEVICE" = "US996Santa" ]; then
+elif [ "$DEVICE" = "US996Santa" ]; then
   DEVICE_DEFCONFIG=elsa_usc_us-perf_defconfig
-fi
-if [ "$DEVICE" = "LS997" ]; then
+elif [ "$DEVICE" = "LS997" ]; then
   DEVICE_DEFCONFIG=elsa_spr_us-perf_defconfig
-fi
-if [ "$DEVICE" = "VS995" ]; then
+elif [ "$DEVICE" = "VS995" ]; then
   DEVICE_DEFCONFIG=elsa_vzw-perf_defconfig
-fi
-if [ "$DEVICE" = "H918" ]; then
+elif [ "$DEVICE" = "H918" ]; then
   DEVICE_DEFCONFIG=elsa_tmo_us-perf_defconfig
-fi
-if [ "$DEVICE" = "H910" ]; then
+elif [ "$DEVICE" = "H910" ]; then
   DEVICE_DEFCONFIG=elsa_att_us-perf_defconfig
-fi
-if [ "$DEVICE" = "H915" ]; then
+elif [ "$DEVICE" = "H915" ]; then
   DEVICE_DEFCONFIG=elsa_global_ca-perf_defconfig
-fi
-if [ "$DEVICE" = "F800K" ]; then
+elif [ "$DEVICE" = "F800K" ]; then
   DEVICE_DEFCONFIG=elsa_kt_kr-perf_defconfig
-fi
-if [ "$DEVICE" = "F800L" ]; then
+elif [ "$DEVICE" = "F800L" ]; then
   DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
-fi
-if [ "$DEVICE" = "F800S" ]; then
+elif [ "$DEVICE" = "F800S" ]; then
   DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
 fi
 
