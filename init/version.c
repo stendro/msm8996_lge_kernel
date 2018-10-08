@@ -11,7 +11,7 @@
 #include <linux/uts.h>
 #include <linux/utsname.h>
 #include <generated/utsrelease.h>
-#include <linux/version.h>
+#include <generated/uapi/linux/version.h>
 #include <linux/proc_ns.h>
 
 #ifndef CONFIG_KALLSYMS
@@ -39,12 +39,12 @@ struct uts_namespace init_uts_ns = {
 };
 EXPORT_SYMBOL_GPL(init_uts_ns);
 
-/* FIXED STRINGS! Don't touch! */
+/* FIXED STRINGS! Don't touch! */ // Custom banner mk2000
 const char linux_banner[] =
-	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@"
+	"Linux version " UTS_RELEASE " " MK_VER " (" LINUX_COMPILE_BY "@"
 	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n";
 
 const char linux_proc_banner[] =
-	"%s version %s"
+	"%s version %s" " " MK_VER
 	" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
 	" (" LINUX_COMPILER ") %s\n";

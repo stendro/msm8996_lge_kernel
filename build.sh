@@ -68,18 +68,27 @@
 # root directory of this kernel (this script's location)
 RDIR=$(pwd)
 
+# color codes
+COLOR_N="\033[0m"
+COLOR_R="\033[0;31m"
+COLOR_G="\033[1;32m"
+COLOR_P="\033[1;35m"
+
 # version number
 VER=$(cat "$RDIR/VERSION")
 
 # twrp configuration
 [ "$2" ] && IS_TWRP=$2
 if [ "$IS_TWRP" = "twrp" ]; then
-  echo "TWRP configuration selected"
+  echo -e $COLOR_P"TWRP configuration selected"
 fi
 
 # select cpu threads
 CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
 THREADS=$((CPU_THREADS + 1))
+
+# get build date, day/month/year
+BDATE=$(date '+%d/%m/%Y')
 
 # directory containing cross-compiler
 GCC_COMP=$HOME/build/toolchain/bin/aarch64-linux-gnu-
@@ -91,22 +100,21 @@ cut -f2 -d'(')
 ############## SCARY NO-TOUCHY STUFF ###############
 
 ABORT() {
-	echo "Error: $*"
+	echo -e $COLOR_R"Error: $*"
 	exit 1
 }
 
-export KBUILD_BUILD_USER=stendro
-export KBUILD_BUILD_HOST=xda
 export ARCH=arm64
-export USE_CCACHE=0
 export CROSS_COMPILE=$GCC_COMP
 export KBUILD_COMPILER_STRING=$GCC_VER
+export KBUILD_BUILD_TIMESTAMP=$BDATE
+export KBUILD_BUILD_USER=stendro
+export KBUILD_BUILD_HOST=github
+export MAKE_MK="MK2000 ${VER}"
 
 # selected device
 [ "$1" ] && DEVICE=$1
-[ "$DEVICE" ] || ABORT "No device specified"
-
-export LOCALVERSION=${DEVICE}_${VER}-mk2000
+[ "$DEVICE" ] || ABORT "No device specified!"
 
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
@@ -145,6 +153,8 @@ elif [ "$DEVICE" = "F800L" ]; then
   DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
 elif [ "$DEVICE" = "F800S" ]; then
   DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
+else
+  ABORT "Invalid device specified! Make sure to use upper case."
 fi
 
 # check for stuff
@@ -158,12 +168,12 @@ fi
 
 # build commands
 CLEAN_BUILD() {
-	echo "Cleaning build..."
+	echo -e $COLOR_G"Cleaning build folder..."$COLOR_N
 	rm -rf build
 }
 
 SETUP_BUILD() {
-	echo "Creating kernel config..."
+	echo -e $COLOR_G"Creating kernel config..."$COLOR_N
 	mkdir -p build
 	make -C "$RDIR" O=build "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build"
@@ -173,7 +183,8 @@ SETUP_BUILD() {
 }
 
 BUILD_KERNEL() {
-	echo "Compiling..."
+	echo -e $COLOR_G"Compiling kernel..."$COLOR_N
+	TIMESTAMP1=$(date +%s)
 	while ! make -C "$RDIR" O=build -j"$THREADS"; do
 		read -rp "Build failed. Retry? " do_retry
 		case $do_retry in
@@ -181,11 +192,14 @@ BUILD_KERNEL() {
 			*) return 1 ;;
 		esac
 	done
+	TIMESTAMP2=$(date +%s)
+	BSEC=$((TIMESTAMP2-TIMESTAMP1))
+	BTIME=$(printf '%02dm:%02ds' $(($BSEC/60)) $(($BSEC%60)))
 }
 
 INSTALL_MODULES() {
 	grep -q 'CONFIG_MODULES=y' build/.config || return 0
-	echo "Installing kernel modules to build/lib/modules..."
+	echo -e $COLOR_G"Installing kernel modules..."$COLOR_N
 	make -C "$RDIR" O=build \
 		INSTALL_MOD_PATH="." \
 		INSTALL_MOD_STRIP=1 \
@@ -206,12 +220,13 @@ PREPARE_NEXT() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
-echo "Building $LOCALVERSION..."
-echo "Using $GCC_VER..."
+echo -e $COLOR_G"Building ${DEVICE} ${VER}..."
+echo -e $COLOR_P"Using $GCC_VER..."
 
 CLEAN_BUILD &&
 SETUP_BUILD &&
 BUILD_KERNEL &&
 INSTALL_MODULES &&
 PREPARE_NEXT &&
-echo "Finished building $LOCALVERSION -- Run ./copy_finished.sh"
+echo -e $COLOR_G"Finished building ${DEVICE} ${VER} -- Kernel compilation took"$COLOR_R $BTIME
+echo -e $COLOR_P"Run ./copy_finished.sh to create AnyKernel zip"

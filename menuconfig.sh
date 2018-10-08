@@ -4,8 +4,19 @@
 
 # root directory of this kernel (this script's location)
 RDIR=$(pwd)
+
+# color codes
+COLOR_N="\033[0m"
+COLOR_R="\033[0;31m"
+COLOR_G="\033[1;32m"
+
+# selected device
+[ "$1" ] && DEVICE=$1
+[ "$DEVICE" ] || ABORT "No device specified!"
+
+# output dir/file
 OUTDIR=$(dirname "$RDIR")
-OUTFILE=defconfig_regen
+OUTFILE=${DEVICE}_config_regen
 
 # directory containing cross-compiler
 TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
@@ -14,13 +25,9 @@ export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN
 
 ABORT() {
-	echo "Error: $*"
+	echo -e $COLOR_R"Error: $*"
 	exit 1
 }
-
-# selected device
-[ "$1" ] && DEVICE=$1
-[ "$DEVICE" ] || ABORT "No device specified"
 
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
@@ -59,6 +66,8 @@ elif [ "$DEVICE" = "F800L" ]; then
   DEVICE_DEFCONFIG=elsa_lgu_kr-perf_defconfig
 elif [ "$DEVICE" = "F800S" ]; then
   DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
+else
+  ABORT "Invalid device specified! Make sure to use upper case."
 fi
 
 # check for stuff
@@ -70,22 +79,23 @@ fi
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
 
-echo "Cleaning build..."
+# start menuconfig
+echo -e $COLOR_G"Cleaning build..."$COLOR_N
 rm -rf build
 mkdir build
 make -s -i -C "$RDIR" O=build "$DEVICE_DEFCONFIG" menuconfig
-echo "Showing differences between old config and new config"
-echo "-----------------------------------------------------"
+echo -e $COLOR_G"Showing differences between old config and new config"
+echo -e $COLOR_R"-----------------------------------------------------"$COLOR_N
 make -s -i -C "$RDIR" O=build "$DEVICE_DEFCONFIG"
 if command -v colordiff >/dev/null 2>&1; then
 	diff -Bwu --label "old config" build/.config --label "new config" build/.config.old | colordiff
 else
 	diff -Bwu --label "old config" build/.config --label "new config" build/.config.old
-	echo "-----------------------------------------------------"
-	echo "Consider installing the colordiff package to make diffs easier to read"
+	echo -e $COLOR_R"-----------------------------------------------------"
+	echo -e $COLOR_G"Consider installing the colordiff package to make diffs easier to read"
 fi
-echo "-----------------------------------------------------"
-echo -n "Are you satisfied with these changes? Y/N: "
+echo -e $COLOR_R"-----------------------------------------------------"
+echo -ne $COLOR_G"Are you satisfied with these changes? Y/N: "
 read option
 case $option in
 y|Y)

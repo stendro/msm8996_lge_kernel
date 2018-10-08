@@ -593,10 +593,8 @@ static void lge_boot_lockup_detect_func(struct work_struct *work)
 static void lge_init_boot_lockup_detect(void)
 {
 
-	if( !strcmp(CONFIG_LOCALVERSION,"-perf") )
-		boot_deadline = 180 * 1000;
-	else
-		boot_deadline = 360 * 1000;
+	/* mk2000 is using perf config */
+	boot_deadline = 180 * 1000;
 
 	pr_info("%s boot_partition:%s boot_mode:%d fota:%d\n", __func__,
 			lge_get_boot_partition(), lge_get_boot_mode(), lge_get_fota_mode());
