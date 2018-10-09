@@ -5,6 +5,9 @@
 # root directory of this kernel (this script's location)
 RDIR=$(pwd)
 
+# build dir
+BDIR=build
+
 # color codes
 COLOR_N="\033[0m"
 COLOR_R="\033[0;31m"
@@ -14,7 +17,7 @@ COLOR_G="\033[1;32m"
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified!"
 
-# output dir/file
+# config output dir/file
 OUTDIR=$(dirname "$RDIR")
 OUTFILE=${DEVICE}_config_regen
 
@@ -81,16 +84,16 @@ cd "$RDIR" || ABORT "Failed to enter $RDIR!"
 
 # start menuconfig
 echo -e $COLOR_G"Cleaning build..."$COLOR_N
-rm -rf build
-mkdir build
-make -s -i -C "$RDIR" O=build "$DEVICE_DEFCONFIG" menuconfig
+rm -rf $BDIR
+mkdir $BDIR
+make -s -i -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" menuconfig
 echo -e $COLOR_G"Showing differences between old config and new config"
 echo -e $COLOR_R"-----------------------------------------------------"$COLOR_N
-make -s -i -C "$RDIR" O=build "$DEVICE_DEFCONFIG"
+make -s -i -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG"
 if command -v colordiff >/dev/null 2>&1; then
-	diff -Bwu --label "old config" build/.config --label "new config" build/.config.old | colordiff
+	diff -Bwu --label "old config" $BDIR/.config --label "new config" $BDIR/.config.old | colordiff
 else
-	diff -Bwu --label "old config" build/.config --label "new config" build/.config.old
+	diff -Bwu --label "old config" $BDIR/.config --label "new config" $BDIR/.config.old
 	echo -e $COLOR_R"-----------------------------------------------------"
 	echo -e $COLOR_G"Consider installing the colordiff package to make diffs easier to read"
 fi
@@ -99,7 +102,7 @@ echo -ne $COLOR_G"Are you satisfied with these changes? Y/N: "
 read option
 case $option in
 y|Y)
-	cp build/.config.old "../$OUTFILE"
+	cp $BDIR/.config.old "../$OUTFILE"
 	echo "Copied new config to $OUTDIR/$OUTFILE"
 	;;
 *)
