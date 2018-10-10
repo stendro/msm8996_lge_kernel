@@ -78,7 +78,7 @@ COLOR_G="\033[1;32m"
 COLOR_P="\033[1;35m"
 
 # enable ccache ?
-USE_CCACHE=yes
+USE_CCACHE=no
 
 # version number
 VER=$(cat "$RDIR/VERSION")
