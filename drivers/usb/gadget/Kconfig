@@ -603,4 +603,11 @@ config LGE_USB_COMPLIANCE_TEST
 	bool "USB Compliance test"
 	select LGE_USB_BC_12_VZW
 
+config EXT_CDROM_EMULATION
+	boolean "CD-ROM Mass Storage Emulation"
+	depends on USB_F_MASS_STORAGE
+	default n
+	help
+	  Allows you to mount disc images as an external drive.
+
 endif # USB_GADGET
