@@ -596,4 +596,12 @@ config LGE_USB_TYPE_C
 config LGE_USB_MAXIM_EVP
        boolean "EVP charger support"
 
+config EXT_CDROM_EMULATION
+	boolean "CD-ROM Mass Storage Emulation"
+	depends on USB_F_MASS_STORAGE
+	depends on !LGE_USB_G_AUTORUN
+	default n
+	help
+	  Allows you to mount disc images as an external drive.
+
 endif # USB_GADGET
