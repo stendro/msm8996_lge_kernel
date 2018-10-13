@@ -156,11 +156,10 @@ fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
 	touch/h1/h1_limit_mfts.txt
 endif
 ifdef CONFIG_MACH_MSM8996_ELSA
-## UNUSED: L1L52P1_1_05.img, L1L52P1_1_13.img, L1L57P1_1_14.img ##
+## UNUSED: L1L52P1_1_05.img, L1L52P1_1_13.img, L1L57P1_1_13.img ##
 fw-shipped-$(CONFIG_LGE_TOUCH_CORE_BASE) += \
 	touch/elsa/L0L57P1_1_35.img \
 	touch/elsa/L0L57P1_2_00.img \
-	touch/elsa/L1L57P1_1_13.img \
 	touch/elsa/L1L57P1_1_14.img \
 	touch/elsa/elsa_limit.txt \
 	touch/elsa/elsa_limit_mfts.txt
