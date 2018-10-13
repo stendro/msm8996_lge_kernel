@@ -90,11 +90,11 @@ if [ "$IS_TWRP" = "twrp" ]; then
 fi
 
 # select cpu threads
-CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
-THREADS=$((CPU_THREADS + 1))
+CORES=$(grep -c "processor" /proc/cpuinfo)
+THREADS=$((CORES + 1))
 
-# get build date, day/month/year
-BDATE=$(date '+%d/%m/%Y')
+# get build date, month day year
+BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
 GCC_COMP=$HOME/build/toolchain/bin/aarch64-linux-gnu-
@@ -119,7 +119,7 @@ export MAKE_MK="MK2000 ${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
 else
-  export CROSS_COMPILE="$GCC_COMP"
+  export CROSS_COMPILE=$GCC_COMP
 fi
 
 # selected device
@@ -204,7 +204,7 @@ BUILD_KERNEL() {
 		read -rp "Build failed. Retry? " do_retry
 		case $do_retry in
 			Y|y) continue ;;
-			*) return 1 ;;
+			*) ABORT "Compilation discontinued." ;;
 		esac
 	done
 	TIMESTAMP2=$(date +%s)
@@ -224,13 +224,13 @@ INSTALL_MODULES() {
 
 PREPARE_NEXT() {
 	echo "$DEVICE" > $BDIR/DEVICE \
-		|| echo "Failed to reflect device."
+		|| echo -e $COLOR_R"Failed to reflect device!"
 	if grep -q 'KERNEL_COMPRESSION_LZ4=y' $BDIR/.config; then
 	  echo lz4 > $BDIR/COMPRESSION \
-		|| echo "Failed to reflect compression method."
+		|| echo -e $COLOR_R"Failed to reflect compression method!"
 	else
 	  echo gz > $BDIR/COMPRESSION \
-		|| echo "Failed to reflect compression method."
+		|| echo -e $COLOR_R"Failed to reflect compression method!"
 	fi
 }
 
