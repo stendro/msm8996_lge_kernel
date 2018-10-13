@@ -32,6 +32,14 @@
 #include <linux/sched.h>
 #endif
 #include <trace/events/power.h>
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#define SCREEN_OFF_CEILING 902400
+#else
+#define SCREEN_OFF_CEILING 844800
+#endif
+#endif
 
 /**
  * The "cpufreq driver" - the arch- or hardware-dependent low
@@ -2059,6 +2067,11 @@ int __cpufreq_driver_target(struct cpufreq_policy *policy,
 
 	if (cpufreq_disabled())
 		return -ENODEV;
+
+#ifdef CONFIG_STATE_NOTIFIER
+	if (state_suspended && target_freq > SCREEN_OFF_CEILING)
+		target_freq = SCREEN_OFF_CEILING;
+#endif
 
 	/* Make sure that target_freq is within supported range */
 	if (target_freq > policy->max)
