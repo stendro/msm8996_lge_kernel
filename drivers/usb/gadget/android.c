@@ -668,8 +668,11 @@ static void android_work(struct work_struct *data)
 #ifdef CONFIG_LGE_USB_TYPE_C
 				lge_get_cc_type_debug_accessory() &&
 #endif
-				(lge_smem_cable_type() != 11 || !firstboot_check) &&
-				!lge_get_laf_mode()) {
+				(lge_smem_cable_type() != 11 || !firstboot_check)
+#ifdef CONFIG_LGE_USB_G_LAF
+				&&!lge_get_laf_mode()
+#endif
+				) {
 			usb_gadget_disconnect(cdev->gadget);
 			usb_ep_dequeue(cdev->gadget->ep0, cdev->req);
 			pr_info("[FACTORY] reset due to 910K cable, pm:%d, xbl:%d, firstboot_check:%d\n",
@@ -707,11 +710,13 @@ static void android_work(struct work_struct *data)
 			kernel_restart(NULL);
 		} else if (lge_power_get_cable_type() == CABLE_ADC_910K &&
 #ifdef CONFIG_LGE_USB_TYPE_C
-			   lge_get_cc_type_debug_accessory() &&
+				lge_get_cc_type_debug_accessory() &&
 #endif
-			   (lge_power_get_cable_type_boot() != LT_CABLE_910K ||
-			    !firstboot_check) &&
-			   !lge_get_laf_mode()) {
+				(lge_power_get_cable_type_boot() != LT_CABLE_910K || !firstboot_check)
+#ifdef CONFIG_LGE_USB_G_LAF
+				&&!lge_get_laf_mode()
+#endif
+				) {
 			usb_gadget_disconnect(cdev->gadget);
 			usb_ep_dequeue(cdev->gadget->ep0, cdev->req);
 			pr_info("[FACTORY] reset due to 910K cable, pm:%d, xbl:%d, firstboot_check:%d\n",
@@ -4987,10 +4992,12 @@ static void android_lge_factory_bind(struct usb_composite_dev *cdev)
 	if (ret)
 		strlcpy(lge_factory_composition, "acm,diag",
 				sizeof(lge_factory_composition) - 1);
+#ifdef CONFIG_LGE_USB_G_LAF
 	if (lge_get_laf_mode()) {
 		strlcpy(lge_factory_composition, "acm,laf",
 				sizeof(lge_factory_composition) - 1);
 	}
+#endif
 
 	b = strim(lge_factory_composition);
 	while (b) {
