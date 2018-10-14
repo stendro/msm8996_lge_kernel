@@ -70,7 +70,7 @@ elif [ "$DEVICE" = "F800L" ]; then
 elif [ "$DEVICE" = "F800S" ]; then
   DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
 else
-  ABORT "Invalid device specified! Make sure to use upper case."
+  ABORT "Invalid device specified! Make sure to use upper-case."
 fi
 
 # check for stuff

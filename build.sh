@@ -43,8 +43,11 @@
 # VS995		= Verizon (US)
 #		LGVS995  (LG V20)
 #
-# H990DS/TR	= International (Global)
-#		LGH990   (LG V20) (TR = Single sim)
+# H990DS	= International (Global)
+#		LGH990   (LG V20)
+#
+# H990TR	= Turkey (TR)
+#		LGH990   (LG V20)
 #
 # LS997		= Sprint (US)
 #		LGLS997  (LG V20)
@@ -164,7 +167,7 @@ elif [ "$DEVICE" = "F800L" ]; then
 elif [ "$DEVICE" = "F800S" ]; then
   DEVICE_DEFCONFIG=elsa_skt_kr-perf_defconfig
 else
-  ABORT "Invalid device specified! Make sure to use upper case."
+  ABORT "Invalid device specified! Make sure to use upper-case."
 fi
 
 # check for stuff

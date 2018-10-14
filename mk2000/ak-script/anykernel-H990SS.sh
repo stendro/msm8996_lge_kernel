@@ -4,7 +4,7 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=H990DS mk2000
+kernel.string=H990 Single-Sim mk2000
 do.devicecheck=1
 do.droidcheck=1
 do.modules=1
@@ -45,8 +45,8 @@ patch_fstab fstab.elsa /data ext4 flags "forceencrypt=" "encryptable=";
 replace_section init.elsa.power.rc "service triton" " " "service triton /system/vendor/bin/triton\n   class main\n   user root\n   group system\n   socket triton-client stream 660 system system\n   disabled\n   oneshot\n";
 
 # Set simcount (H990)
-patch_cmdline "lge.dsds=" "lge.dsds=dsds";
-patch_cmdline "lge.sim_num=" "lge.sim_num=2";
+patch_cmdline "lge.dsds=" "lge.dsds=none";
+patch_cmdline "lge.sim_num=" "lge.sim_num=1";
 
 ## System modifications
 # make sure init.blu_active.rc can run, and disable rctd
