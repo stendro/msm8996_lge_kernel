@@ -177,7 +177,11 @@ static ssize_t lge_store_pkm_command (struct device *dev,
     unsigned long ks;
     unsigned long sct_p;
 
-    if (lge_get_boot_mode() != LGE_BOOT_MODE_NORMAL || lge_get_laf_mode() == LGE_LAF_MODE_LAF) {
+    if (lge_get_boot_mode() != LGE_BOOT_MODE_NORMAL
+#ifdef CONFIG_LGE_USB_G_LAF
+        || lge_get_laf_mode() == LGE_LAF_MODE_LAF
+#endif
+        ) {
         pr_err("[LGE_PKM] %s: unsupported mode.\n", __func__);
         return count;
     }
