@@ -1,58 +1,72 @@
 #!/bin/bash
 # simple script for executing menuconfig
 # -modified by stendro (source: jcadduono)
-#
-# root directory of LGE msm8996 git repo (default is this script's location)
-RDIR=$(pwd)
-OUTDIR=$(dirname "$RDIR")
-OUTFILE=defconfig_regen
 
-# directory containing cross-compile arm64 toolchain
+# root directory of this kernel (this script's location)
+RDIR=$(pwd)
+
+# build dir
+BDIR=build
+
+# color codes
+COLOR_N="\033[0m"
+COLOR_R="\033[0;31m"
+COLOR_G="\033[1;32m"
+
+# selected device
+[ "$1" ] && DEVICE=$1
+[ "$DEVICE" ] || ABORT "No device specified!"
+DEFCONFIG=lge_defconfig
+DEVICE_DEFCONFIG=device_lge_${DEVICE}
+
+# config output dir/file
+OUTDIR=$(dirname "$RDIR")
+OUTFILE=${DEVICE}_config_regen
+
+# directory containing cross-compiler
 TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
 
 export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN
 
 ABORT() {
-	[ "$1" ] && echo "Error: $*"
+	echo -e $COLOR_R"Error: $*"
 	exit 1
 }
 
-[ -x "${CROSS_COMPILE}gcc" ] ||
-ABORT "Unable to find gcc cross-compiler at location: ${CROSS_COMPILE}gcc"
+# check for stuff
+[ -f "$RDIR/arch/$ARCH/configs/${DEFCONFIG}" ]
+	|| ABORT "$DEFCONFIG not found in $ARCH configs!"
 
-[ "$TARGET" ] || TARGET=lge
-[ "$1" ] && DEVICE=$1
-[ "$DEVICE" ] || ABORT "No device specified"
+[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] \
+	|| ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
 
-DEFCONFIG=${TARGET}_defconfig
-DEVICE_DEFCONFIG=device_lge_${DEVICE}
-
-[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] ||
-ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
+[ -x "${CROSS_COMPILE}gcc" ] \
+	|| ABORT "Cross-compiler not found at: ${CROSS_COMPILE}gcc"
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
 
-echo "Cleaning build..."
-rm -rf build
-mkdir build
-make -s -i -C "$RDIR" O=build "$DEFCONFIG" DEVICE_DEFCONFIG="$DEVICE_DEFCONFIG" menuconfig
-echo "Showing differences between old config and new config"
-echo "-----------------------------------------------------"
-make -s -i -C "$RDIR" O=build "$DEFCONFIG" DEVICE_DEFCONFIG="$DEVICE_DEFCONFIG"
+# start menuconfig
+echo -e $COLOR_G"Cleaning build..."$COLOR_N
+rm -rf $BDIR
+mkdir $BDIR
+make -s -i -C "$RDIR" O=$BDIR "$DEFCONFIG" DEVICE_DEFCONFIG="$DEVICE_DEFCONFIG" menuconfig
+echo -e $COLOR_G"Showing differences between old config and new config"
+echo -e $COLOR_R"-----------------------------------------------------"$COLOR_N
+make -s -i -C "$RDIR" O=$BDIR "$DEFCONFIG" DEVICE_DEFCONFIG="$DEVICE_DEFCONFIG"
 if command -v colordiff >/dev/null 2>&1; then
-	diff -Bwu --label "old config" build/.config --label "new config" build/.config.old | colordiff
+	diff -Bwu --label "old config" $BDIR/.config --label "new config" $BDIR/.config.old | colordiff
 else
-	diff -Bwu --label "old config" build/.config --label "new config" build/.config.old
-	echo "-----------------------------------------------------"
-	echo "Consider installing the colordiff package to make diffs easier to read"
+	diff -Bwu --label "old config" $BDIR/.config --label "new config" $BDIR/.config.old
+	echo -e $COLOR_R"-----------------------------------------------------"
+	echo -e $COLOR_G"Consider installing the colordiff package to make diffs easier to read"
 fi
-echo "-----------------------------------------------------"
-echo -n "Are you satisfied with these changes? Y/N: "
+echo -e $COLOR_R"-----------------------------------------------------"
+echo -ne $COLOR_G"Are you satisfied with these changes? Y/N: "
 read option
 case $option in
 y|Y)
-	cp build/.config.old "../$OUTFILE"
+	cp $BDIR/.config.old "../$OUTFILE"
 	echo "Copied new config to $OUTDIR/$OUTFILE"
 	;;
 *)

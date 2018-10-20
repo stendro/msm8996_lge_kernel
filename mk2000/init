@@ -91,5 +91,6 @@ on property:sys.post_boot.parsed=1
     write /sys/block/sde/queue/scheduler "maple"
     write /sys/block/sdf/queue/scheduler "maple"
     write /sys/block/sdg/queue/scheduler "maple"
+    write /sys/block/sdh/queue/scheduler "maple"
 
     write /dev/kmsg "Boot completed "

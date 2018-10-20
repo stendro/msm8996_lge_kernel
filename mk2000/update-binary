@@ -13,16 +13,14 @@ ui_print() {
   done;
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
-set_perm_recursive() {
-  dirs=$(echo $* | $bb awk '{ print substr($0, index($0,$5)) }');
-  for i in $dirs; do
-    $bb chown -R $1:$2 $i;
-    $bb find "$i" -type d -exec chmod $3 {} +;
-    $bb find "$i" -type f -exec chmod $4 {} +;
-  done;
-}
 file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
-getprop() { test -e /sbin/getprop && /sbin/getprop $1 || file_getprop /default.prop $1; }
+if [ ! "$(getprop 2>/dev/null)" ]; then
+  getprop() {
+    local propval="$(file_getprop /default.prop $1 2>/dev/null)";
+    test "$propval" || local propval="$(file_getprop $root/system/build.prop $1 2>/dev/null)";
+    test "$propval" && echo "$propval" || echo "";
+  }
+fi;
 cleanup() { rm -rf /tmp/anykernel; }
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
@@ -33,14 +31,22 @@ debugging() {
     ;;
   esac;
 }
+unmount_all() {
+  (umount /system;
+  if [ -d /system_root -a ! -f /system/build.prop ]; then
+    umount /system_root;
+  fi;
+  umount /system;
+  umount /vendor;
+  umount /data) 2>/dev/null;
+}
 abort() {
   ui_print "$*";
   debugging;
   if [ ! -f /tmp/anykernel/anykernel.sh -o "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;
   fi;
-  umount /system;
-  umount /data 2>/dev/null;
+  unmount_all;
   exit 1;
 }
 
@@ -63,18 +69,23 @@ ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
 ui_print " ";
 
-umount /system 2>/dev/null;
+unmount_all;
 mount -o ro -t auto /system;
+mount -o ro -t auto /vendor 2>/dev/null;
 mount /data 2>/dev/null;
 test -f /system/system/build.prop && root=/system;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
+  device="$(getprop ro.product.device)";
+  product="$(getprop ro.build.product)";
   for i in 1 2 3 4 5 6 7 8 9 10; do
     testname="$(file_getprop /tmp/anykernel/anykernel.sh device.name$i)";
-    if [ "$(getprop ro.product.device)" == "$testname" -o "$(getprop ro.build.product)" == "$testname" ]; then
+    test "$testname" || break;
+    if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
       ui_print "$testname";
       match=1;
+      break;
     fi;
   done;
   ui_print " ";
@@ -82,6 +93,19 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
     abort "Unsupported device. Aborting...";
   fi;
 fi;
+
+if [ -f /system/system/build.prop ]; then
+  umount /system;
+  umount /system 2>/dev/null;
+  mkdir /system_root 2>/dev/null;
+  mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+  mount -o bind /system_root/system /system;
+  unset root;
+fi;
+savedpath="$LD_LIBRARY_PATH";
+savedpre="$LD_PRELOAD";
+unset LD_LIBRARY_PATH;
+unset LD_PRELOAD;
 
 if [ -f /tmp/anykernel/banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
@@ -91,12 +115,25 @@ if [ -f /tmp/anykernel/banner ]; then
 fi;
 
 if [ -f /tmp/anykernel/version ]; then
-  ui_print "$(cat /tmp/anykernel/version)";
+  ui_print " ";
+  while IFS='' read -r line || $bb [[ -n "$line" ]]; do
+    ui_print "$line";
+  done < /tmp/anykernel/version;
   ui_print " ";
   ui_print " ";
 fi;
 
-ui_print "Installing kernel...";
+if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.droidcheck)" == 1 ]; then
+  android_version="$(file_getprop /system/build.prop "ro.build.version.release")";
+  supported_version=7.0.0;
+  if [ "$android_version" != "$supported_version" ]; then
+    ui_print " ";
+    ui_print "You are on $android_version but this kernel is only for $supported_version!";
+    exit 1;
+  fi;
+fi;
+
+ui_print "Installing...";
 for i in $($bb --list); do
   $bb ln -s $bb /tmp/anykernel/bin/$i;
 done;
@@ -112,10 +149,26 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
   mount -o rw,remount -t auto /system;
-  $bb cp -rLf /tmp/anykernel/modules/* $root/system/lib/modules/;
-  set_perm_recursive 0 0 0755 0644 $root/system/lib/modules;
-  chcon -R 'u:object_r:system_file:s0' $root/system/lib/modules;
+  mount -o rw,remount -t auto /vendor 2>/dev/null;
+  cd /tmp/anykernel/modules;
+  for module in $(find . -name '*.ko'); do
+    if [ ! -e /$module ]; then
+      case $module in
+        */vendor/*) mod=vendor;;
+        *) mod=system;;
+      esac;
+    fi;
+    mkdir -p $(dirname /$module);
+    $bb cp -rLf $module /$module;
+    $bb chown 0:0 /$module;
+    $bb chmod 644 /$module;
+    if [ "$mod" ]; then
+      chcon "u:object_r:${mod}_file:s0" /$module;
+    fi;
+  done;
+  cd /tmp/anykernel;
   mount -o ro,remount -t auto /system;
+  mount -o ro,remount -t auto /vendor 2>/dev/null;
 fi;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.postboot)" == 1 ]; then
@@ -134,8 +187,11 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;
 fi;
 
-umount /system;
-umount /data 2>/dev/null;
+test "$savedpath" && export LD_LIBRARY_PATH="$savedpath";
+test "$savedpre" && export LD_PRELOAD="$savedpre";
+
+unmount_all;
+
 ui_print " ";
 ui_print " ";
 ui_print "Done!";
