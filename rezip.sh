@@ -25,7 +25,7 @@ ABORT() {
 [ "$DEVICE" ] || ABORT "No device specified!"
 
 VER=$(cat "${RDIR}/VERSION") \
-		|| ABORT "No version file found in ${RDIR}"
+	|| ABORT "No version file found in ${RDIR}"
 
 OUTDIR=out
 RDISK=${RDIR}/mk2000

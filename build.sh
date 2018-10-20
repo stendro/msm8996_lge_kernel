@@ -117,10 +117,10 @@ DEFCONFIG=lge_defconfig
 DEVICE_DEFCONFIG=device_lge_${DEVICE}
 
 # check for stuff
-[ -f "$RDIR/arch/$ARCH/configs/${DEFCONFIG}" ]
+[ -f "$RDIR/arch/$ARCH/configs/${DEFCONFIG}" ] \
 	|| ABORT "$DEFCONFIG not found in $ARCH configs!"
 
-[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ]
+[ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] \
 	|| ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
 
 [ -x "${GCC_COMP}gcc" ] \

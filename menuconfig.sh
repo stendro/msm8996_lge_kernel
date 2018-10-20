@@ -35,7 +35,7 @@ ABORT() {
 }
 
 # check for stuff
-[ -f "$RDIR/arch/$ARCH/configs/${DEFCONFIG}" ]
+[ -f "$RDIR/arch/$ARCH/configs/${DEFCONFIG}" ] \
 	|| ABORT "$DEFCONFIG not found in $ARCH configs!"
 
 [ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] \
