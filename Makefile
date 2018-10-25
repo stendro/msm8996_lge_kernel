@@ -297,12 +297,12 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
-GRAPHITE = -fgraphite -fgraphite-identity -floop-interchange -ftree-loop-distribution -floop-strip-mine -floop-block -ftree-loop-linear
+XTRAHFLAGS   = -fivopts -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89 $(GRAPHITE)
-HOSTCXXFLAGS = -O2 $(GRAPHITE)
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89 $(XTRAHFLAGS)
+HOSTCXXFLAGS = -O2 $(XTRAHFLAGS)
 
 ifeq ($(shell $(HOSTCC) -v 2>&1 | grep -c "clang version"), 1)
 HOSTCFLAGS  += -Wno-unused-value -Wno-unused-parameter \
@@ -387,9 +387,12 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 # compatible with -mcpu
 ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
+ -fivopts \
  -g0 -DNDEBUG \
- -fomit-frame-pointer \
- -fivopts
+ -floop-interchange \
+ -fgraphite-identity \
+ -floop-nest-optimize \
+ -ftree-loop-distribution
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
