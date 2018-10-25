@@ -100,11 +100,11 @@ THREADS=$((CORES + 1))
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
-GCC_COMP=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+GCC_COMP=$HOME/build/build-tools-gcc/aarch64-linux-gnu/bin/aarch64-linux-gnu-
 
 # compiler version
-GCC_VER=$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
-cut -f2 -d'(')
+GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d'~' | \
+cut -f2 -d'(')+"
 
 ############## SCARY NO-TOUCHY STUFF ###############
 
