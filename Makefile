@@ -4,7 +4,7 @@ SUBLEVEL = 71
 EXTRAVERSION =
 # Repurposed for custom banner use, set in build.sh
 # See "filechk_version.h" below, and init/version.c
-NAME = $(MAKE_MK)
+NAME = $(MK_NAME)
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
@@ -357,7 +357,7 @@ include $(srctree)/scripts/Kbuild.include
 
 # Make variables (CC, etc...)
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld
+LD		= $(CROSS_COMPILE)$(MK_LINKER)
 CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
@@ -387,12 +387,8 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 # compatible with -mcpu
 ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
- -fivopts \
  -g0 -DNDEBUG \
- -floop-interchange \
- -fgraphite-identity \
- -floop-nest-optimize \
- -ftree-loop-distribution
+ -fivopts $(MK_FLAGS)
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \

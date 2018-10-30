@@ -88,8 +88,16 @@ VER=$(cat "$RDIR/VERSION")
 
 # twrp configuration
 [ "$2" ] && IS_TWRP=$2
-if [ "$IS_TWRP" = "twrp" ]; then
-  echo -e $COLOR_P"TWRP configuration selected."
+
+# compiler options
+# requires proper cross-comiler
+MK_LINKER=ld
+USE_GRAPHITE=no
+if [ "$USE_GRAPHITE" = "yes" ]; then
+MK_FLAGS="-fgraphite-identity \
+ -ftree-loop-distribution \
+ -floop-nest-optimize \
+ -floop-interchange"
 fi
 
 # select cpu threads
@@ -113,12 +121,14 @@ ABORT() {
 	exit 1
 }
 
+export MK_FLAGS
+export MK_LINKER
 export ARCH=arm64
 export KBUILD_COMPILER_STRING=$GCC_VER
 export KBUILD_BUILD_TIMESTAMP=$BDATE
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=github
-export MAKE_MK="MK2000 ${VER}"
+export MK_NAME="MK2000 ${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
 else
@@ -238,6 +248,9 @@ PREPARE_NEXT() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
+if [ "$IS_TWRP" = "twrp" ]; then
+  echo -e $COLOR_P"TWRP configuration selected."
+fi
 echo -e $COLOR_G"Building ${DEVICE} ${VER}..."
 echo -e $COLOR_P"Using $GCC_VER..."
 if [ "$USE_CCACHE" = "yes" ]; then
