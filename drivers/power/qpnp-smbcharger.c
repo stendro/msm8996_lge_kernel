@@ -669,6 +669,7 @@ enum incompatible_hvdcp_detect_step {
 	INCOMPATIBLE_DETECTED,
 	HVDCP_DETECT_CONFIRMED,
 };
+#define USBIN_VOLT_THRESHOLD  6000
 #endif
 
 #ifdef CONFIG_LGE_PM_FACTORY_TESTMODE
@@ -9731,6 +9732,9 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 	enum power_supply_type usb_supply_type;
 	char *usb_type_name = "null";
 #endif
+#ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
+	int usbin_volt;
+#endif
 
 	rc = smbchg_read(chip, &reg, chip->usb_chgpth_base + RT_STS, 1);
 	if (rc) {
@@ -9764,11 +9768,11 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 		goto out;
 
 	if ((reg & USBIN_UV_BIT) && (reg & USBIN_SRC_DET_BIT)) {
-#ifdef CONFIG_LGE_PM_DEBUG
-		pr_smb(PR_STATUS, "Very weak charger detected. VBUS[%d]\n",
-				get_usb_adc(chip));
+#ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
+		usbin_volt = get_usb_adc(chip);
+		pr_smb(PR_STATUS, "Very weak charger detected. VBUS[%d]\n", usbin_volt);
 #else
-		pr_smb(PR_STATUS, "Very weak charger detected\n");
+		pr_smb(PR_STATUS, "Very weak charger detected. VBUS[%d]\n", get_usb_adc(chip));
 #endif
 #ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
 		if (chip->incompatible_hvdcp_det_ignore_uv){
@@ -9781,20 +9785,24 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 			goto out;
 		}
 
-		if(chip->incompatible_hvdcp_detected == FIRST_APSD_DETECT_DCP){
-			chip->incompatible_hvdcp_detected = WEAK_CHARGER_DETECTED;
-			pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
-		} else if (chip->incompatible_hvdcp_detected == SECOND_APSD_DETECT_DCP){
-			chip->incompatible_hvdcp_detected = INCOMPATIBLE_DETECTED;
-			pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
-		} else {
-			pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
-			if (is_hvdcp_present(chip)) {
-				pr_err("Incompatible_hvdcp_detected. Forced to 5V charge.\n");
+		if (usbin_volt > USBIN_VOLT_THRESHOLD){
+			pr_smb(PR_LGE, "USBIN is high enough. skip incompatible check work.\n");
+		}else{
+			if(chip->incompatible_hvdcp_detected == FIRST_APSD_DETECT_DCP){
+				chip->incompatible_hvdcp_detected = WEAK_CHARGER_DETECTED;
+				pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
+			} else if (chip->incompatible_hvdcp_detected == SECOND_APSD_DETECT_DCP){
 				chip->incompatible_hvdcp_detected = INCOMPATIBLE_DETECTED;
-				cancel_delayed_work(&chip->hvdcp_disable_work);
-				schedule_delayed_work(&chip->hvdcp_disable_work,
-						msecs_to_jiffies(HVDCP_DISABLE_DELAY_MS));
+				pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
+			} else {
+				pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
+				if (is_hvdcp_present(chip)) {
+					pr_err("Incompatible_hvdcp_detected. Forced to 5V charge.\n");
+					chip->incompatible_hvdcp_detected = INCOMPATIBLE_DETECTED;
+					cancel_delayed_work(&chip->hvdcp_disable_work);
+					schedule_delayed_work(&chip->hvdcp_disable_work,
+							msecs_to_jiffies(HVDCP_DISABLE_DELAY_MS));
+				}
 			}
 		}
 #endif

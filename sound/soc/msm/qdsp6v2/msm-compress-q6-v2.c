@@ -2902,6 +2902,11 @@ static int lge_dsp_sound_offload_playback_number_put(struct snd_kcontrol *kcontr
 	struct snd_soc_component *comp = snd_kcontrol_chip(kcontrol);
 	int pcm_device_id = (int)ucontrol->value.integer.value[0];
 
+	if(pcm_device_id < 0 || pcm_device_id >= comp->card->num_links){
+		pr_err("%s: Invalid value\n",__func__ );
+		return -EINVAL;
+	}
+
 	lgesound_current_be_id = comp->card->dai_link[pcm_device_id].be_id;
 	if (lgesoundeffect_enable == 1)
 		lgesound_lge_effect_be_id = lgesound_current_be_id;
@@ -3102,8 +3107,15 @@ static int lge_dsp_sound_effect_geq_put(struct snd_kcontrol *kcontrol,
 	struct snd_compr_stream *cstream = pdata->cstream[lgesound_lge_effect_be_id];
 	struct msm_compr_audio *prtd = NULL;
 	int rc;
+    int geq_idx = ucontrol->value.integer.value[0];
 
-	lgesoundeffect_geq_gain[(int)ucontrol->value.integer.value[0]] = (int)ucontrol->value.integer.value[1];
+	if (geq_idx >= ARRAY_SIZE(lgesoundeffect_geq_gain) ||
+		geq_idx < 0) {
+		pr_err("%s: Invalid geq index %d", __func__, geq_idx);
+		return -EINVAL;
+	}
+
+	lgesoundeffect_geq_gain[geq_idx] = (int)ucontrol->value.integer.value[1];
 	if (!cstream || cstream->runtime == NULL) {
 		pr_err("%s: compress stream is not open status, so ignore this cmd\n", __func__);
 		return -EINVAL;
@@ -3113,10 +3125,10 @@ static int lge_dsp_sound_effect_geq_put(struct snd_kcontrol *kcontrol,
 	}
 
 	pr_info("+++++++++++++++++++++++++++++++++++++\n");
-	pr_info("%s: bandnum %d, bandgain:%d\n", __func__, (int)ucontrol->value.integer.value[0], (int)ucontrol->value.integer.value[1]);
+	pr_info("%s: bandnum %d, bandgain:%d\n", __func__, geq_idx, (int)ucontrol->value.integer.value[1]);
 	pr_info("+++++++++++++++++++++++++++++++++++++\n");
 	if ((lgesoundeffect_allparam == 1) && prtd && prtd->audio_client) {
-		rc = q6asm_set_lgesoundeffect_geq(prtd->audio_client, (int)ucontrol->value.integer.value[0], (int)ucontrol->value.integer.value[1]);
+		rc = q6asm_set_lgesoundeffect_geq(prtd->audio_client, geq_idx, (int)ucontrol->value.integer.value[1]);
 		if (rc < 0) {
 			pr_err("%s: apr command failed rc=%d\n",
 						__func__, rc);
@@ -3244,6 +3256,10 @@ static int lge_dsp_sound_normalizer_devicespeaker_put(struct snd_kcontrol *kcont
 	struct msm_compr_audio *prtd = NULL;
 	int rc;
 
+	if(lgesound_current_be_id >= MSM_FRONTEND_DAI_MAX || lgesound_current_be_id < 0){
+		pr_err("%s : Invalid value\n", __func__);
+		return -EINVAL;
+	}
 	lgesoundnormalizer_devicespeaker = (int)ucontrol->value.integer.value[0];
 
 	if (!cstream || cstream->runtime == NULL) {
@@ -4509,7 +4525,7 @@ static int msm_compr_probe(struct snd_soc_platform *platform)
 				      ARRAY_SIZE(msm_compr_gapless_controls));
 #if defined(CONFIG_SND_LGE_EFFECT) || defined(CONFIG_SND_LGE_NORMALIZER) || defined(CONFIG_SND_LGE_MABL)
 	snd_soc_add_platform_controls(platform,msm_compr_lge_effect_controls,
-				      ARRAY_SIZE(msm_compr_lge_effect_controls));	
+				      ARRAY_SIZE(msm_compr_lge_effect_controls));
 #endif
 
 
