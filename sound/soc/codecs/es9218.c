@@ -703,6 +703,9 @@ static int es9218_sabre_cfg_custom_filter(struct sabre_custom_filter *sabre_filt
 	u8 rv;
 	pr_info("%s(): g_sabre_cf_num = %d \n", __func__, g_sabre_cf_num);
 
+	if(g_sabre_cf_num < 0)
+		return 0;
+
 	if(g_sabre_cf_num > 3) {
 		rc = es9218_write_reg(g_es9218_priv->i2c_client, ESS9218_FILTER_CONT, 0x00);
 		switch(g_sabre_cf_num) {

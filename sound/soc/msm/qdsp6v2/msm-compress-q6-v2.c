@@ -3107,7 +3107,7 @@ static int lge_dsp_sound_effect_geq_put(struct snd_kcontrol *kcontrol,
 	struct snd_compr_stream *cstream = pdata->cstream[lgesound_lge_effect_be_id];
 	struct msm_compr_audio *prtd = NULL;
 	int rc;
-    int geq_idx = ucontrol->value.integer.value[0];
+	int geq_idx = (int)ucontrol->value.integer.value[0];
 
 	if (geq_idx >= ARRAY_SIZE(lgesoundeffect_geq_gain) ||
 		geq_idx < 0) {
