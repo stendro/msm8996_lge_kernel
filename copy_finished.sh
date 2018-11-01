@@ -37,15 +37,16 @@ if [ "$DEVICE" = "H990DS" ] && [ "$1" = "SS" ]; then
 fi
 
 OUTDIR=out
-RDISK=${RDIR}/mk2000
-AK_DIR=${RDISK}/ak-script
+MK2DIR=${RDIR}/mk2000
+AK_DIR=${MK2DIR}/ak-script
 MOD_DIR=${BDIR}/lib/modules
+MDIR=modules/system/lib/modules
 KERN_DIR=${BDIR}/arch/arm64/boot
-BANNER_BETA=${RDISK}/banner-beta
+BANNER_BETA=${MK2DIR}/banner-beta
 DDIR=${RDIR}/${OUTDIR}/${DEVICE}
-INIT_FILE_G6=${RDISK}/init-g6
-INIT_FILE=${RDISK}/init
-BANNER=${RDISK}/banner
+INIT_FILE_G6=${MK2DIR}/init-g6
+INIT_FILE=${MK2DIR}/init
+BANNER=${MK2DIR}/banner
 
 CLEAN_DIR() {
 	echo "Cleaning folder..."
@@ -56,9 +57,9 @@ CLEAN_DIR() {
 SETUP_DIR() {
 	echo "Setting up folder..."
 	mkdir -p $RDIR/$OUTDIR
-	unzip -q $RDISK/ak-root.zip -d $DDIR \
+	unzip -q $MK2DIR/ak-root.zip -d $DDIR \
 		|| ABORT "Failed to unzip *ak-root.zip*"
-	cp $RDISK/update-binary $DDIR/META-INF/com/google/android \
+	cp $MK2DIR/update-binary $DDIR/META-INF/com/google/android \
 		|| ABORT "Failed to copy *update-binary*"
 }
 
@@ -95,7 +96,7 @@ COPY_KERNEL() {
 		|| ABORT "Failed to copy kernel"
 	if grep -q 'CONFIG_MODULES=y' $BDIR/.config; then
 	  echo "Copying modules..."
-	  find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/modules \; \
+	  find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/$MDIR \; \
 		|| ABORT "Failed to copy modules"
 	fi
 }

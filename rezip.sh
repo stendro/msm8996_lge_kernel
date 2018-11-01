@@ -4,7 +4,7 @@
 #
 # This script builds zips from the existing folders in the "OUTDIR" directory.
 # This is so that you can make adjustments to the zip without recompiling
-# the entire kernel. Changes are pulled from the source ("RDISK" directory),
+# the entire kernel. Changes are pulled from the source ("MK2DIR" directory),
 # except tools or patches/ramdisk files.
 #
 # Specify the device, i.e ./rezip.sh H850
@@ -28,13 +28,13 @@ VER=$(cat "${RDIR}/VERSION") \
 		|| ABORT "No version file found in ${RDIR}"
 
 OUTDIR=out
-RDISK=${RDIR}/mk2000
-AK_DIR=${RDISK}/ak-script
-BANNER_BETA=${RDISK}/banner-beta
+MK2DIR=${RDIR}/mk2000
+AK_DIR=${MK2DIR}/ak-script
+BANNER_BETA=${MK2DIR}/banner-beta
 DDIR=${RDIR}/${OUTDIR}/${DEVICE}
-INIT_FILE_G6=${RDISK}/init-g6
-INIT_FILE=${RDISK}/init
-BANNER=${RDISK}/banner
+INIT_FILE_G6=${MK2DIR}/init-g6
+INIT_FILE=${MK2DIR}/init
+BANNER=${MK2DIR}/banner
 
 [ -d "$DDIR" ] || ABORT "$DEVICE directory doesn't exist!"
 
@@ -54,7 +54,7 @@ COPY_AK() {
 	fi
 	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
 		|| ABORT "Failed to copy *anykernel.sh*"
-	cp $RDISK/update-binary $DDIR/META-INF/com/google/android \
+	cp $MK2DIR/update-binary $DDIR/META-INF/com/google/android \
 		|| ABORT "Failed to copy *update-binary*"
 }
 
