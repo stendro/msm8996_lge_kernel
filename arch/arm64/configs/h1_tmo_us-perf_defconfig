@@ -1,4 +1,2 @@
 include h1_tmo_us_common
 include h1_common-perf
-CONFIG_USB_HOST_NOTIFY=y
-CONFIG_USB_HOST_NOTIFY=y
