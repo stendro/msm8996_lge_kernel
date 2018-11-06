@@ -447,7 +447,7 @@ int wl_cfg80211_set_btcoex_allow_bt_inquiry(struct net_device *dev, char *comman
 
 	snprintf(command, 3, "OK");
 
-	return (ret == 0) ? strlen("OK") : strlen("FAILED");
+	return (ret == 0) ? DSTRLEN("OK") : DSTRLEN("FAILED");
 
 }
 
@@ -485,7 +485,7 @@ int wl_cfg80211_set_btcoex_bt_preference(struct net_device *dev, char *command, 
 
 	snprintf(command, 3, "OK");
 
-	return strlen("OK");
+	return DSTRLEN("OK");
 
 }
 #endif /* CUSTOMER_HW10 */
@@ -508,9 +508,9 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, dhd_pub_t *dhd, char *co
 	char buf_flag7_default[8] =   { 7, 00, 00, 00, 0x0, 0x00, 0x00, 0x00};
 
 	/* Figure out powermode 1 or o command */
-	strncpy((char *)&powermode_val, command + strlen("BTCOEXMODE") +1, 1);
+	strncpy((char *)&powermode_val, command + DSTRLEN("BTCOEXMODE") +1, 1);
 
-	if (strnicmp((char *)&powermode_val, "1", strlen("1")) == 0) {
+	if (strnicmp((char *)&powermode_val, "1", DSTRLEN("1")) == 0) {
 		WL_TRACE_HW4(("DHCP session starts\n"));
 
 
@@ -561,7 +561,7 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, dhd_pub_t *dhd, char *co
 			WL_ERR(("was called w/o DHCP OFF. Continue\n"));
 		}
 	}
-	else if (strnicmp((char *)&powermode_val, "2", strlen("2")) == 0) {
+	else if (strnicmp((char *)&powermode_val, "2", DSTRLEN("2")) == 0) {
 
 
 
@@ -621,5 +621,5 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, dhd_pub_t *dhd, char *co
 
 	snprintf(command, 3, "OK");
 
-	return (strlen("OK"));
+	return (DSTRLEN("OK"));
 }

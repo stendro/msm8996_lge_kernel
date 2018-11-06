@@ -342,7 +342,7 @@ dhd_prot_ioctl(dhd_pub_t *dhd, int ifidx, wl_ioctl_t * ioc, void * buf, int len)
 	if ((!ret) && (ioc->cmd == WLC_SET_VAR) && (!strcmp(buf, "wme_dp"))) {
 		int slen, val = 0;
 
-		slen = strlen("wme_dp") + 1;
+		slen = DSTRLEN("wme_dp") + 1;
 		if (len >= (int)(slen + sizeof(int)))
 			bcopy(((char *)buf + slen), &val, sizeof(int));
 		dhd->wme_dp = (uint8) ltoh32(val);

@@ -3348,7 +3348,7 @@ _dhd_set_multicast_list(dhd_info_t *dhd, int ifidx)
 
 	strncpy(bufp, "mcast_list", buflen - 1);
 	bufp[buflen - 1] = '\0';
-	bufp += strlen("mcast_list") + 1;
+	bufp += DSTRLEN("mcast_list") + 1;
 
 	cnt = htol32(cnt);
 	memcpy(bufp, &cnt, sizeof(cnt));

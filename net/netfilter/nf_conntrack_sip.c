@@ -641,11 +641,11 @@ int ct_sip_parse_request(const struct nf_conn *ct,
 		return 0;
 
 	/* Find SIP URI */
-	for (; dptr < limit - strlen("sip:"); dptr++) {
+	for (; dptr < limit - DSTRLEN("sip:"); dptr++) {
 		if (*dptr == '\r' || *dptr == '\n')
 			return -1;
-		if (strncasecmp(dptr, "sip:", strlen("sip:")) == 0) {
-			dptr += strlen("sip:");
+		if (strncasecmp(dptr, "sip:", DSTRLEN("sip:")) == 0) {
+			dptr += DSTRLEN("sip:");
 			break;
 		}
 	}
@@ -832,7 +832,7 @@ static int ct_sip_next_header(const struct nf_conn *ct, const char *dptr,
 
 	dptr += dataoff;
 
-	dptr = ct_sip_header_search(dptr, limit, ",", strlen(","));
+	dptr = ct_sip_header_search(dptr, limit, ",", DSTRLEN(","));
 	if (!dptr)
 		return 0;
 
@@ -933,7 +933,7 @@ static int ct_sip_parse_param(const struct nf_conn *ct, const char *dptr,
 	const char *start;
 	const char *end;
 
-	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
+	limit = ct_sip_header_search(dptr + dataoff, limit, ",", DSTRLEN(","));
 	if (!limit)
 		limit = dptr + datalen;
 
@@ -942,7 +942,7 @@ static int ct_sip_parse_param(const struct nf_conn *ct, const char *dptr,
 		return 0;
 	start += strlen(name);
 
-	end = ct_sip_header_search(start, limit, ";", strlen(";"));
+	end = ct_sip_header_search(start, limit, ";", DSTRLEN(";"));
 	if (!end)
 		end = limit;
 
@@ -961,7 +961,7 @@ int ct_sip_parse_address_param(const struct nf_conn *ct, const char *dptr,
 	const char *limit = dptr + datalen;
 	const char *start, *end;
 
-	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
+	limit = ct_sip_header_search(dptr + dataoff, limit, ",", DSTRLEN(","));
 	if (!limit)
 		limit = dptr + datalen;
 
@@ -989,7 +989,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
 	const char *start;
 	char *end;
 
-	limit = ct_sip_header_search(dptr + dataoff, limit, ",", strlen(","));
+	limit = ct_sip_header_search(dptr + dataoff, limit, ",", DSTRLEN(","));
 	if (!limit)
 		limit = dptr + datalen;
 
@@ -1017,9 +1017,9 @@ static int ct_sip_parse_transport(struct nf_conn *ct, const char *dptr,
 
 	if (ct_sip_parse_param(ct, dptr, dataoff, datalen, "transport=",
 			       &matchoff, &matchlen)) {
-		if (!strncasecmp(dptr + matchoff, "TCP", strlen("TCP")))
+		if (!strncasecmp(dptr + matchoff, "TCP", DSTRLEN("TCP")))
 			*proto = IPPROTO_TCP;
-		else if (!strncasecmp(dptr + matchoff, "UDP", strlen("UDP")))
+		else if (!strncasecmp(dptr + matchoff, "UDP", DSTRLEN("UDP")))
 			*proto = IPPROTO_UDP;
 		else
 			return 0;
@@ -1764,9 +1764,9 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
 	unsigned int matchoff, matchlen, matchend;
 	unsigned int code, cseq, i;
 
-	if (*datalen < strlen("SIP/2.0 200"))
+	if (*datalen < DSTRLEN("SIP/2.0 200"))
 		return NF_ACCEPT;
-	code = simple_strtoul(*dptr + strlen("SIP/2.0 "), NULL, 10);
+	code = simple_strtoul(*dptr + DSTRLEN("SIP/2.0 "), NULL, 10);
 	if (!code) {
 		nf_ct_helper_log(skb, ct, "cannot get code");
 		return NF_DROP;
@@ -1863,7 +1863,7 @@ static int process_sip_msg(struct sk_buff *skb, struct nf_conn *ct,
 	const struct nf_nat_sip_hooks *hooks;
 	int ret;
 
-	if (strncasecmp(*dptr, "SIP/2.0 ", strlen("SIP/2.0 ")) != 0)
+	if (strncasecmp(*dptr, "SIP/2.0 ", DSTRLEN("SIP/2.0 ")) != 0)
 		ret = process_sip_request(skb, protoff, dataoff, dptr, datalen);
 	else
 		ret = process_sip_response(skb, protoff, dataoff, dptr, datalen);
@@ -1934,7 +1934,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
 	datalen = skb->len - dataoff;
 	datalen_orig = datalen;
 
-	if (datalen < strlen("SIP/2.0 200"))
+	if (datalen < DSTRLEN("SIP/2.0 200"))
 		return NF_ACCEPT;
 
 	/* here we save the original datalength and data offset of the skb, this
@@ -1982,7 +1982,7 @@ sip_header_process:
 		}
 
 		term = false;
-		for (; end + strlen("\r\n\r\n") <= dptr + datalen; end++) {
+		for (; end + DSTRLEN("\r\n\r\n") <= dptr + datalen; end++) {
 			if (end[0] == '\r' && end[1] == '\n' &&
 			    end[2] == '\r' && end[3] == '\n') {
 				term = true;
@@ -1992,7 +1992,7 @@ sip_header_process:
 		if (!term)
 			break;
 
-		end += strlen("\r\n\r\n") + clen;
+		end += DSTRLEN("\r\n\r\n") + clen;
 destination:
 		if (content_len_exists == 0) {
 			origlen = datalen;
@@ -2173,7 +2173,7 @@ static int sip_help_udp(struct sk_buff *skb, unsigned int protoff,
 
 	dptr = skb->data + dataoff;
 	datalen = skb->len - dataoff;
-	if (datalen < strlen("SIP/2.0 200"))
+	if (datalen < DSTRLEN("SIP/2.0 200"))
 		return NF_ACCEPT;
 
 	return process_sip_msg(skb, ct, protoff, dataoff, &dptr, &datalen);

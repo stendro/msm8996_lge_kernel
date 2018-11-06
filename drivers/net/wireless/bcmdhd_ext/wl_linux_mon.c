@@ -127,7 +127,7 @@ static struct net_device* lookup_real_netdev(char *name)
 		 * it matches, then this netdev is the corresponding real_netdev.
 		 */
 		if (ndev && strstr(ndev->name, "p2p-p2p0")) {
-			len = strlen("p2p");
+			len = DSTRLEN("p2p");
 		} else {
 		/* if p2p- is not present, then the IFNAMSIZ have reached and name
 		 * would have got reset. In this casse,look for p2p0-x in mon-p2p0-x

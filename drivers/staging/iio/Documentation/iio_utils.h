@@ -304,7 +304,7 @@ inline int build_channel_array(const char *device_dir,
 		goto error_free_name;
 	}
 	while (ent = readdir(dp), ent != NULL)
-		if (strcmp(ent->d_name + strlen(ent->d_name) - strlen("_en"),
+		if (strcmp(ent->d_name + strlen(ent->d_name) - DSTRLEN("_en"),
 			   "_en") == 0) {
 			ret = asprintf(&filename,
 				       "%s/%s", scan_el_dir, ent->d_name);
@@ -332,7 +332,7 @@ inline int build_channel_array(const char *device_dir,
 	seekdir(dp, 0);
 	count = 0;
 	while (ent = readdir(dp), ent != NULL) {
-		if (strcmp(ent->d_name + strlen(ent->d_name) - strlen("_en"),
+		if (strcmp(ent->d_name + strlen(ent->d_name) - DSTRLEN("_en"),
 			   "_en") == 0) {
 			int current_enabled = 0;
 			current = &(*ci_array)[count++];
@@ -363,7 +363,7 @@ inline int build_channel_array(const char *device_dir,
 			current->offset = 0;
 			current->name = strndup(ent->d_name,
 						strlen(ent->d_name) -
-						strlen("_en"));
+						DSTRLEN("_en"));
 			if (current->name == NULL) {
 				free(filename);
 				ret = -ENOMEM;
