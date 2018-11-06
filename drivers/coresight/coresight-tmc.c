@@ -2274,7 +2274,7 @@ static int tmc_etr_byte_cntr_init(struct platform_device *pdev,
 				  struct tmc_drvdata *drvdata)
 {
 	int ret = 0;
-	size_t node_size = strlen("-stream") + 1;
+	size_t node_size = DSTRLEN("-stream") + 1;
 	char *node_name = (char *)((struct coresight_platform_data *)
 			(pdev->dev.platform_data))->name;
 
