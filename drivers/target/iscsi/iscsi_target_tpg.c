@@ -651,8 +651,8 @@ int iscsit_ta_authentication(struct iscsi_portal_group *tpg, u32 authentication)
 		none = strstr(buf1, NONE);
 		if (none)
 			goto out;
-		strncat(buf1, ",", strlen(","));
-		strncat(buf1, NONE, strlen(NONE));
+		strncat(buf1, ",", DSTRLEN(","));
+		strncat(buf1, NONE, DSTRLEN(NONE));
 		if (iscsi_update_param_value(param, buf1) < 0)
 			return -EINVAL;
 	}
