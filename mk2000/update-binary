@@ -13,6 +13,7 @@ ui_print() {
   done;
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
+set_progress() { echo "set_progress $1" > $OUTFD; }
 file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
 if [ ! "$(getprop 2>/dev/null)" ]; then
   getprop() {
@@ -50,7 +51,12 @@ abort() {
   exit 1;
 }
 
-show_progress 1.34 4;
+if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.ssdtrim)" == 1 ]; then
+  show_progress 1.00 43;
+else
+  show_progress 1.00 37;
+fi;
+
 ui_print " ";
 cleanup;
 mkdir -p /tmp/anykernel/bin;
@@ -63,10 +69,10 @@ bb=/tmp/anykernel/tools/busybox;
 chmod 755 $bb;
 $bb chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
 
-ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
-ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
+ui_print " ";
+ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
 ui_print " ";
 
 unmount_all;
@@ -171,6 +177,15 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
   mount -o ro,remount -t auto /vendor 2>/dev/null;
 fi;
 
+if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.ssdtrim)" == 1 ]; then
+  ui_print " ";
+  ui_print "Trimming data and cache...";
+  mount /cache 2>/dev/null;
+  $bb fstrim /data;
+  $bb fstrim /cache;
+  umount /cache 2>/dev/null;
+fi;
+
 debugging;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
@@ -182,6 +197,5 @@ test "$savedpre" && export LD_PRELOAD="$savedpre";
 
 unmount_all;
 
-ui_print " ";
 ui_print " ";
 ui_print "Done!";
