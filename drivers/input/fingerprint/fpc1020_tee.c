@@ -761,7 +761,7 @@ static int fpc1020_probe(struct spi_device *spi)
 	fpc1020->wakeup_enabled = false;
 	fpc1020->clocks_enabled = false;
 	fpc1020->clocks_suspended = false;
-	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT;
+	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_PERF_CRITICAL;
 
 	/* Although wakeup feature is desirable, it is doomed that the device will be
 	 * woken up due to false interrupt caused by hw reset.
@@ -876,7 +876,7 @@ static int fpc1020_resume(struct spi_device *spi)
 		(void)vreg_setup(fpc1020, "vdd_io", true);
 		hw_reset(fpc1020);
 #ifdef HW240_TEMP_WA
-		irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT;
+		irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_PERF_CRITICAL;
 		rc = devm_request_threaded_irq(dev, gpio_to_irq(fpc1020->irq_gpio),
 				NULL, fpc1020_irq_handler, irqf,
 				dev_name(dev), fpc1020);
