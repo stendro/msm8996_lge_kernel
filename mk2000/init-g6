@@ -48,11 +48,6 @@ on property:sys.post_boot.parsed=1
     write /sys/devices/soc/soc:qcom,bcl/hotplug_soc_mask 0
     write /sys/devices/soc/soc:qcom,bcl/mode "enable"
 
-    # Set Input boost parameters
-    write /sys/kernel/cpu_input_boost/ib_freqs "902400 1286400"
-    write /sys/kernel/cpu_input_boost/ib_duration_ms 1400
-    write /sys/kernel/cpu_input_boost/enabled 0
-
     # Set Maple scheduler default
     write /sys/block/mmcblk0/queue/scheduler "maple"
     write /sys/block/dm-0/queue/scheduler "maple"
