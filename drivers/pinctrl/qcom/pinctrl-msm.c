@@ -841,7 +841,8 @@ bool msm_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 					i, val,
 					readl(pctrl->regs + g->intr_cfg_reg));
 #endif
-			handled += generic_handle_irq(irq_pin);
+			generic_handle_irq(irq_pin);
+			handled++;
 		}
 	}
 
