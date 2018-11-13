@@ -389,8 +389,7 @@ CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
  -g0 -DNDEBUG \
- -fomit-frame-pointer \
- -fivopts
+ -fivopts $(MK_FLAGS)
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \

@@ -76,6 +76,15 @@ USE_CCACHE=yes
 # version number
 VER=$(cat "$RDIR/VERSION")
 
+# compiler options
+# requires proper cross-comiler
+USE_GRAPHITE=no
+if [ "$USE_GRAPHITE" = "yes" ]; then
+MK_FLAGS="-fgraphite-identity \
+ -ftree-loop-distribution \
+ -floop-nest-optimize \
+ -floop-interchange"
+fi
 
 # select cpu threads
 CORES=$(grep -c "processor" /proc/cpuinfo)
@@ -85,7 +94,7 @@ THREADS=$((CORES + 1))
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
-GCC_COMP=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+GCC_COMP=$HOME/build/toolchain/linaro7/bin/aarch64-linux-gnu-
 
 # compiler version
 GCC_VER=$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
@@ -98,6 +107,7 @@ ABORT() {
 	exit 1
 }
 
+export MK_FLAGS
 export ARCH=arm64
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=github
