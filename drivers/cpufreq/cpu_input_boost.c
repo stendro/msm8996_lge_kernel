@@ -25,7 +25,6 @@
 #define MAX_BOOST		(1U << 2)
 
 struct boost_drv {
-	struct workqueue_struct *wq;
 	struct work_struct max_boost;
 	struct delayed_work max_unboost;
 	struct notifier_block cpu_notif;
@@ -99,7 +98,7 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 	spin_unlock(&b->lock);
 
 	atomic_set(&b->max_boost_dur, duration_ms);
-	queue_work(b->wq, &b->max_boost);
+	queue_work(system_power_efficient_wq, &b->max_boost);
 }
 
 void cpu_input_boost_kick_max(unsigned int duration_ms)
@@ -121,7 +120,7 @@ static void max_boost_worker(struct work_struct *work)
 		update_online_cpu_policy();
 	}
 
-	queue_delayed_work(b->wq, &b->max_unboost,
+	queue_delayed_work(system_power_efficient_wq, &b->max_unboost,
 		msecs_to_jiffies(atomic_read(&b->max_boost_dur)));
 }
 
@@ -261,12 +260,6 @@ static int __init cpu_input_boost_init(void)
 	if (!b)
 		return -ENOMEM;
 
-	b->wq = alloc_workqueue("cpu_input_boost_wq", WQ_HIGHPRI, 0);
-	if (!b->wq) {
-		ret = -ENOMEM;
-		goto free_b;
-	}
-
 	spin_lock_init(&b->lock);
 	INIT_WORK(&b->max_boost, max_boost_worker);
 	INIT_DELAYED_WORK(&b->max_unboost, max_unboost_worker);
@@ -276,7 +269,7 @@ static int __init cpu_input_boost_init(void)
 	ret = cpufreq_register_notifier(&b->cpu_notif, CPUFREQ_POLICY_NOTIFIER);
 	if (ret) {
 		pr_err("Failed to register cpufreq notifier, err: %d\n", ret);
-		goto destroy_wq;
+		goto free_b;
 	}
 
 	cpu_input_boost_input_handler.private = b;
@@ -303,8 +296,6 @@ unregister_handler:
 	input_unregister_handler(&cpu_input_boost_input_handler);
 unregister_cpu_notif:
 	cpufreq_unregister_notifier(&b->cpu_notif, CPUFREQ_POLICY_NOTIFIER);
-destroy_wq:
-	destroy_workqueue(b->wq);
 free_b:
 	kfree(b);
 	return ret;
