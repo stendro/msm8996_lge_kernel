@@ -2707,10 +2707,10 @@ static int get_prop_capacity(struct fg_chip *chip)
 	}
 #ifdef CONFIG_LGE_PM_SOC_SCALING
 	return rescale_monotonic_soc(msoc,chip);
-#endif
-
+#else
 	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 2),
 			FULL_SOC_RAW - 2) + 1;
+#endif
 }
 
 static int get_prop_capacity_qct(struct fg_chip *chip)

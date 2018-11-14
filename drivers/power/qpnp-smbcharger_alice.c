@@ -2842,15 +2842,13 @@ static void smbchg_parallel_usb_enable(struct smbchg_chip *chip,
 	union power_supply_propval smb_val = {0, };
 	struct dual_current_table iusb_table, ibat_table;
 	bool skip_fcc_set = false;
-#else
-	int current_table_index;
 #endif
 	int fcc_ma, target_icl_ma;
 #ifndef CONFIG_LGE_PM_PARALLEL_CHARGING
+	int current_table_index;
+	int target_parallel_fcc_ma;
 	int main_fastchg_current_ma;
-	int current_table_index, target_icl_ma;
-	int fcc_ma, main_fastchg_current_ma;
-	int target_parallel_fcc_ma, supplied_parallel_fcc_ma;
+	int supplied_parallel_fcc_ma;
 	int parallel_chg_fcc_percent;
 #endif
 
@@ -5670,8 +5668,6 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 		chip->usb_supply_type = type;
 
 	if (type == POWER_SUPPLY_TYPE_USB)
-		current_limit_ma = DEFAULT_SDP_MA;
-	else if (type == POWER_SUPPLY_TYPE_USB)
 		current_limit_ma = DEFAULT_SDP_MA;
 	else if (type == POWER_SUPPLY_TYPE_USB_CDP)
 		current_limit_ma = DEFAULT_CDP_MA;

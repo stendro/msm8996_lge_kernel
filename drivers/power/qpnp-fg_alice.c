@@ -2523,10 +2523,11 @@ static int get_prop_capacity(struct fg_chip *chip)
 	        	return FULL_CAPACITY;
 #ifdef CONFIG_LGE_PM_SOC_SCALING
 		return rescale_monotonic_soc(chip->last_soc,chip);
-#endif
+#else
 		return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
 					(FULL_CAPACITY - 2),
 					FULL_SOC_RAW - 2) + 1;
+#endif
 	}
 
 	if (chip->battery_missing)
@@ -2556,10 +2557,11 @@ static int get_prop_capacity(struct fg_chip *chip)
 			{
 #ifdef CONFIG_LGE_PM_SOC_SCALING
 				return rescale_monotonic_soc(chip->last_soc,chip);
-#endif
+#else
 				return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
 							(FULL_CAPACITY - 2),
 							FULL_SOC_RAW - 2) + 1;
+#endif
 			}
 			else
 				return EMPTY_CAPACITY;
@@ -2572,9 +2574,10 @@ static int get_prop_capacity(struct fg_chip *chip)
 
 #ifdef CONFIG_LGE_PM_SOC_SCALING
 	return rescale_monotonic_soc(msoc,chip);
-#endif
+#else
 	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 2),
 			FULL_SOC_RAW - 2) + 1;
+#endif
 }
 
 #define HIGH_BIAS	3

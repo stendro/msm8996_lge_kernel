@@ -861,7 +861,7 @@ static int lgcc_set_charging_enable(struct smbchg_chip *chip,
 		int enable) {
 	int rc = 0;
 
-	vote(chip->battchg_suspend_votable, LGCC_EN_VOTER, !enable, 0);
+	rc = vote(chip->battchg_suspend_votable, LGCC_EN_VOTER, !enable, 0);
 	if (rc < 0)
 		pr_smb(PR_LGE, "failed to set Charging Status \n");
 
@@ -873,7 +873,7 @@ const char * lgcc_get_effective_icl(void) {
 	const char *rc;
 
 	rc = get_effective_client(smb_chip->usb_icl_votable);
-	if (rc < 0)
+	if (!rc)
 		pr_err("Failed to get fcc votable\n");
 
 	return rc;
