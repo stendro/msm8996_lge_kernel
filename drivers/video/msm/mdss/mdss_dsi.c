@@ -393,7 +393,9 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 	 * bootloader. This needs to be done irresepective of whether
 	 * the lp11_init flag is set or not.
 	 */
-pr_err("<<<<<<<<<<<<<<<<<< splash : %d lp11	: %d \n", pdata->panel_info.cont_splash_enabled , pdata->panel_info.mipi.lp11_init);
+	pr_err("<<<<<<<<<<<<<<<<<< splash : %d lp11 : %d \n",
+		pdata->panel_info.cont_splash_enabled,
+		pdata->panel_info.mipi.lp11_init);
 	if (pdata->panel_info.cont_splash_enabled ||
 		!pdata->panel_info.mipi.lp11_init) {
 		if (mdss_dsi_pinctrl_set_state(ctrl_pdata, true))
@@ -1333,7 +1335,7 @@ static int mdss_dsi_off(struct mdss_panel_data *pdata, int power_state)
 
 	panel_info = &ctrl_pdata->panel_data.panel_info;
 
-	pr_err("[Display] %s+: ctrl=%pK ndx=%d power_state=%d\n",
+	pr_debug("%s+: ctrl=%pK ndx=%d power_state=%d\n",
 		__func__, ctrl_pdata, ctrl_pdata->ndx, power_state);
 
 	if (power_state == panel_info->panel_power_state) {
@@ -1388,7 +1390,8 @@ panel_power_ctrl:
 	/* Initialize Max Packet size for DCS reads */
 	ctrl_pdata->cur_max_pkt_size = 0;
 end:
-	pr_err("[Display] %s-:\n", __func__);
+	pr_debug("%s-:\n", __func__);
+
 	return ret;
 }
 
@@ -1526,7 +1529,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 		mdss_dsi_validate_debugfs_info(ctrl_pdata);
 
 	cur_power_state = pdata->panel_info.panel_power_state;
-	pr_err("[Display] %s+: ctrl=%pK ndx=%d cur_power_state=%d\n", __func__,
+	pr_debug("%s+: ctrl=%pK ndx=%d cur_power_state=%d\n", __func__,
 		ctrl_pdata, ctrl_pdata->ndx, cur_power_state);
 
 	pinfo = &pdata->panel_info;
@@ -1540,7 +1543,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 		 * sent to panel
 		 */
 		mdss_dsi_restore_intr_mask(ctrl_pdata);
-		pr_info("%s: panel already on\n", __func__);
+		pr_debug("%s: panel already on\n", __func__);
 		goto end;
 	}
 
@@ -1551,7 +1554,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	}
 
 	if (mdss_panel_is_power_on(cur_power_state)) {
-		pr_info("%s: dsi_on from panel low power state\n", __func__);
+		pr_debug("%s: dsi_on from panel low power state\n", __func__);
 		goto end;
 	}
 
@@ -1592,7 +1595,7 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	 * Issue hardware reset line after enabling the DSI clocks and data
 	 * data lanes for LP11 init
 	 */
-pr_err("<<<<<<<<>>>>> lp11 : %d \n", mipi->lp11_init);
+	pr_err("<<<<<<<<>>>>> lp11 : %d \n", mipi->lp11_init);
 	if (mipi->lp11_init) {
 		if (mdss_dsi_pinctrl_set_state(ctrl_pdata, true))
 			pr_debug("reset enable: pinctrl not enabled\n");
@@ -1627,7 +1630,7 @@ end:
 		}
 	}
 #endif
-	pr_err("[Display] %s-:\n", __func__);
+	pr_debug("%s-:\n", __func__);
 	return ret;
 }
 
@@ -1780,11 +1783,6 @@ error:
 
 	pr_debug("%s-:\n", __func__);
 
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
-	pr_err("[Display] %s-:\n", __func__);
-#else
-	pr_debug("%s-:\n", __func__);
-#endif
 	return ret;
 }
 
@@ -1803,13 +1801,8 @@ static int mdss_dsi_blank(struct mdss_panel_data *pdata, int power_state)
 				panel_data);
 	mipi = &pdata->panel_info.mipi;
 
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
-	pr_err("[Display] %s+: ctrl=%pK ndx=%d power_state=%d\n",
-		__func__, ctrl_pdata, ctrl_pdata->ndx, power_state);
-#else
 	pr_debug("%s+: ctrl=%pK ndx=%d power_state=%d\n",
 		__func__, ctrl_pdata, ctrl_pdata->ndx, power_state);
-#endif
 
 	mdss_dsi_clk_ctrl(ctrl_pdata, ctrl_pdata->dsi_clk_handle,
 			  MDSS_DSI_ALL_CLKS, MDSS_DSI_CLK_ON);
@@ -1869,12 +1862,8 @@ static int mdss_dsi_blank(struct mdss_panel_data *pdata, int power_state)
 error:
 	mdss_dsi_clk_ctrl(ctrl_pdata, ctrl_pdata->dsi_clk_handle,
 			  MDSS_DSI_ALL_CLKS, MDSS_DSI_CLK_OFF);
-
-#if defined(CONFIG_LGE_DISPLAY_COMMON)
-	pr_err("[Display] %s-:End\n", __func__);
-#else
 	pr_debug("%s-:End\n", __func__);
-#endif
+
 	return ret;
 }
 

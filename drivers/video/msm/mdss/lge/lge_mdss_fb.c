@@ -25,7 +25,6 @@
 #endif
 #include <linux/module.h>
 #include <linux/power/lge_battery_id.h>
-#include <linux/lge_display_debug.h>
 #include "lge_mdss_display.h"
 
 extern int get_factory_cable(void);
@@ -585,7 +584,6 @@ void mdss_fb_set_backlight_ex(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 			if (mfd->bl_level_ex != bkl_lvl)
 				bl_notify_needed = true;
 			pr_debug("backlight sent to panel ex:%d\n", temp);
-			DISP_DEBUG(BL, "backlight sent to panel ex:%d\n", temp);
 			lge_set_to_blex(mfd);
 			pdata->set_backlight(pdata, temp);
 			lge_restore_from_blex(mfd);

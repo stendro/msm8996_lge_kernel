@@ -415,9 +415,9 @@ struct msm_fb_data_type {
 	bool pending_switch;
 	struct mutex switch_lock;
 	struct input_handler *input_handler;
-	#if defined(CONFIG_LGE_PP_AD_SUPPORTED)
+#if defined(CONFIG_LGE_PP_AD_SUPPORTED)
 	struct msm_fb_ad_info ad_info;
-	#endif
+#endif
 #if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	struct mutex mode_switch_lock;
 #endif

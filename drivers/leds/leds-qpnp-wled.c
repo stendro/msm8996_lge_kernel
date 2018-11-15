@@ -22,7 +22,6 @@
 #include <linux/err.h>
 #include <linux/delay.h>
 #include <linux/leds-qpnp-wled.h>
-#include <linux/lge_display_debug.h>
 
 #define QPNP_IRQ_FLAGS	(IRQF_TRIGGER_RISING | \
 			IRQF_TRIGGER_FALLING | \
@@ -435,7 +434,6 @@ static int qpnp_wled_set_level(struct qpnp_wled *wled, int level)
 	int i, rc;
 	u8 reg;
 
-	DISP_DEBUG(BL, "Set level : %d\n", level);
 	/* set brightness registers */
 	for (i = 0; i < wled->num_strings; i++) {
 		reg = level & QPNP_WLED_BRIGHT_LSB_MASK;
@@ -489,7 +487,6 @@ static int qpnp_wled_module_en(struct qpnp_wled *wled,
 	if (rc)
 		return rc;
 
-	udelay(1000);
 	/* enable OVP fault interrupt */
 	if (state && (wled->ovp_irq > 0)) {
 		udelay(QPNP_WLED_OVP_FLT_SLEEP_US);
@@ -499,7 +496,6 @@ static int qpnp_wled_module_en(struct qpnp_wled *wled,
 		if (rc)
 			return rc;
 	}
-	pr_info("%s : wled module %s\n", __func__, state ? "enable" : "disable");
 
 	return 0;
 }

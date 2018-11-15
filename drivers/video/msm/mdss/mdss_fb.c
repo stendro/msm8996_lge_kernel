@@ -68,8 +68,6 @@
 #include "lge/lge_mdss_display.h"
 #endif
 
-#include <linux/lge_display_debug.h>
-
 #if defined(CONFIG_MACH_LGE)
 #include <linux/timer.h>
 #include <linux/debugfs.h>
@@ -803,10 +801,10 @@ static int mdss_fb_blanking_mode_switch(struct msm_fb_data_type *mfd, int mode)
 	}
 
 	if (mode == pinfo->mipi.mode) {
-		pr_info("Already in requested mode!\n");
+		pr_debug("Already in requested mode!\n");
 		return 0;
 	}
-	pr_info("Enter mode: %d\n", mode);
+	pr_debug("Enter mode: %d\n", mode);
 
 	pdata = dev_get_platdata(&mfd->pdev->dev);
 
@@ -894,7 +892,7 @@ static int mdss_fb_blanking_mode_switch(struct msm_fb_data_type *mfd, int mode)
 		return ret;
 	}
 
-	pr_info("Exit mode: %d\n", mode);
+	pr_debug("Exit mode: %d\n", mode);
 
 	return 0;
 }
@@ -1998,7 +1996,6 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 			if (mfd->bl_level != bkl_lvl)
 				bl_notify_needed = true;
 			pr_debug("backlight sent to panel :%d\n", temp);
-			DISP_DEBUG(BL, "backlight sent to panel :%d\n", temp);
 #if defined(CONFIG_LGE_DISPLAY_AOD_WITH_MIPI)
 			if (mfd->panel_info->aod_node_from_user == 1 && mfd->panel_info->aod_cur_mode == AOD_PANEL_MODE_U3_UNBLANK && !temp) {
 				oem_mdss_aod_cmd_send(mfd, AOD_CMD_DISPLAY_OFF);
@@ -2043,7 +2040,6 @@ void mdss_fb_update_backlight(struct msm_fb_data_type *mfd)
 				mdss_fb_bl_update_notify(mfd,
 					NOTIFY_TYPE_BL_AD_ATTEN_UPDATE);
 			mdss_fb_bl_update_notify(mfd, NOTIFY_TYPE_BL_UPDATE);
-			pr_info("[Display] backlight sent to panel :%d in %s\n", temp, __func__);
 			pdata->set_backlight(pdata, temp);
 			mfd->bl_level_scaled = mfd->unset_bl_level;
 			mfd->allow_bl_update = true;
@@ -2202,7 +2198,7 @@ static int mdss_fb_blank_unblank(struct msm_fb_data_type *mfd)
 		MDSS_PANEL_POWER_ON);
 
 	if (mdss_panel_is_power_on_interactive(cur_power_state)) {
-		pr_info("No change in power state\n");
+		pr_debug("No change in power state\n");
 		return 0;
 	}
 
@@ -2310,7 +2306,7 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 	if (mfd->dcm_state == DCM_ENTER)
 		return -EPERM;
 
-	pr_info("[Display] %pS mode:%d\n", __builtin_return_address(0),
+	pr_debug("%pS mode:%d\n", __builtin_return_address(0),
 		blank_mode);
 
 	snprintf(trace_buffer, sizeof(trace_buffer), "fb%d blank %d",
@@ -5299,7 +5295,6 @@ int mdss_fb_do_ioctl(struct fb_info *info, unsigned int cmd,
 	if (mfd->shutdown_pending)
 		return -ESHUTDOWN;
 
-
 	pdata = dev_get_platdata(&mfd->pdev->dev);
 #if defined(CONFIG_LGE_DISPLAY_DYN_DSI_MODE_SWITCH)
 	if (!pdata)
@@ -5636,6 +5631,7 @@ void mdss_fb_report_panel_dead(struct msm_fb_data_type *mfd)
 		pr_err("Panel data not available\n");
 		return;
 	}
+
 #if !defined(CONFIG_LGE_PANEL_RECOVERY)
 	return;
 #endif
