@@ -327,9 +327,9 @@ static ssize_t spi_owner_set(struct device *dev,
 	int rc;
 	bool to_tz;
 
-	if (!strncmp(buf, "tz", strlen("tz")))
+	if (!strncmp(buf, "tz", DSTRLEN("tz")))
 		to_tz = true;
-	else if (!strncmp(buf, "app", strlen("app")))
+	else if (!strncmp(buf, "app", DSTRLEN("app")))
 		to_tz = false;
 	else
 		return -EINVAL;
