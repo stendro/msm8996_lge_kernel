@@ -128,7 +128,7 @@ export KBUILD_COMPILER_STRING=$GCC_VER
 export KBUILD_BUILD_TIMESTAMP=$BDATE
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=github
-export MK_NAME="MK2000 ${VER}"
+export MK_NAME="mk2000 ${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
 else

@@ -2,9 +2,6 @@
 
 on property:sys.post_boot.parsed=1
 
-    # Set GPU idle to 133 Mhz
-    write /sys/class/kgsl/kgsl-3d0/default_pwrlevel 6
-
     # Set scheduler parameters
     write /proc/sys/kernel/sched_upmigrate 95
     write /proc/sys/kernel/sched_downmigrate 90
