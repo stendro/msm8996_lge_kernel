@@ -1088,49 +1088,6 @@ int msm_pcm_routing_reg_phy_compr_stream(int fe_id, int perf_mode,
 	return 0;
 }
 
-#ifdef CONFIG_MACH_MSM8996_ELSA
-int lge_msm_pcm_routing_channel_mixer(int fedai_id, bool perf_mode,
-				  int dspst_id, int stream_type, int be_id)
-{
-	int copp_id = 0;
-	int session_type = 0;
-	int path_type = 0;
-	int port_type = 0;
-	int i = 0, j = 0;
-
-	if (stream_type == SNDRV_PCM_STREAM_PLAYBACK) {
-		session_type = SESSION_TYPE_RX;
-		path_type = ADM_PATH_PLAYBACK;
-		port_type = MSM_AFE_PORT_TYPE_RX;
-	} else {
-		session_type = SESSION_TYPE_TX;
-		path_type = ADM_PATH_LIVE_REC;
-		port_type = MSM_AFE_PORT_TYPE_TX;
-	}
-	for (i = 0; i < MSM_BACKEND_DAI_MAX; i++) {
-		if ((msm_bedais[i].active) &&
-			test_bit(fedai_id, &msm_bedais[i].fe_sessions)) {
-			be_id = i;
-		}
-	}
-	for (j = 0; j < MAX_COPPS_PER_PORT; j++) {
-		unsigned long copp =
-			      session_copp_map[fedai_id][session_type][be_id];
-		if (test_bit(j, &copp)) {
-			copp_id = j;
-			break;
-		}
-	}
-	pr_debug("%s: fe_id = %d,  be_id = %d, channel = %d copp_id = %d\n",
-		 __func__, fedai_id, be_id, msm_bedais[be_id].channel,
-		 copp_id);
-	lge_programable_channel_mixer(msm_bedais[be_id].port_id, copp_id, dspst_id,
-				  session_type, &channel_mux,
-				  msm_bedais[be_id].channel);
-	return 0;
-}
-#endif
-
 static u32 msm_pcm_routing_get_voc_sessionid(u16 val)
 {
 	u32 session_id;

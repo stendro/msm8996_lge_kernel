@@ -394,9 +394,7 @@ static int msm_pcm_capture_prepare(struct snd_pcm_substream *substream)
 	int i = 0;
 	uint16_t bits_per_sample = 16;
 	uint16_t sample_word_size;
-#ifdef CONFIG_MACH_MSM8996_ELSA
-	unsigned int be_id = soc_prtd->dai_link->be_id;
-#endif
+
 	pdata = (struct msm_plat_data *)
 		dev_get_drvdata(soc_prtd->platform->dev);
 	if (!pdata) {
@@ -500,16 +498,6 @@ static int msm_pcm_capture_prepare(struct snd_pcm_substream *substream)
 		pr_debug("%s: cmd cfg pcm was block failed", __func__);
 
 	prtd->enabled = RUNNING;
-
-#ifdef CONFIG_MACH_MSM8996_ELSA
-	if (prtd->ch_mixer) {
-		pr_err("ptrd->ch_mixer = %d\n", prtd->ch_mixer);
-		lge_msm_pcm_routing_channel_mixer(
-			soc_prtd->dai_link->be_id,
-			prtd->audio_client->perf_mode,
-			prtd->session_id, substream->stream, be_id);
-	}
-#endif
 
 	return ret;
 }
