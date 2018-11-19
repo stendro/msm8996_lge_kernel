@@ -71,4 +71,6 @@ obj-$(CONFIG_LEDS_AW2013)		+= leds-aw2013.o
 obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
 
 # LED Triggers
+ifneq ($(CONFIG_MACH_LGE),y)
 obj-$(CONFIG_LEDS_TRIGGERS)		+= trigger/
+endif

@@ -87,8 +87,6 @@ EXPORT_SYMBOL_GPL(console_drivers);
 
 #ifdef CONFIG_MACH_LGE
 static size_t print_time(u64 ts, struct timespec time, struct tm tmresult, u32 cpu, char *buf);
-#else
-static size_t print_time(u64 ts, char *buf);
 #endif
 
 #ifdef CONFIG_LOCKDEP
