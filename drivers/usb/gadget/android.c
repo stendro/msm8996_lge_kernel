@@ -96,9 +96,6 @@ USB_VIDEO_MODULE_PARAMETERS();
 #endif
 #include "debug.h"
 
-#ifdef CONFIG_LGE_USB_G_LAF
-#include "f_laf.c"
-#endif
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
 #include "f_evp.c"
 #endif
@@ -349,25 +346,6 @@ enum android_device_state {
 #if defined(CONFIG_MACH_MSM8996_H1) || defined(CONFIG_LGE_USB_EMBEDDED_BATTERY)
 static int firstboot_check = 1;
 #endif
-
-// MAUSB
-void android_mausb_connect(int connect)
-{
-	struct android_dev *dev = list_entry(android_dev_list.prev,
-			struct android_dev, list_item);
-	char *configured[2]   = { "MAUSB_STA=CONFIGURED", NULL };
-	char *disconnected[2] = { "MAUSB_STA=DISCONNECTED", NULL };
-	char **uevent_envp = NULL;
-	if (dev != NULL) {
-		if (connect == 1)
-			uevent_envp	= configured;
-		else
-			uevent_envp = disconnected;
-		kobject_uevent_env(&dev->dev->kobj, KOBJ_CHANGE,
-								uevent_envp);
-	}
-}
-EXPORT_SYMBOL_GPL(android_mausb_connect);
 
 static const char *pm_qos_to_string(enum android_pm_qos_state state)
 {
@@ -668,8 +646,7 @@ static void android_work(struct work_struct *data)
 #ifdef CONFIG_LGE_USB_TYPE_C
 				lge_get_cc_type_debug_accessory() &&
 #endif
-				(lge_smem_cable_type() != 11 || !firstboot_check) &&
-				!lge_get_laf_mode()) {
+				(lge_smem_cable_type() != 11 || !firstboot_check)) {
 			usb_gadget_disconnect(cdev->gadget);
 			usb_ep_dequeue(cdev->gadget->ep0, cdev->req);
 			pr_info("[FACTORY] reset due to 910K cable, pm:%d, xbl:%d, firstboot_check:%d\n",
@@ -710,8 +687,7 @@ static void android_work(struct work_struct *data)
 			   lge_get_cc_type_debug_accessory() &&
 #endif
 			   (lge_power_get_cable_type_boot() != LT_CABLE_910K ||
-			    !firstboot_check) &&
-			   !lge_get_laf_mode()) {
+			    !firstboot_check)) {
 			usb_gadget_disconnect(cdev->gadget);
 			usb_ep_dequeue(cdev->gadget->ep0, cdev->req);
 			pr_info("[FACTORY] reset due to 910K cable, pm:%d, xbl:%d, firstboot_check:%d\n",
@@ -1103,78 +1079,6 @@ static void functionfs_closed_callback(struct ffs_data *ffs)
 		mutex_unlock(&dev->mutex);
 
 }
-
-#ifdef CONFIG_LGE_USB_G_LAF
-/* laf */
-struct laf_data {
-	bool opened;
-	bool enabled;
-};
-
-static int
-laf_function_init(struct android_usb_function *f,
-		struct usb_composite_dev *cdev)
-{
-	f->config = kzalloc(sizeof(struct laf_data), GFP_KERNEL);
-	if (!f->config)
-		return -ENOMEM;
-
-	return laf_setup();
-}
-
-static void laf_function_cleanup(struct android_usb_function *f)
-{
-	laf_cleanup();
-	kfree(f->config);
-}
-
-static int
-laf_function_bind_config(struct android_usb_function *f,
-		struct usb_configuration *c)
-{
-	return laf_bind_config(c);
-}
-
-static void laf_android_function_enable(struct android_usb_function *f)
-{
-	struct laf_data *data = f->config;
-
-	data->enabled = true;
-
-	pr_err("laf_android_function_enable");
-}
-
-static void laf_android_function_disable(struct android_usb_function *f)
-{
-	struct laf_data *data = f->config;
-
-	data->enabled = false;
-}
-
-static struct android_usb_function laf_function = {
-	.name		= "laf",
-	.enable		= laf_android_function_enable,
-	.disable	= laf_android_function_disable,
-	.init		= laf_function_init,
-	.cleanup	= laf_function_cleanup,
-	.bind_config	= laf_function_bind_config,
-};
-
-static void laf_ready_callback(void)
-{
-	struct laf_data *data = laf_function.config;
-
-	data->opened = true;
-}
-
-static void laf_closed_callback(void)
-{
-	struct laf_data *data = laf_function.config;
-
-	data->opened = false;
-}
-
-#endif
 
 /* ACM */
 static char acm_transports[32];	/*enabled ACM ports - "tty[,sdio]"*/
@@ -4100,9 +4004,6 @@ static struct android_usb_function *default_functions[] = {
 	&diag_function,
 	&qdss_function,
 	&serial_function,
-#ifdef CONFIG_LGE_USB_G_LAF
-	&laf_function,
-#endif
 	&ccid_function,
 	&acm_function,
 	&mtp_function,
@@ -4987,10 +4888,6 @@ static void android_lge_factory_bind(struct usb_composite_dev *cdev)
 	if (ret)
 		strlcpy(lge_factory_composition, "acm,diag",
 				sizeof(lge_factory_composition) - 1);
-	if (lge_get_laf_mode()) {
-		strlcpy(lge_factory_composition, "acm,laf",
-				sizeof(lge_factory_composition) - 1);
-	}
 
 	b = strim(lge_factory_composition);
 	while (b) {

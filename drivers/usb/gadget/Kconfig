@@ -462,16 +462,6 @@ config LGE_USB_G_MULTIPLE_CONFIGURATION
 
         default n
 
-config LGE_USB_G_LAF
-        boolean "LGE specific LAF support in LGE Android"
-        depends on LGE_USB_G_ANDROID
-        help
-          It supports LGE specific LAF feature.
-
-          Say y if this must be needed.
-
-        default y
-
 config LGE_USB_EMBEDDED_BATTERY
         boolean "power cycle when factory cable is connected"
         help
@@ -561,16 +551,6 @@ config LGE_USB_G_NCM
 	 Say y if this must be needed.
 
 	default n
-
-config LGE_USB_G_LAF
-	boolean "LGE specific LAF support in LGE Android"
-	depends on LGE_USB_G_ANDROID
-	help
-	  It supports LGE specific LAF feature.
-
-	  Say y if this must be needed.
-
-	default y
 
 config LGE_USB_FACTORY
 	boolean "Force full speed support if pif is connected in LGE Android"
