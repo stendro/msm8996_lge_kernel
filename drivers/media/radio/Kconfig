@@ -12,6 +12,10 @@ menuconfig RADIO_ADAPTERS
 
 if RADIO_ADAPTERS && VIDEO_V4L2
 
+config RADIO_RTC6213N
+	bool "Richwave FM Radio Receiver support"
+	depends on VIDEO_V4L2
+
 config RADIO_TEA575X
 	tristate
 

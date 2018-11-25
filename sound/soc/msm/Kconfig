@@ -143,17 +143,15 @@ config SND_SOC_MSM8996
 	select SND_DYNAMIC_MINORS
 	select MSM_QDSP6_APRV2
 	select MSM_QDSP6V2_CODECS
-	select SND_SOC_WCD9330
+	select SND_SOC_WCD9330 if !MACH_LGE
 	select SND_SOC_WCD9335
 	select SND_SOC_WSA881X
 	select SND_SOC_MSM_HDMI_CODEC_RX
-	select DTS_SRS_TM
 	select QTI_PP
 	select SND_SOC_CPE
 	select MSM_ULTRASOUND
 	select DOLBY_DS2
 	select SND_HWDEP
-        select DTS_EAGLE
 	help
 	 To add support for SoC audio on MSM8996.
 	 This will enable sound soc drivers which
@@ -191,6 +189,60 @@ config SND_SOC_MSM8X16
 	 interfaces with DSP, also it will enable
 	 the machine driver and the corresponding
 	 DAI-links
+
+config SND_LGE_EFFECT
+	bool "LGE DSP EFFECT"
+	default y
+	help
+	 To support LGE DSP EFFECT
+
+config SND_LGE_NORMALIZER
+	bool "LGE DSP NORMALIZER"
+	default y
+	help
+	 To support LGE DSP NORMALIZER
+
+config SND_LGE_MABL
+	bool "LGE DSP MABL"
+	default y
+	help
+	 To support LGE DSP MABL
+
+config SND_LGE_USE_PHONE_MEMO
+	bool "LGE PHONE MEMO"
+	default n
+	help
+	 To support LGE PHONE MEMO TX MUTE
+
+config SND_LGE_DSDP_DUAL_AUDIO
+	bool "LGE DSDP DUAL AUDIO"
+	default n
+	help
+	 To support LGE Sound DSDP Dual Audio
+
+config SND_USE_SEC_MI2S
+	bool "USE SEC MI2S PORT"
+	default n
+	help
+	 To support MSM SEC MI2S PORT for HiFi DAC
+
+config SND_USE_TERT_MI2S
+	bool "USE TERT MI2S PORT"
+	default n
+	help
+	 To support MSM TERT MI2S PORT for A2DP
+
+config SND_USE_QUAT_MI2S
+	bool "USE QUAT MI2S PORT"
+	default n
+	help
+	 To support MSM QUAT MI2S PORT for LG FM RADIO
+
+config SND_USE_SKU_INFO
+	bool "USE SKU INFO"
+	default n
+	help
+	 To separate calibration data depending on SKU value
 
 config SND_SOC_MDM9650
         tristate "SoC Machine driver for MDM9650 or SDX20 boards"

@@ -311,7 +311,7 @@ done:
 static int kryo_regulator_disable(struct regulator_dev *rdev)
 {
 	struct kryo_regulator *kvreg = rdev_get_drvdata(rdev);
-	int rc;
+//	int rc;
 	unsigned long flags;
 
 	if (kvreg->vreg_en == false)
@@ -322,7 +322,7 @@ static int kryo_regulator_disable(struct regulator_dev *rdev)
 	kvreg_debug(kvreg, "disabled\n");
 	spin_unlock_irqrestore(&kvreg->slock, flags);
 
-	return rc;
+	return 0;
 }
 
 static int kryo_regulator_is_enabled(struct regulator_dev *rdev)
@@ -811,7 +811,7 @@ static int kryo_regulator_retention_init(struct kryo_regulator *kvreg,
 	struct device *dev = &pdev->dev;
 	struct regulator_init_data *init_data;
 	struct regulator_config reg_config = {};
-	int rc;
+	int rc = 0;
 
 	init_data = of_get_regulator_init_data(dev, ret_node);
 	if (!init_data) {

@@ -36,6 +36,7 @@ obj-$(CONFIG_USB_RAREMONO) += radio-raremono.o
 obj-$(CONFIG_RADIO_IRIS) += radio-iris.o
 obj-$(CONFIG_RADIO_IRIS_TRANSPORT) += radio-iris-transport.o
 obj-$(CONFIG_RADIO_SILABS) += silabs/
+obj-$(CONFIG_RADIO_RTC6213N) += rtc6213n_v2/
 
 shark2-objs := radio-shark2.o radio-tea5777.o
 

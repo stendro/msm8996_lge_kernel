@@ -50,7 +50,11 @@ static const char *default_compressor = "lzo";
 #define ALLOC_ERROR_LOG_RATE_MS 1000
 
 /* Module params (documentation at end) */
+#ifndef CONFIG_HSWAP
 static unsigned int num_devices = 1;
+#else
+static unsigned int num_devices = 2;
+#endif
 
 static inline bool init_done(struct zram *zram)
 {
@@ -63,12 +67,15 @@ static int zram_show_mem_notifier(struct notifier_block *nb,
 {
 	int i;
 
-	if (!zram_devices)
+	if (idr_is_empty(&zram_index_idr))
 		return 0;
 
 	for (i = 0; i < num_devices; i++) {
-		struct zram *zram = &zram_devices[i];
-		struct zram_meta *meta = zram->meta;
+		struct zram *zram = idr_find_slowpath(&zram_index_idr, i);
+		struct zram_meta *meta;
+		if (!zram || !zram->meta)
+			return 0;
+		meta = zram->meta;
 
 		if (!down_read_trylock(&zram->init_lock))
 			continue;
@@ -99,6 +106,32 @@ static int zram_show_mem_notifier(struct notifier_block *nb,
 static struct notifier_block zram_show_mem_notifier_block = {
 	.notifier_call = zram_show_mem_notifier
 };
+
+#ifdef CONFIG_HSWAP
+int zram0_free_size(void)
+{
+	struct zram *zram;
+	u64 val = 0;
+
+	if (idr_is_empty(&zram_index_idr))
+		return 0;
+
+	zram = idr_find_slowpath(&zram_index_idr, 0);
+
+	if (!zram)
+		return 0;
+
+	if (init_done(zram))
+		val += ((zram->disksize >> PAGE_SHIFT) -
+			atomic64_read(&zram->stats.pages_stored) -
+			atomic64_read(&zram->stats.same_pages));
+
+	if (val > 0)
+		return val;
+
+	return 0;
+}
+#endif
 
 static inline struct zram *dev_to_zram(struct device *dev)
 {
@@ -435,14 +468,15 @@ static ssize_t mm_stat_show(struct device *dev,
 	max_used = atomic_long_read(&zram->stats.max_used_pages);
 
 	ret = scnprintf(buf, PAGE_SIZE,
-			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu\n",
+			"%8llu %8llu %8llu %8lu %8ld %8llu %8llu %8llu\n",
 			orig_size << PAGE_SHIFT,
 			(u64)atomic64_read(&zram->stats.compr_data_size),
 			mem_used << PAGE_SHIFT,
 			zram->limit_pages << PAGE_SHIFT,
 			max_used << PAGE_SHIFT,
 			(u64)atomic64_read(&zram->stats.same_pages),
-			pool_stats.pages_compacted);
+			(u64)atomic64_read(&pool_stats.pages_compacted),
+			(u64)atomic64_read(&pool_stats.pages_migrated));
 	up_read(&zram->init_lock);
 
 	return ret;
@@ -1162,42 +1196,21 @@ static ssize_t reset_store(struct device *dev,
 
 static int zram_open(struct block_device *bdev, fmode_t mode)
 {
+	int ret = 0;
 	struct zram *zram;
-	int open_count;
 
 	WARN_ON(!mutex_is_locked(&bdev->bd_mutex));
-	zram = bdev->bd_disk->private_data;
-	/*
-	 * Chromium OS specific behavior:
-	 * sys_swapon opens the device once to populate its swapinfo->swap_file
-	 * and once when it claims the block device (blkdev_get).  By limiting
-	 * the maximum number of opens to 2, we ensure there are no prior open
-	 * references before swap is enabled.
-	 * (Note, kzalloc ensures nr_opens starts at 0.)
-	 */
-	open_count = atomic_inc_return(&zram->nr_opens);
-	if (open_count > 2)
-		goto busy;
-	/*
-	 * swapon(2) claims the block device after setup.  If a zram is claimed
-	 * then open attempts are rejected. This is belt-and-suspenders as the
-	 * the block device and swap_file will both hold open nr_opens until
-	 * swapoff(2) is called.
-	 */
-	if (bdev->bd_holder != NULL)
-		goto busy;
 
+	zram = bdev->bd_disk->private_data;
 	/* zram was claimed to reset so open request fails */
 	if (zram->claim)
-		goto busy;
+		ret = -EBUSY;
 
-	return 0;
-busy:
-	atomic_dec(&zram->nr_opens);
-	return -EBUSY;
+	return ret;
 }
 
 static const struct block_device_operations zram_devops = {
+	.open = zram_open,
 	.swap_slot_free_notify = zram_slot_free_notify,
 	.rw_page = zram_rw_page,
 	.owner = THIS_MODULE
@@ -1372,7 +1385,6 @@ static int zram_remove(struct zram *zram)
 
 	pr_info("Removed device: %s\n", zram->disk->disk_name);
 
-	idr_remove(&zram_index_idr, zram->disk->first_minor);
 	blk_cleanup_queue(zram->disk->queue);
 	del_gendisk(zram->disk);
 	put_disk(zram->disk);
@@ -1414,10 +1426,12 @@ static ssize_t hot_remove_store(struct class *class,
 	mutex_lock(&zram_index_mutex);
 
 	zram = idr_find(&zram_index_idr, dev_id);
-	if (zram)
+	if (zram) {
 		ret = zram_remove(zram);
-	else
+		idr_remove(&zram_index_idr, dev_id);
+	} else {
 		ret = -ENODEV;
+	}
 
 	mutex_unlock(&zram_index_mutex);
 	return ret ? ret : count;

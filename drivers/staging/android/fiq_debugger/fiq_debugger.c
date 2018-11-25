@@ -29,6 +29,7 @@
 #include <linux/reboot.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
+#include <linux/sysrq.h>
 #include <linux/smp.h>
 #include <linux/sysrq.h>
 #include <linux/timer.h>

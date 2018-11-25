@@ -77,11 +77,16 @@ static int cpufreq_stats_update(unsigned int cpu)
 		return 0;
 	}
 	if (stat->time_in_state) {
-		stat->time_in_state[stat->last_index] +=
-			cur_time - stat->last_time;
-		if (all_stat)
-			all_stat->time_in_state[stat->last_index] +=
-					cur_time - stat->last_time;
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+		asm volatile ("isb\n");
+#endif
+		if(cur_time > stat->last_time) {
+			stat->time_in_state[stat->last_index] +=
+				cur_time - stat->last_time;
+			if (all_stat)
+				all_stat->time_in_state[stat->last_index] +=
+						cur_time - stat->last_time;
+		}
 	}
 	stat->last_time = cur_time;
 	spin_unlock(&cpufreq_stats_lock);
@@ -104,11 +109,16 @@ static ssize_t show_time_in_state(struct cpufreq_policy *policy, char *buf)
 	struct cpufreq_stats *stat = per_cpu(cpufreq_stats_table, policy->cpu);
 	if (!stat)
 		return 0;
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+	asm volatile ("isb\n");
+#endif
 	cpufreq_stats_update(stat->cpu);
 	for (i = 0; i < stat->state_num; i++) {
+		register u64 u64_time_in_state = stat->time_in_state[i];
+		if((s64)u64_time_in_state < 0) u64_time_in_state = 0;
 		len += sprintf(buf + len, "%u %llu\n", stat->freq_table[i],
 			(unsigned long long)
-			jiffies_64_to_clock_t(stat->time_in_state[i]));
+			jiffies_64_to_clock_t(u64_time_in_state));
 	}
 	return len;
 }

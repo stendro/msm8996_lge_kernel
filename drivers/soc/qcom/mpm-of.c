@@ -800,6 +800,7 @@ static int msm_mpm_dev_probe(struct platform_device *pdev)
 	}
 
 	msm_mpm_initialized |= MSM_MPM_DEVICE_PROBED;
+
 	return 0;
 }
 
@@ -1044,11 +1045,22 @@ arch_initcall(msm_mpm_device_init);
 
 void of_mpm_init(void)
 {
+#ifndef CONFIG_MACH_LGE
 	struct device_node *node;
+#else
+	static struct device_node *node =NULL;
+#endif
 	int i;
 	int ret;
 
+#ifndef CONFIG_MACH_LGE
 	node = of_find_matching_node(NULL, msm_mpm_match_table);
+#else
+	if(!node){
+		node = of_find_matching_node(NULL, msm_mpm_match_table);
+	}
+#endif
+
 	WARN_ON(!node);
 	if (node) {
 		__of_mpm_init(node);

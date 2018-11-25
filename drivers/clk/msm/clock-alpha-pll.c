@@ -466,7 +466,7 @@ static int alpha_pll_set_rate(struct clk *c, unsigned long rate);
 static int dyna_alpha_pll_set_rate(struct clk *c, unsigned long rate)
 {
 	struct alpha_pll_clk *pll = to_alpha_pll_clk(c);
-	unsigned long freq_hz, flags;
+	unsigned long freq_hz = 0, flags = 0;
 	u32 l_val, vco_val;
 	u64 a_val;
 	int ret;
@@ -595,7 +595,7 @@ static int alpha_pll_set_rate(struct clk *c, unsigned long rate)
 {
 	struct alpha_pll_clk *pll = to_alpha_pll_clk(c);
 	struct alpha_pll_masks *masks = pll->masks;
-	unsigned long flags, freq_hz;
+	unsigned long flags = 0, freq_hz;
 	u32 regval, l_val;
 	int vco_val;
 	u64 a_val;

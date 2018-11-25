@@ -735,6 +735,17 @@ static inline bool usb_device_no_sg_constraint(struct usb_device *udev)
 
 /* for drivers using iso endpoints */
 extern int usb_get_current_frame_number(struct usb_device *usb_dev);
+extern int usb_sec_event_ring_setup(struct usb_device *dev,
+	unsigned intr_num);
+extern int usb_sec_event_ring_cleanup(struct usb_device *dev,
+	unsigned intr_num);
+
+extern dma_addr_t
+usb_get_sec_event_ring_dma_addr(struct usb_device *dev,
+		unsigned intr_num);
+extern dma_addr_t usb_get_dcba_dma_addr(struct usb_device *dev);
+extern dma_addr_t usb_get_xfer_ring_dma_addr(struct usb_device *dev,
+	struct usb_host_endpoint *ep);
 
 /* Sets up a group of bulk endpoints to support multiple stream IDs. */
 extern int usb_alloc_streams(struct usb_interface *interface,
@@ -1906,6 +1917,16 @@ enum usb_led_event {
 extern void usb_led_activity(enum usb_led_event ev);
 #else
 static inline void usb_led_activity(enum usb_led_event ev) {}
+#endif
+
+#ifdef CONFIG_LGE_ALICE_FRIENDS
+extern bool alice_friends_hm;
+extern bool alice_friends_hm_earjack;
+extern atomic_t in_call_status;
+#define IS_ALICE_FRIENDS_HM_ON() \
+	(alice_friends_hm && alice_friends_hm_earjack)
+
+extern int alice_friends_hm_reset(void);
 #endif
 
 #endif  /* __KERNEL__ */

@@ -215,6 +215,8 @@ static void diag_state_close_socket(void *ctxt)
 		 "%s setting diag state to 0", info->name);
 	wake_up_interruptible(&info->read_wait_q);
 	flush_workqueue(info->wq);
+	DIAG_LOG(DIAG_DEBUG_PERIPHERALS, "flushing info wq");
+
 }
 
 static void socket_data_ready(struct sock *sk_ptr)
@@ -442,6 +444,7 @@ static void __socket_close_channel(struct diag_socket_info *info)
 
 	if (!atomic_read(&info->opened))
 		return;
+	DIAG_LOG(DIAG_DEBUG_PERIPHERALS, "\n");
 
 	if (bootup_req[info->peripheral] == PEPIPHERAL_SSR_UP) {
 		DIAG_LOG(DIAG_DEBUG_PERIPHERALS,
@@ -474,6 +477,8 @@ static void socket_close_channel(struct diag_socket_info *info)
 {
 	if (!info)
 		return;
+
+	DIAG_LOG(DIAG_DEBUG_PERIPHERALS, "\n");
 
 	__socket_close_channel(info);
 
@@ -1020,9 +1025,12 @@ static int diag_socket_read(void *ctxt, unsigned char *buf, int buf_len)
 				      (info->data_ready > 0) || (!info->hdl) ||
 				      (atomic_read(&info->diag_state) == 0));
 	if (err) {
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex to obtain ", __LINE__);
 		mutex_lock(&driver->diagfwd_channel_mutex[info->peripheral]);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex obtained ", __LINE__);
 		diagfwd_channel_read_done(info->fwd_ctxt, buf, 0);
 		mutex_unlock(&driver->diagfwd_channel_mutex[info->peripheral]);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex released ", __LINE__);
 		return -ERESTARTSYS;
 	}
 
@@ -1034,9 +1042,12 @@ static int diag_socket_read(void *ctxt, unsigned char *buf, int buf_len)
 		DIAG_LOG(DIAG_DEBUG_PERIPHERALS,
 			 "%s closing read thread. diag state is closed\n",
 			 info->name);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex to obtain ", __LINE__);
 		mutex_lock(&driver->diagfwd_channel_mutex[info->peripheral]);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex obtained ", __LINE__);
 		diagfwd_channel_read_done(info->fwd_ctxt, buf, 0);
 		mutex_unlock(&driver->diagfwd_channel_mutex[info->peripheral]);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex released ", __LINE__);		
 		return 0;
 	}
 
@@ -1103,10 +1114,13 @@ static int diag_socket_read(void *ctxt, unsigned char *buf, int buf_len)
 	if (total_recd > 0) {
 		DIAG_LOG(DIAG_DEBUG_PERIPHERALS, "%s read total bytes: %d\n",
 			 info->name, total_recd);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex to obtain ", __LINE__);
 		mutex_lock(&driver->diagfwd_channel_mutex[info->peripheral]);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex obtained ", __LINE__);
 		err = diagfwd_channel_read_done(info->fwd_ctxt,
 						buf, total_recd);
 		mutex_unlock(&driver->diagfwd_channel_mutex[info->peripheral]);
+		DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex released ", __LINE__);
 		if (err)
 			goto fail;
 	} else {
@@ -1119,9 +1133,12 @@ static int diag_socket_read(void *ctxt, unsigned char *buf, int buf_len)
 	return 0;
 
 fail:
+	DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex to obtain ", __LINE__);
 	mutex_lock(&driver->diagfwd_channel_mutex[info->peripheral]);
+	DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex obtained ", __LINE__);
 	diagfwd_channel_read_done(info->fwd_ctxt, buf, 0);
 	mutex_unlock(&driver->diagfwd_channel_mutex[info->peripheral]);
+	DIAG_LOG(DIAG_DEBUG_PERIPHERALS," %d:diagfwd_channel_mutex released ", __LINE__);
 	return -EIO;
 }
 

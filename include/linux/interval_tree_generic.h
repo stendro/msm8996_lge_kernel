@@ -84,6 +84,8 @@ ITSTATIC void ITPREFIX ## _insert(ITSTRUCT *node, struct rb_root *root)	      \
 									      \
 	node->ITSUBTREE = last;						      \
 	rb_link_node(&node->ITRB, rb_parent, link);			      \
+	if ((rb_parent(&node->ITRB)==&node->ITRB) || node->ITRB.rb_left || node->ITRB.rb_right)				\
+		BUG();								\
 	rb_insert_augmented(&node->ITRB, root, &ITPREFIX ## _augment);	      \
 }									      \
 									      \
