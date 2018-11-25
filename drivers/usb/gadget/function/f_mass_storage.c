@@ -3259,6 +3259,14 @@ static ssize_t fsg_store_usbmode(struct device *dev,
 #ifdef CONFIG_LGE_USB_G_AUTORUN
 static DEVICE_ATTR(cdrom_usbmode, 0664, fsg_show_usbmode, fsg_store_usbmode);
 #endif
+
+#ifdef CONFIG_EXT_CDROM_EMULATION
+static ssize_t cdrom_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	struct fsg_lun		*curlun = fsg_lun_from_dev(dev);
+	return fsg_show_cdrom(curlun, buf);
+}
+#endif
 static ssize_t ro_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	struct fsg_lun		*curlun = fsg_lun_from_dev(dev);
@@ -3283,6 +3291,15 @@ static ssize_t file_show(struct device *dev, struct device_attribute *attr,
 	return fsg_show_file(curlun, filesem, buf);
 }
 
+#ifdef CONFIG_EXT_CDROM_EMULATION
+static ssize_t cdrom_store(struct device *dev, struct device_attribute *attr,
+			const char *buf, size_t count)
+{
+	struct fsg_lun		*curlun = fsg_lun_from_dev(dev);
+	struct rw_semaphore	*filesem = dev_get_drvdata(dev);
+	return fsg_store_cdrom(curlun, filesem, buf, count);
+}
+#endif
 static ssize_t ro_store(struct device *dev, struct device_attribute *attr,
 			const char *buf, size_t count)
 {
@@ -3309,12 +3326,17 @@ static ssize_t file_store(struct device *dev, struct device_attribute *attr,
 	return fsg_store_file(curlun, filesem, buf, count);
 }
 
+#ifdef CONFIG_EXT_CDROM_EMULATION
+static DEVICE_ATTR_RW(cdrom);
+#endif
 static DEVICE_ATTR_RW(ro);
 static DEVICE_ATTR_RW(nofua);
 static DEVICE_ATTR_RW(file);
 DEVICE_ATTR(perf, 0644, fsg_show_perf, fsg_store_perf);
 
+#ifndef CONFIG_EXT_CDROM_EMULATION
 static struct device_attribute dev_attr_ro_cdrom = __ATTR_RO(ro);
+#endif
 static struct device_attribute dev_attr_file_nonremovable = __ATTR_RO(file);
 
 
@@ -3460,6 +3482,9 @@ static inline void fsg_common_remove_sysfs(struct fsg_lun *lun)
 	 * so we don't differentiate between removing e.g. dev_attr_ro_cdrom
 	 * and dev_attr_ro
 	 */
+#ifdef CONFIG_EXT_CDROM_EMULATION
+	device_remove_file(&lun->dev, &dev_attr_cdrom);
+#endif
 	device_remove_file(&lun->dev, &dev_attr_ro);
 	device_remove_file(&lun->dev, &dev_attr_file);
 #ifdef CONFIG_LGE_USB_G_AUTORUN
@@ -3597,10 +3622,17 @@ static inline int fsg_common_add_sysfs(struct fsg_common *common,
 		return rc;
 	}
 
+#ifndef CONFIG_EXT_CDROM_EMULATION
 	rc = device_create_file(&lun->dev,
 				lun->cdrom
 			      ? &dev_attr_ro_cdrom
 			      : &dev_attr_ro);
+#else
+	rc = device_create_file(&lun->dev, &dev_attr_cdrom);
+	if (rc)
+		goto error;
+	rc = device_create_file(&lun->dev, &dev_attr_ro);
+#endif
 	if (rc)
 		goto error;
 	rc = device_create_file(&lun->dev,
