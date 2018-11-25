@@ -34,10 +34,15 @@
 #endif
 
 #ifdef CONFIG_LGE_USB_FACTORY
+#ifdef CONFIG_LGE_USB_G_LAF
 #define IS_FACTORY_MODE \
 	(lge_get_factory_boot() || \
 	 lge_get_laf_mode() || \
 	 lge_get_laf_mid())
+#else
+#define IS_FACTORY_MODE \
+	(lge_get_factory_boot())
+#endif
 #endif
 
 #define IS_CHARGERLOGO (lge_get_boot_mode() == LGE_BOOT_MODE_CHARGERLOGO)
