@@ -2540,7 +2540,7 @@ static int bcmbt_ldisc_probe(struct platform_device *pdev)
     return 0;
 }
 
-static int bcmbt_ldisc_remove(struct platform_device *pdev)
+static int __exit bcmbt_ldisc_remove(struct platform_device *pdev)
 {
     struct hci_uart* hu;
     BT_LDISC_DBG(V4L2_DBG_INIT, "bcmbt_ldisc_remove() unloading ");

@@ -531,8 +531,8 @@ si_doattach(si_info_t *sii, uint devid, osl_t *osh, void *regs,
 	} else {
 		cc = (chipcregs_t *)REG_MAP(SI_ENUM_BASE, SI_CORE_SIZE);
 	}
-#ifdef BCMBUSTYPE
 	sih->bustype = bustype;
+#ifdef BCMBUSTYPE
 	if (bustype != BUSTYPE(bustype)) {
 		SI_ERROR(("si_doattach: bus type %d does not match configured bus type %d\n",
 			bustype, BUSTYPE(bustype)));
