@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright © 2016, STMicroelectronics International N.V.
+ Copyright 2016, STMicroelectronics International N.V.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -515,7 +515,7 @@ VL53L0_Error VL53L010_DataInit(VL53L0_DEV Dev)
 
 	LOG_FUNCTION_START("");
 
-    if (Status == VL53L0_ERROR_NONE) {
+	if (Status == VL53L0_ERROR_NONE) {
 		/* read device info */
 		VL53L010_SETDEVICESPECIFICPARAMETER(Dev, ReadDataFromDeviceDone, 0);
 
@@ -542,25 +542,25 @@ VL53L0_Error VL53L010_DataInit(VL53L0_DEV Dev)
 	PALDevDataSet(Dev, SigmaEstEffAmbWidth, 500);
 
 	/* Set Signal and Sigma check */
-    if (Status == VL53L0_ERROR_NONE) {
-        Status = VL53L010_SetLimitCheckEnable(Dev,
-            VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE, 0);
-    }
-    if (Status == VL53L0_ERROR_NONE) {
-        Status = VL53L010_SetLimitCheckEnable(Dev,
-            VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE, 0);
-    }
-    if(Status == VL53L0_ERROR_NONE) {
-        Status = VL53L010_SetLimitCheckValue(Dev,
-            VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE,
-            (FixPoint1616_t)(32<<16));
-    }
-    if (Status == VL53L0_ERROR_NONE) {
-        Status = VL53L010_SetLimitCheckValue(Dev,
-            VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
-            (FixPoint1616_t)(25 * 65536 / 100));
+	if (Status == VL53L0_ERROR_NONE) {
+		Status = VL53L010_SetLimitCheckEnable(Dev,
+			VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE, 0);
+	}
+	if (Status == VL53L0_ERROR_NONE) {
+		Status = VL53L010_SetLimitCheckEnable(Dev,
+			VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE, 0);
+	}
+	if(Status == VL53L0_ERROR_NONE) {
+		Status = VL53L010_SetLimitCheckValue(Dev,
+			VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE,
+			(FixPoint1616_t)(32<<16));
+	}
+	if (Status == VL53L0_ERROR_NONE) {
+		Status = VL53L010_SetLimitCheckValue(Dev,
+			VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
+			(FixPoint1616_t)(25 * 65536 / 100));
 			/* 0.25 * 65538 */
-    }
+	}
 
 	/* Read back NVM offset */
 	if (Status == VL53L0_ERROR_NONE) {
@@ -597,23 +597,23 @@ VL53L0_Error VL53L010_StaticInit(VL53L0_DEV Dev)
 
 	LOG_FUNCTION_START("");
 
-    /* Set I2C standard mode */
-    if (Status == VL53L0_ERROR_NONE)
-        Status = VL53L0_WrByte(Dev, 0x88, 0x00);
+	/* Set I2C standard mode */
+	if (Status == VL53L0_ERROR_NONE)
+		Status = VL53L0_WrByte(Dev, 0x88, 0x00);
 
 	/* this function do nothing if it has been called before */
 	Status = VL53L010_get_info_from_device(Dev);
 
 	if (Status == VL53L0_ERROR_NONE) {
-        Revision = VL53L010_GETDEVICESPECIFICPARAMETER(Dev, Revision);
-    }
+		Revision = VL53L010_GETDEVICESPECIFICPARAMETER(Dev, Revision);
+	}
 
-    if (Status == VL53L0_ERROR_NONE) {
+	if (Status == VL53L0_ERROR_NONE) {
 		if (Revision == 0)
 			Status = VL53L010_load_additional_settings1(Dev);
 	}
 
-    /* update13_05_15 */
+	/* update13_05_15 */
 	if (Status == VL53L0_ERROR_NONE) {
 		if ((Revision <= 34) && (Revision != 32)) {
 
@@ -632,11 +632,11 @@ VL53L0_Error VL53L010_StaticInit(VL53L0_DEV Dev)
 		}
 	}
 
-    /* update 17_06_15_v10 */
+	/* update 17_06_15_v10 */
 	if (Status == VL53L0_ERROR_NONE)
 		Status = VL53L010_load_tuning_settings(Dev);
 
-    /* check if GO1 power is ON after load default tuning */
+	/* check if GO1 power is ON after load default tuning */
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L0_RdByte(Dev, 0x80, &TempByte);
 		if ((TempByte != 0) && (Status == VL53L0_ERROR_NONE)) {
@@ -645,7 +645,7 @@ VL53L0_Error VL53L010_StaticInit(VL53L0_DEV Dev)
 		}
 	}
 
-    /* Set interrupt config to new sample ready */
+	/* Set interrupt config to new sample ready */
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L010_SetGpioConfig(Dev, 0, 0,
 			VL53L010_REG_SYSTEM_INTERRUPT_GPIO_NEW_SAMPLE_READY,
@@ -760,50 +760,45 @@ VL53L0_Error VL53L010_SetDeviceParameters(VL53L0_DEV Dev,
 
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L010_SetInterMeasurementPeriodMilliSeconds(Dev,
-
 			pDeviceParameters->InterMeasurementPeriodMilliSeconds);
 	}
 
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L010_SetXTalkCompensationEnable(Dev,
-
 			pDeviceParameters->XTalkCompensationEnable);
 	}
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L010_SetXTalkCompensationRateMegaCps(Dev,
-
 			pDeviceParameters->XTalkCompensationRateMegaCps);
 	}
 
-    if (Status == VL53L0_ERROR_NONE) {
-        Status = VL53L010_SetOffsetCalibrationDataMicroMeter(Dev,
-                pDeviceParameters->RangeOffsetMicroMeters);
-    }
+	if (Status == VL53L0_ERROR_NONE) {
+		Status = VL53L010_SetOffsetCalibrationDataMicroMeter(Dev,
+			pDeviceParameters->RangeOffsetMicroMeters);
+	}
 
-    for (i = 0; i < VL53L010_CHECKENABLE_NUMBER_OF_CHECKS; i++) {
-        if (Status == VL53L0_ERROR_NONE) {
-            Status |= VL53L010_SetLimitCheckEnable(Dev, i,
-                pDeviceParameters->LimitChecksEnable[i]);
-        } else {
-            break;
-        }
-        if (Status == VL53L0_ERROR_NONE) {
-            Status |= VL53L010_SetLimitCheckValue(Dev, i,
-                pDeviceParameters->LimitChecksValue[i]);
-        } else {
-            break;
-        }
-    }
+	for (i = 0; i < VL53L010_CHECKENABLE_NUMBER_OF_CHECKS; i++) {
+		if (Status == VL53L0_ERROR_NONE) {
+			Status |= VL53L010_SetLimitCheckEnable(Dev, i,
+			pDeviceParameters->LimitChecksEnable[i]);
+		} else {
+			break;
+		}
+		if (Status == VL53L0_ERROR_NONE) {
+			Status |= VL53L010_SetLimitCheckValue(Dev, i,
+			pDeviceParameters->LimitChecksValue[i]);
+		} else {
+			break;
+		}
+	}
 
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L010_SetWrapAroundCheckEnable(Dev,
-
 			pDeviceParameters->WrapAroundCheckEnable);
 	}
 
 	if (Status == VL53L0_ERROR_NONE) {
 		Status = VL53L010_SetMeasurementTimingBudgetMicroSeconds(Dev,
-
 			pDeviceParameters->MeasurementTimingBudgetMicroSeconds);
 	}
 
@@ -1361,25 +1356,25 @@ VL53L0_Error VL53L010_GetLimitCheckInfo(VL53L0_DEV Dev, uint16_t LimitCheckId,
 VL53L0_Error VL53L010_SetLimitCheckEnable(VL53L0_DEV Dev, uint16_t LimitCheckId,
 	uint8_t LimitCheckEnable)
 {
-    VL53L0_Error Status = VL53L0_ERROR_NONE;
-    VL53L0_DeviceParameters_t CurrentParameters;
+	VL53L0_Error Status = VL53L0_ERROR_NONE;
+	VL53L0_DeviceParameters_t CurrentParameters;
 
-    LOG_FUNCTION_START("");
+	LOG_FUNCTION_START("");
 
-    if (LimitCheckId >= VL53L010_CHECKENABLE_NUMBER_OF_CHECKS) {
-        Status = VL53L0_ERROR_INVALID_PARAMS;
-    } else {
-        if (LimitCheckEnable == 0) {
-            VL53L010_SETARRAYPARAMETERFIELD(Dev, LimitChecksEnable,
-            		LimitCheckId, 0);
-        } else {
-            VL53L010_SETARRAYPARAMETERFIELD(Dev, LimitChecksEnable,
-            		LimitCheckId, 1);
-        }
-    }
+	if (LimitCheckId >= VL53L010_CHECKENABLE_NUMBER_OF_CHECKS) {
+		Status = VL53L0_ERROR_INVALID_PARAMS;
+	} else {
+		if (LimitCheckEnable == 0) {
+			VL53L010_SETARRAYPARAMETERFIELD(Dev, LimitChecksEnable,
+			LimitCheckId, 0);
+		} else {
+			VL53L010_SETARRAYPARAMETERFIELD(Dev, LimitChecksEnable,
+			LimitCheckId, 1);
+		}
+	}
 
-    LOG_FUNCTION_END(Status);
-    return Status;
+	LOG_FUNCTION_END(Status);
+	return Status;
 }
 
 VL53L0_Error VL53L010_GetLimitCheckEnable(VL53L0_DEV Dev, uint16_t LimitCheckId,
@@ -1439,7 +1434,6 @@ VL53L0_Error VL53L010_GetLimitCheckValue(VL53L0_DEV Dev,
 
     LOG_FUNCTION_END(Status);
     return Status;
-    
 }
 
 VL53L0_Error VL53L010_GetLimitCheckCurrent(VL53L0_DEV Dev,
@@ -2243,41 +2237,41 @@ VL53L0_Error VL53L010_SetGpioConfig(VL53L0_DEV Dev, uint8_t Pin,
 
 	LOG_FUNCTION_START("");
 
-    if (Pin != 0) {
-        Status = VL53L0_ERROR_GPIO_NOT_EXISTING;
-    } else if (DeviceMode == VL53L0_DEVICEMODE_GPIO_DRIVE) {
-        if (Polarity == VL53L0_INTERRUPTPOLARITY_LOW) {
-            data = 0x10;
-        } else {
-            data = 1;
-        }
-        Status = VL53L0_WrByte(Dev,
-        		VL53L010_REG_GPIO_HV_MUX_ACTIVE_HIGH, data);
+	if (Pin != 0) {
+		Status = VL53L0_ERROR_GPIO_NOT_EXISTING;
+	} else if (DeviceMode == VL53L0_DEVICEMODE_GPIO_DRIVE) {
+		if (Polarity == VL53L0_INTERRUPTPOLARITY_LOW) {
+			data = 0x10;
+		} else {
+			data = 1;
+		}
+		Status = VL53L0_WrByte(Dev,
+			VL53L010_REG_GPIO_HV_MUX_ACTIVE_HIGH, data);
 
-    } else if (DeviceMode == VL53L0_DEVICEMODE_GPIO_OSC) {
+	} else if (DeviceMode == VL53L0_DEVICEMODE_GPIO_OSC) {
 
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x01);
-    	Status |= VL53L0_WrByte(Dev, 0x00, 0x00);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x01);
+		Status |= VL53L0_WrByte(Dev, 0x00, 0x00);
 
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x00);
-    	Status |= VL53L0_WrByte(Dev, 0x80, 0x01);
-    	Status |= VL53L0_WrByte(Dev, 0x85, 0x02);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x00);
+		Status |= VL53L0_WrByte(Dev, 0x80, 0x01);
+		Status |= VL53L0_WrByte(Dev, 0x85, 0x02);
 
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x04);
-    	Status |= VL53L0_WrByte(Dev, 0xcd, 0x00);
-    	Status |= VL53L0_WrByte(Dev, 0xcc, 0x11);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x04);
+		Status |= VL53L0_WrByte(Dev, 0xcd, 0x00);
+		Status |= VL53L0_WrByte(Dev, 0xcc, 0x11);
 
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x07);
-    	Status |= VL53L0_WrByte(Dev, 0xbe, 0x00);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x07);
+		Status |= VL53L0_WrByte(Dev, 0xbe, 0x00);
 
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x06);
-    	Status |= VL53L0_WrByte(Dev, 0xcc, 0x09);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x06);
+		Status |= VL53L0_WrByte(Dev, 0xcc, 0x09);
 
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x00);
-    	Status |= VL53L0_WrByte(Dev, 0xff, 0x01);
-    	Status |= VL53L0_WrByte(Dev, 0x00, 0x00);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x00);
+		Status |= VL53L0_WrByte(Dev, 0xff, 0x01);
+		Status |= VL53L0_WrByte(Dev, 0x00, 0x00);
 
-    } else {
+	} else {
 
 		if (Status == VL53L0_ERROR_NONE) {
 			switch (Functionality) {
@@ -2325,7 +2319,7 @@ VL53L0_Error VL53L010_SetGpioConfig(VL53L0_DEV Dev, uint8_t Pin,
 
 		if (Status == VL53L0_ERROR_NONE)
 			Status = VL53L010_ClearInterruptMask(Dev, 0);
-    }
+	}
 
 	LOG_FUNCTION_END(Status);
 	return Status;
@@ -3375,7 +3369,7 @@ VL53L010_EXTERNAL VL53L0_Error VL53L010_check_part_used(VL53L0_DEV Dev,
 				VL53L0_COPYSTRING(pVL53L0_DeviceInfo->ProductId, "");
         } else {
             *Revision = VL53L010_GETDEVICESPECIFICPARAMETER(Dev, Revision);
-        	ProductId_tmp = VL53L010_GETDEVICESPECIFICPARAMETER(Dev, ProductId);		
+		ProductId_tmp = VL53L010_GETDEVICESPECIFICPARAMETER(Dev, ProductId);
 			sizeof_temp = strlen(ProductId_tmp);
 			if( VL53L0_MAX_STRING_LENGTH >= sizeof_temp)
 				VL53L0_COPYSTRING(pVL53L0_DeviceInfo->ProductId, ProductId_tmp);
@@ -3403,7 +3397,7 @@ VL53L010_EXTERNAL VL53L0_Error VL53L010_get_info_from_device(VL53L0_DEV Dev)
     LOG_FUNCTION_START("");
 
     ReadDataFromDeviceDone = VL53L010_GETDEVICESPECIFICPARAMETER(Dev,
-    		ReadDataFromDeviceDone);
+		ReadDataFromDeviceDone);
 
     /* This access is done only once after that a GetDeviceInfo or
      * datainit is done*/
@@ -3454,7 +3448,7 @@ VL53L010_EXTERNAL VL53L0_Error VL53L010_get_info_from_device(VL53L0_DEV Dev)
         Status |= VL53L0_RdDWord(Dev, 0x90, &TmpDWord);
 
         ProductId[4] = (char)(byte +
-        		((TmpDWord >> 29) & 0x07f));
+			((TmpDWord >> 29) & 0x07f));
         ProductId[5] = (char)((TmpDWord >> 22) & 0x07f);
         ProductId[6] = (char)((TmpDWord >> 15) & 0x07f);
         ProductId[7] = (char)((TmpDWord >> 8) & 0x07f);
@@ -3469,7 +3463,7 @@ VL53L010_EXTERNAL VL53L0_Error VL53L010_get_info_from_device(VL53L0_DEV Dev)
         Status |= VL53L0_RdDWord(Dev, 0x90, &TmpDWord);
 
         ProductId[9] = (char)(byte +
-        		((TmpDWord >> 26) & 0x07f));
+			((TmpDWord >> 26) & 0x07f));
         ProductId[10] = (char)((TmpDWord >> 19) & 0x07f);
         ProductId[11] = (char)((TmpDWord >> 12) & 0x07f);
         ProductId[12] = (char)((TmpDWord >> 5) & 0x07f);
@@ -3483,7 +3477,7 @@ VL53L010_EXTERNAL VL53L0_Error VL53L010_get_info_from_device(VL53L0_DEV Dev)
         Status |= VL53L0_RdDWord(Dev, 0x90, &TmpDWord);
 
         ProductId[13] = (char)(byte +
-        		((TmpDWord >> 30) & 0x07f));
+			((TmpDWord >> 30) & 0x07f));
         ProductId[14] = (char)((TmpDWord >> 23) & 0x07f);
         ProductId[15] = (char)((TmpDWord >> 16) & 0x07f);
         ProductId[16] = (char)((TmpDWord >> 9) & 0x07f);
@@ -3501,24 +3495,24 @@ VL53L010_EXTERNAL VL53L0_Error VL53L010_get_info_from_device(VL53L0_DEV Dev)
         Status |= VL53L0_WrByte(Dev, 0x80, 0x00);
 
         if (Status == VL53L0_ERROR_NONE) {
-        	VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
-        			ModuleId, ModuleId);
+		VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
+				ModuleId, ModuleId);
 
-        	VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
-        			Revision, Revision);
+		VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
+				Revision, Revision);
 
-        	VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
-        			ReferenceSpadCount, ReferenceSpadCount);
+		VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
+				ReferenceSpadCount, ReferenceSpadCount);
 
-        	VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
-        			ReferenceSpadType, ReferenceSpadType);
+		VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
+				ReferenceSpadType, ReferenceSpadType);
 
-        	ProductId_tmp = VL53L010_GETDEVICESPECIFICPARAMETER(Dev,
-        			ProductId);
-        	VL53L0_COPYSTRING(ProductId_tmp, ProductId);
+		ProductId_tmp = VL53L010_GETDEVICESPECIFICPARAMETER(Dev,
+				ProductId);
+		VL53L0_COPYSTRING(ProductId_tmp, ProductId);
 
-        	VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
-        	    		ReadDataFromDeviceDone, 1);
+		VL53L010_SETDEVICESPECIFICPARAMETER(Dev,
+				ReadDataFromDeviceDone, 1);
         }
     }
 
@@ -4048,14 +4042,13 @@ VL53L0_Error VL53L010_get_pal_range_status(VL53L0_DEV Dev,
 	else
 		tmpByte = DeviceRangeStatusInternal;
 
-
-    /*
-     * Check if Sigma limit is enabled, if yes then do comparison with
-     * limit value and put the result back into pPalRangeStatus.
-     */
-    Status =  VL53L010_GetLimitCheckEnable(Dev,
-                  VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE,
-                  &SigmaLimitCheckEnable);
+	/*
+	 * Check if Sigma limit is enabled, if yes then do comparison with
+	 * limit value and put the result back into pPalRangeStatus.
+	 */
+	Status = VL53L010_GetLimitCheckEnable(Dev,
+		VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE,
+		&SigmaLimitCheckEnable);
 
 	if ((SigmaLimitCheckEnable != 0) && (Status == VL53L0_ERROR_NONE)) {
 		/*
@@ -4065,9 +4058,9 @@ VL53L0_Error VL53L010_get_pal_range_status(VL53L0_DEV Dev,
 				pRangingMeasurementData, &SigmaEstimate);
 
 		if (Status == VL53L0_ERROR_NONE) {
-            Status = VL53L010_GetLimitCheckValue(Dev,
-            		VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE,
-                     &SigmaLimitValue);
+			Status = VL53L010_GetLimitCheckValue(Dev,
+			VL53L010_CHECKENABLE_SIGMA_FINAL_RANGE,
+			&SigmaLimitValue);
 
 			if ((SigmaLimitValue > 0) &&
 				(SigmaEstimate > SigmaLimitValue)) {
@@ -4077,30 +4070,29 @@ VL53L0_Error VL53L010_get_pal_range_status(VL53L0_DEV Dev,
 		}
 	}
 
-    /*
-	* Check if Signal limit is enabled, if yes then do comparison with
-	* limit value and put the result back into pPalRangeStatus.
-	*/
-    Status =  VL53L010_GetLimitCheckEnable(Dev,
-                  VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
-                  &SignalLimitCheckEnable);
+	/*
+	 * Check if Signal limit is enabled, if yes then do comparison with
+	 * limit value and put the result back into pPalRangeStatus.
+	 */
+	Status = VL53L010_GetLimitCheckEnable(Dev,
+		VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
+		&SignalLimitCheckEnable);
 
 	if ((SignalLimitCheckEnable != 0) && (Status == VL53L0_ERROR_NONE)) {
 		/*
-		* compute the Signal and check with limit
-		*/
-
-		SignalEstimate  = (FixPoint1616_t)(SignalRate -
+		 * compute the Signal and check with limit
+		 */
+		SignalEstimate = (FixPoint1616_t)(SignalRate -
 			(FixPoint1616_t)((EffectiveSpadRtnCount *
 			CrosstalkCompensation) >> 1));
 
 		PALDevDataSet(Dev, SignalEstimate, SignalEstimate);
 
-        Status = VL53L010_GetLimitCheckValue(Dev,
-            VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
-            &SignalLimitValue);
+		Status = VL53L010_GetLimitCheckValue(Dev,
+		VL53L010_CHECKENABLE_SIGNAL_RATE_FINAL_RANGE,
+		&SignalLimitValue);
 
-        if ((SignalLimitValue > 0) && (SignalEstimate <
+		if ((SignalLimitValue > 0) && (SignalEstimate <
 			SignalLimitValue)) {
 			/* Limit Fail add 2^5 to range status */
 			tmpByte += 32;
@@ -4110,9 +4102,6 @@ VL53L0_Error VL53L010_get_pal_range_status(VL53L0_DEV Dev,
 	if (Status == VL53L0_ERROR_NONE)
 		*pPalRangeStatus = tmpByte;
 
-
-
 	LOG_FUNCTION_END(Status);
 	return Status;
-
 }
