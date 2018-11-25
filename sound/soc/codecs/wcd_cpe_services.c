@@ -418,6 +418,7 @@ unlock_and_exit:
 
 static void cpe_create_worker_thread(struct cpe_info *t_info)
 {
+	pr_debug("%s:\n", __func__);
 	INIT_LIST_HEAD(&t_info->main_queue);
 	init_completion(&t_info->cmd_complete);
 	init_completion(&t_info->thread_comp);
@@ -1765,6 +1766,7 @@ enum cpe_svc_result cpe_svc_boot(void *cpe_handle, int debug_mode)
 	}
 
 	CPE_SVC_REL_LOCK(&cpe_d.cpe_api_mutex, "cpe_api");
+
 	return rc;
 }
 
@@ -2863,8 +2865,14 @@ static enum cpe_svc_result cpe_tgt_wcd9335_write_RAM(struct cpe_info *t_info,
 			return CPE_SVC_FAILED;
 		}
 
-		cpe_register_write_repeat(WCD9335_CPE_SS_MEM_BANK_0,
-			temp_ptr, to_write);
+		rc = cpe_register_write_repeat(WCD9335_CPE_SS_MEM_BANK_0,
+		     temp_ptr, to_write);
+		if (rc) {
+			pr_err("%s: cpe_register_write_repeat error rc=%d\n", __func__,rc);
+			cpe_register_write(WCD9335_CPE_SS_MEM_CTRL, 0);
+			return rc;
+		}
+
 		temp_size += CHUNK_SIZE;
 		temp_ptr += CHUNK_SIZE;
 	}

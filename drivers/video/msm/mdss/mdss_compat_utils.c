@@ -128,6 +128,7 @@ static void  __copy_atomic_commit_struct(struct mdp_layer_commit  *commit,
 		commit32->commit_v1.input_layer_cnt;
 	commit->commit_v1.left_roi = commit32->commit_v1.left_roi;
 	commit->commit_v1.right_roi = commit32->commit_v1.right_roi;
+
 	memcpy(&commit->commit_v1.reserved, &commit32->commit_v1.reserved,
 		count);
 }
@@ -2991,7 +2992,11 @@ static int mdss_compat_pp_ioctl(struct fb_info *info, unsigned int cmd,
 	uint32_t op;
 	int ret = 0;
 	struct msmfb_mdp_pp32 __user *pp32;
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	struct msmfb_mdp_pp __user *pp = NULL;
+#else
 	struct msmfb_mdp_pp __user *pp;
+#endif
 
 	pp32 = compat_ptr(arg);
 	if (copy_from_user(&op, &pp32->op, sizeof(uint32_t)))

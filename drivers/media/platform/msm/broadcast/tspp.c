@@ -57,7 +57,15 @@
 #define TSPP_NUM_PRIORITIES            16
 #define TSPP_NUM_KEYS                  8
 #define INVALID_CHANNEL                0xFFFFFFFF
+
+// [START] Case#03298079
+#ifdef CONFIG_LGE_BROADCAST_ISDBT_JAPAN
+#define TSPP_BAM_DEFAULT_IPC_LOGLVL    4
+#else /* CONFIG_LGE_BROADCAST_ISDBT_JAPAN */
 #define TSPP_BAM_DEFAULT_IPC_LOGLVL    2
+#endif /* CONFIG_LGE_BROADCAST_ISDBT_JAPAN */
+// [END] Case#03298079
+
 /*
  * BAM descriptor FIFO size (in number of descriptors).
  * Max number of descriptors allowed by SPS which is 8K-1.

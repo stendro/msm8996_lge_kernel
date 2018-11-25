@@ -104,6 +104,16 @@ struct backing_dev_info {
 	struct dentry *debug_dir;
 	struct dentry *debug_stats;
 #endif
+#ifdef CONFIG_MACH_LGE
+	/*
+	 * "check_and_sync" is changed to "bg_sync" during suspend syncing filesystems.
+	 * Although below codes related with "check_and_sync" have to be deleted together,
+	 * We can't eliminate this codes because "max_sync_count" variable is using
+	 * on another performance patch in 8937 n branch. (90559ec731b80801630051f8db5be5a0c651fb0f)
+	 * When the variable will be not using anymore, we would erase this.
+	 */
+	unsigned int max_sync_count;
+#endif
 };
 
 int __must_check bdi_init(struct backing_dev_info *bdi);
@@ -210,7 +220,16 @@ static inline unsigned long bdi_stat_error(struct backing_dev_info *bdi)
 	return 1;
 #endif
 }
-
+#ifdef CONFIG_MACH_LGE
+/*
+ * "check_and_sync" is changed to "bg_sync" during suspend syncing filesystems.
+ * Although below codes related with "check_and_sync" have to be deleted together,
+ * We can't eliminate this codes because "max_sync_count" variable is using
+ * on another performance patch in 8937 n branch. (90559ec731b80801630051f8db5be5a0c651fb0f)
+ * When the variable will be not using anymore, we would erase this.
+ */
+int bdi_set_max_sync_count(struct backing_dev_info *bdi, unsigned int max_sync_count);
+#endif
 int bdi_set_min_ratio(struct backing_dev_info *bdi, unsigned int min_ratio);
 int bdi_set_max_ratio(struct backing_dev_info *bdi, unsigned int max_ratio);
 

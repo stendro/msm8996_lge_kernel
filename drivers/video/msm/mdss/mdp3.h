@@ -38,7 +38,11 @@
 #define SVS_MAX_PIXEL		(540 * 960)
 
 #define KOFF_TIMEOUT_MS 84
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+#define KOFF_TIMEOUT msecs_to_jiffies(500)
+#else
 #define KOFF_TIMEOUT msecs_to_jiffies(KOFF_TIMEOUT_MS)
+#endif
 #define WAIT_DMA_TIMEOUT msecs_to_jiffies(84)
 
 /*

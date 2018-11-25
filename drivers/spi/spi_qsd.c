@@ -2694,6 +2694,7 @@ static int msm_spi_suspend(struct device *device)
 		struct platform_device *pdev = to_platform_device(device);
 		struct spi_master *master = platform_get_drvdata(pdev);
 		struct msm_spi   *dd;
+		int ret;
 
 		dev_dbg(device, "system suspend");
 		if (!master)
@@ -2701,6 +2702,11 @@ static int msm_spi_suspend(struct device *device)
 		dd = spi_master_get_devdata(master);
 		if (!dd)
 			goto suspend_exit;
+
+		ret = spi_master_suspend(master);
+		if (ret)
+			return ret;
+
 		msm_spi_pm_suspend_runtime(device);
 
 		/*
@@ -2721,8 +2727,14 @@ static int msm_spi_resume(struct device *device)
 	 * Even if it's not enabled, rely on 1st client transaction to do
 	 * clock ON and gpio configuration
 	 */
+	struct spi_master *master = dev_get_drvdata(device);
+
 	dev_dbg(device, "system resume");
-	return 0;
+
+	if (!master)
+		return -ENODEV;
+
+	return spi_master_resume(master);
 }
 #else
 #define msm_spi_suspend NULL
@@ -2758,6 +2770,7 @@ static struct of_device_id msm_spi_dt_match[] = {
 	},
 	{}
 };
+
 
 static const struct dev_pm_ops msm_spi_dev_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(msm_spi_suspend, msm_spi_resume)

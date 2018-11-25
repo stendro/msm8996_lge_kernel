@@ -83,6 +83,7 @@ static inline struct rb_node *rb_red_parent(struct rb_node *red)
  * - old's parent and color get assigned to new
  * - old gets assigned new as a parent and 'color' as a color.
  */
+#include <asm/cacheflush.h>
 static inline void
 __rb_rotate_set_parents(struct rb_node *old, struct rb_node *new,
 			struct rb_root *root, int color)
@@ -93,12 +94,76 @@ __rb_rotate_set_parents(struct rb_node *old, struct rb_node *new,
 	__rb_change_child(old, new, parent, root);
 }
 
+#define BUG_ON_SANITY_CHECK_FAILURE			1	/* used to trigger BUG when an error condition is detected */
+#define USE_RB_INSERT_SANITY_CHECK_BEFORE	0	/* used to check RB node before insertion, node should be red, node->rb_left = node->rb_right should be null */
+#define USE_RB_INSERT_SANITY_CHECK_AFTER	0	/* used to check RB node after insertion, rb_parent(node->rb_left) = rb_parent(node->rb_right) should node itself */
+
+#if USE_RB_INSERT_SANITY_CHECK_BEFORE
+static noinline void __rb_insert_sanity_check_before(struct rb_node *node)
+{
+	if ((rb_is_black(node) || node->rb_left || node->rb_right)) {
+		pr_info("[%s] + %p, %lx, %p, %p => ", __func__, node, node->__rb_parent_color, node->rb_left, node->rb_right);
+		__dma_flush_range((void *)node, (void *)node+sizeof(struct rb_node));
+		pr_info("[%s - %p, %lx, %p, %p\n", __func__, node, node->__rb_parent_color, node->rb_left, node->rb_right);
+#if BUG_ON_SANITY_CHECK_FAILURE
+		BUG();
+#endif
+	}
+	return ;
+}
+#endif
+
+#if USE_RB_INSERT_SANITY_CHECK_AFTER
+static noinline void __rb_insert_sanity_check_after(struct rb_node *node)
+{
+	struct rb_node *parent = rb_parent(node);
+	if (parent && (parent->rb_left != node) && (parent->rb_right != node)) {
+		pr_info("[%s] + %p, %lx => ", __func__, node, node->__rb_parent_color);
+		__dma_flush_range((void *)node, (void *)node + sizeof(struct rb_node));
+		pr_info("[%s] - %p, %lx\n", __func__, node, node->__rb_parent_color);
+		goto error;
+	}
+
+	if (node->rb_left) {
+		parent = rb_parent(node->rb_left);
+		if (parent != node) {
+			pr_info("[%s] ++ %p, %p, %lx => ", __func__, node, node->rb_left, node->rb_left->__rb_parent_color);
+			__dma_flush_range((void *)node->rb_left, (void *)node->rb_left + sizeof(struct rb_node));
+			pr_info("[%s] -- %p, %p, %lx\n", __func__, node, node->rb_left, node->rb_left->__rb_parent_color);
+			goto error;
+		}
+	}
+
+	if (node->rb_right) {
+		parent = rb_parent(node->rb_right);
+		if (parent != node) {
+			pr_info("[%s] +++ %p, %p, %lx => ", __func__, node, node->rb_right, node->rb_right->__rb_parent_color);
+			__dma_flush_range((void *)node->rb_right, (void *)node->rb_right + sizeof(struct rb_node));
+			pr_info("[%s] --- %p, %p, %lx\n", __func__, node, node->rb_right, node->rb_right->__rb_parent_color);
+			goto error;
+		}
+	}
+	return ;
+
+error:
+#if BUG_ON_SANITY_CHECK_FAILURE
+	BUG();
+#endif
+	return ;
+}
+#endif
+
 static __always_inline void
 __rb_insert(struct rb_node *node, struct rb_root *root,
 	    void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
 {
 	struct rb_node *parent = rb_red_parent(node), *gparent, *tmp;
 
+#if USE_RB_INSERT_SANITY_CHECK_BEFORE
+	//node should be red, node->left = node->right should be nill
+	__rb_insert_sanity_check_before(node);
+#endif
+	
 	while (true) {
 		/*
 		 * Loop invariant: node is red
@@ -218,6 +283,10 @@ __rb_insert(struct rb_node *node, struct rb_root *root,
 			break;
 		}
 	}
+	
+#if USE_RB_INSERT_SANITY_CHECK_AFTER
+	__rb_insert_sanity_check_after(node);
+#endif
 }
 
 /*

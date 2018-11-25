@@ -80,6 +80,7 @@ extern void rb_replace_node(struct rb_node *victim, struct rb_node *new,
 static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
 				struct rb_node **rb_link)
 {
+	asm volatile ("isb\n");
 	node->__rb_parent_color = (unsigned long)parent;
 	node->rb_left = node->rb_right = NULL;
 
@@ -89,6 +90,7 @@ static inline void rb_link_node(struct rb_node *node, struct rb_node *parent,
 static inline void rb_link_node_rcu(struct rb_node *node, struct rb_node *parent,
 				    struct rb_node **rb_link)
 {
+	asm volatile ("isb\n");
 	node->__rb_parent_color = (unsigned long)parent;
 	node->rb_left = node->rb_right = NULL;
 

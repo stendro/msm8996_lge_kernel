@@ -38,6 +38,9 @@ int rerun_election(struct votable *votable);
 struct votable *find_votable(const char *name);
 struct votable *create_votable(const char *name,
 				int votable_type,
+#ifdef CONFIG_LGE_PM
+				int effective_result,
+#endif
 				int (*callback)(struct votable *votable,
 						void *data,
 						int effective_result,

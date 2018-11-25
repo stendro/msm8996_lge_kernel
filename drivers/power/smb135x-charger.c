@@ -2906,6 +2906,7 @@ static int usbin_uv_handler(struct smb135x_chg *chip, u8 rt_stat)
 	 * rt_stat indicates if usb is undervolted
 	 */
 	bool usb_present = !rt_stat;
+	union power_supply_propval prop = {0, };
 
 	if (usb_present) {
 		chip->usbin_uv = false;
@@ -2922,6 +2923,21 @@ static int usbin_uv_handler(struct smb135x_chg *chip, u8 rt_stat)
 
 	pr_debug("chip->usb_present = %d usb_present = %d\n",
 			chip->usb_present, usb_present);
+#if CONFIG_LGE_PM
+	if (chip->usb_psy && !chip->usb_psy->get_property(chip->usb_psy,
+				POWER_SUPPLY_PROP_REAL_TYPE, &prop)) {
+#else
+	if (chip->usb_psy && !chip->usb_psy->get_property(chip->usb_psy,
+				POWER_SUPPLY_PROP_TYPE, &prop)) {
+#endif
+		if (prop.intval == POWER_SUPPLY_TYPE_USB_DCP) {
+			if (chip->usb_present && !usb_present) {
+				/* For DCP and HVDCP removing */
+				chip->usb_present = usb_present;
+				handle_usb_removal(chip);
+			}
+		}
+	}
 
 	return 0;
 }
@@ -4453,8 +4469,11 @@ static int smb135x_parallel_charger_probe(struct i2c_client *client,
 	smb135x_set_current_tables(chip);
 
 	i2c_set_clientdata(client, chip);
-
+#ifdef CONFIG_LGE_PM
+	chip->parallel_psy.name		= "usb-parallel";
+#else
 	chip->parallel_psy.name		= "parallel";
+#endif
 	chip->parallel_psy.type		= POWER_SUPPLY_TYPE_PARALLEL;
 	chip->parallel_psy.get_property	= smb135x_parallel_get_property;
 	chip->parallel_psy.set_property	= smb135x_parallel_set_property;

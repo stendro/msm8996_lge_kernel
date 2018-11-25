@@ -2020,7 +2020,7 @@ static struct glink_core_xprt_ctx *find_open_transport(const char *edge,
 						       uint16_t *best_id)
 {
 	struct glink_core_xprt_ctx *xprt;
-	struct glink_core_xprt_ctx *best_xprt;
+	struct glink_core_xprt_ctx *best_xprt = NULL;
 	struct glink_core_xprt_ctx *ret;
 	bool first = true;
 
@@ -4184,18 +4184,24 @@ static void glink_core_channel_cleanup(struct glink_core_xprt_ctx *xprt_ptr)
 	struct channel_lcid *temp_lcid, *temp_lcid1;
 	struct glink_core_xprt_ctx *dummy_xprt_ctx;
 
+	trace_printk("QMCK %s start \n", __func__);
 	dummy_xprt_ctx = glink_create_dummy_xprt_ctx(xprt_ptr);
 	if (IS_ERR_OR_NULL(dummy_xprt_ctx)) {
 		GLINK_ERR("%s: Dummy Transport creation failed\n", __func__);
 		return;
 	}
+	trace_printk("QMCK %s -- line(%d) \n", __func__, __LINE__);
 	rwref_read_get(&dummy_xprt_ctx->xprt_state_lhb0);
+	trace_printk("QMCK %s -- line(%d) \n", __func__, __LINE__);
 	rwref_read_get(&xprt_ptr->xprt_state_lhb0);
+	trace_printk("QMCK %s -- line(%d) \n", __func__, __LINE__);
 	ctx = get_first_ch_ctx(xprt_ptr);
 	while (ctx) {
+		trace_printk("QMCK %s -- line(%d) \n", __func__, __LINE__);
 		rwref_write_get_atomic(&ctx->ch_state_lhb2, true);
 		if (ctx->local_open_state == GLINK_CHANNEL_OPENED ||
 			ctx->local_open_state == GLINK_CHANNEL_OPENING) {
+			trace_printk("QMCK %s -- line(%d) \n", __func__, __LINE__);
 			ctx->transport_ptr = dummy_xprt_ctx;
 			glink_core_move_ch_node(xprt_ptr, dummy_xprt_ctx, ctx);
 		} else {
@@ -5509,8 +5515,8 @@ static void tx_func(struct kthread_work *work)
 {
 	struct channel_ctx *ch_ptr;
 	uint32_t prio;
-	uint32_t tx_ready_head_prio;
-	int ret;
+	uint32_t tx_ready_head_prio = 0;
+	int ret = -1;
 	struct channel_ctx *tx_ready_head = NULL;
 	bool transmitted_successfully = true;
 	unsigned long flags;

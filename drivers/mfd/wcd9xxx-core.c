@@ -181,9 +181,14 @@ static int wcd9xxx_read(struct wcd9xxx *wcd9xxx, unsigned short reg,
 		dev_err(wcd9xxx->dev, "Codec read failed\n");
 		return ret;
 	} else {
-		for (i = 0; i < bytes; i++)
+		for (i = 0; i < bytes; i++) {
 			dev_dbg(wcd9xxx->dev, "Read 0x%02x from 0x%x\n",
 				((u8 *)dest)[i], reg + i);
+			if ((reg + i) == 0x0b70 || ((reg + i) == 0x0b5c)) {
+				dev_err(wcd9xxx->dev,"%s, Read 0x%02x from 0x%x\n",
+					__func__, ((u8 *)dest)[i], reg + i);
+			}
+		}
 	}
 
 	return 0;
@@ -304,9 +309,14 @@ static int regmap_bus_read(void *context, const void *reg, size_t reg_size,
 		dev_err(dev, "%s: Codec read failed (%d), reg: 0x%x, size:%zd\n",
 			__func__, ret, rreg, val_size);
 	else {
-		for (i = 0; i < val_size; i++)
+		for (i = 0; i < val_size; i++) {
 			dev_dbg(dev, "%s: Read 0x%02x from 0x%x\n",
 				__func__, ((u8 *)val)[i], rreg + i);
+			if (((rreg + i) == 0x0b70) || ((rreg + i) == 0x0b5c)) {
+				dev_err(dev, "%s: Read 0x%02x from 0x%x\n",
+					__func__, ((u8 *)val)[i], rreg + i);
+			}
+		}
 	}
 err:
 	mutex_unlock(&wcd9xxx->io_lock);
@@ -355,9 +365,14 @@ static int wcd9xxx_write(struct wcd9xxx *wcd9xxx, unsigned short reg,
 		return -EINVAL;
 	}
 
-	for (i = 0; i < bytes; i++)
+	for (i = 0; i < bytes; i++) {
 		dev_dbg(wcd9xxx->dev, "Write %02x to 0x%x\n", ((u8 *)src)[i],
 			reg + i);
+		if (((reg + i) == 0x0b70) || ((reg + i) == 0x0b5c)) {
+			dev_err(wcd9xxx->dev, "%s, Write %02x to 0x%x\n", __func__, ((u8 *)src)[i],
+				reg + i);
+		}
+	}
 
 	return wcd9xxx->write_dev(wcd9xxx, reg, bytes, src, interface_reg);
 }
@@ -455,9 +470,14 @@ static int regmap_bus_gather_write(void *context,
 	if (ret)
 		goto err;
 
-	for (i = 0; i < val_size; i++)
+	for (i = 0; i < val_size; i++) {
 		dev_dbg(dev, "Write %02x to 0x%x\n", ((u8 *)val)[i],
 			rreg + i);
+		if (((rreg + i) == 0x0b70) || ((rreg + i) == 0x0b5c)) {
+			dev_err(dev, "%s, Write %02x to 0x%x\n", __func__, ((u8 *)val)[i],
+				rreg + i);
+		}
+	}
 
 	ret = wcd9xxx->write_dev(wcd9xxx, c_reg, val_size, (void *) val,
 				 false);
@@ -1098,8 +1118,7 @@ static int wcd9335_bring_up(struct wcd9xxx *wcd9xxx)
 				   WCD9335_CHIP_TIER_CTRL_CHIP_ID_BYTE0);
 
 	if ((val < 0) || (byte0 < 0)) {
-		dev_err(wcd9xxx->dev, "%s: tasha codec version detection fail!\n",
-			__func__);
+		pr_err("%s: wcd9335 version detection fail!\n", __func__);
 		return -EINVAL;
 	}
 
@@ -1140,8 +1159,6 @@ static int wcd9335_bring_up(struct wcd9xxx *wcd9xxx)
 				    WCD9335_CODEC_RPM_PWR_CDC_DIG_HM_CTL, 0x3);
 		__wcd9xxx_reg_write(wcd9xxx, WCD9335_CODEC_RPM_RST_CTL, 0x3);
 	} else {
-		dev_err(wcd9xxx->dev, "%s: tasha codec version unknown\n",
-			__func__);
 		ret = -EINVAL;
 	}
 

@@ -55,6 +55,11 @@ config INFINIBAND_ADDR_TRANS
 	depends on INFINIBAND
 	default y
 
+# 2015-08-25 jewon.lee@lge.com, LGP_DATA_TCPIP_MPTCP [START]
+config LGP_DATA_TCPIP_MPTCP
+    bool "LG MPTCP feature"
+# 2015-08-25 jewon.lee@lge.com, LGP_DATA_TCPIP_MPTCP [END]
+
 source "drivers/infiniband/hw/mthca/Kconfig"
 source "drivers/infiniband/hw/ipath/Kconfig"
 source "drivers/infiniband/hw/qib/Kconfig"
