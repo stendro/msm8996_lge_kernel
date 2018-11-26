@@ -124,7 +124,7 @@ int zram0_free_size(void)
 	if (init_done(zram))
 		val += ((zram->disksize >> PAGE_SHIFT) -
 			atomic64_read(&zram->stats.pages_stored) -
-			atomic64_read(&zram->stats.zero_pages));
+			atomic64_read(&zram->stats.same_pages));
 
 	if (val > 0)
 		return val;
