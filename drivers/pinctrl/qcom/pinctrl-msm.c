@@ -35,10 +35,6 @@
 #include "pinctrl-msm.h"
 #include "../pinctrl-utils.h"
 
-#ifdef CONFIG_LGE_PM
-#include "linux/suspend.h"
-#endif
-
 #define MAX_NR_GPIO 300
 #define PS_HOLD_OFFSET 0x820
 #define TLMM_EBI2_EMMC_GPIO_CFG 0x111000
@@ -832,15 +828,6 @@ bool msm_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
 		val = readl(pctrl->regs + g->intr_status_reg);
 		if (val & BIT(g->intr_status_bit)) {
 			irq_pin = irq_find_mapping(gc->irqdomain, i);
-#ifdef CONFIG_LGE_PM
-			if (suspend_debug_irq_pin())
-				printk("%s : irq_pin = %d, GPIO[%d], "
-					"g->intr_status_reg = %u, "
-					"g->intr_cfg_reg = %u\n",
-					__func__, irq_pin,
-					i, val,
-					readl(pctrl->regs + g->intr_cfg_reg));
-#endif
 			handled += generic_handle_irq(irq_pin);
 		}
 	}

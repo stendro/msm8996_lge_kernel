@@ -7856,14 +7856,7 @@ static int fg_of_init(struct fg_chip *chip)
 	if (rc == 0) {
 		if (fg_sense_type < 0)
 			fg_sense_type = sense_type;
-#ifdef CONFIG_LGE_PM_DEBUG
-		if (fg_sense_type == INTERNAL_CURRENT_SENSE)
-			pr_info("Using internal sense\n");
-		else if (fg_sense_type == EXTERNAL_CURRENT_SENSE)
-			pr_info("Using external sense\n");
-		else
-			pr_info("Using default sense\n");
-#else
+
 		if (fg_debug_mask & FG_STATUS) {
 			if (fg_sense_type == INTERNAL_CURRENT_SENSE)
 				pr_info("Using internal sense\n");
@@ -7872,7 +7865,6 @@ static int fg_of_init(struct fg_chip *chip)
 			else
 				pr_info("Using default sense\n");
 		}
-#endif
 	} else {
 		rc = 0;
 	}

@@ -921,10 +921,6 @@ qpnp_pon_input_dispatch(struct qpnp_pon *pon, u32 pon_type)
 	pr_debug("PMIC input: code=%d, sts=0x%hhx\n",
 					cfg->key_code, pon_rt_sts);
 	key_status = pon_rt_sts & pon_rt_bit;
-#ifdef CONFIG_LGE_PM_DEBUG
-	pr_err("%s: code(%d), value(%d)\n",
-			__func__, cfg->key_code, key_status);
-#endif
 
 #ifdef CONFIG_LGE_PM_WAKE_LOCK_FOR_CHG_LOGO
 	if (lge_get_boot_mode() == LGE_BOOT_MODE_CHARGERLOGO) {

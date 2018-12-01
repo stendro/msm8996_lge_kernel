@@ -319,6 +319,7 @@ struct smbchg_chip {
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
 	struct lge_power 					*lge_cc_lpc;
 	struct delayed_work					lge_cc_enable_work;
+	struct delayed_work					charging_info_work;
 	enum lge_btm_states 				btm_state;
 	struct mutex			lge_cc_ibat_lock;
 	bool 				lge_cc_lpc_finish;
@@ -328,9 +329,6 @@ struct smbchg_chip {
 	int 				otp_ibat_current;
 	int 				test_batt_therm;
 	int 				test_chg_scn;
-#ifdef CONFIG_LGE_PM_DEBUG
-	struct delayed_work					charging_info_work;
-#endif
 #ifdef CONFIG_LGE_PM_BATT_MANAGER
     struct power_supply	*bm_psy;
 
@@ -696,13 +694,7 @@ static const char* const chgstep_label[] = {
 };
 #endif
 
-#ifdef CONFIG_LGE_PM_DEBUG
-static int smbchg_debug_mask =
-			PR_INTERRUPT | PR_STATUS | PR_PM | PR_TYPEC | PR_LGE;
-#else
 static int smbchg_debug_mask;
-#endif
-
 module_param_named(
 	debug_mask, smbchg_debug_mask, int, S_IRUSR | S_IWUSR
 );
@@ -795,7 +787,6 @@ static unsigned int factory_mode;
 #endif
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
-#ifdef CONFIG_LGE_PM_DEBUG
 static bool is_usb_present(struct smbchg_chip *chip);
 
 static int get_usb_adc(struct smbchg_chip *chip)
@@ -827,7 +818,6 @@ static int get_usb_adc(struct smbchg_chip *chip)
 
 	return usbin_vol;
 }
-#endif
 
 static int get_prop_batt_health(struct smbchg_chip *chip);
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SUPPORT_CCD
@@ -10068,7 +10058,6 @@ static irqreturn_t usbid_change_handler(int irq, void *_chip)
 	return IRQ_HANDLED;
 }
 
-#ifdef CONFIG_LGE_PM_DEBUG
 #define CHG_STS_REG 0x4100
 #define CHG_STS 0x07
 #define STS_MASK (BIT(7) | BIT(6) | BIT(5))
@@ -10126,7 +10115,7 @@ static int smbchg_check_chg_status(struct smbchg_chip *chip) {
 /* After test, make decision to delete or not */
 static void lgcc_charger_reginfo(struct work_struct *work) {
 	struct smbchg_chip *chip = container_of(work,
-		struct smbchg_chip, charging_info_work.work);
+	struct smbchg_chip, charging_info_work.work);
 	struct power_supply *parallel_psy = get_parallel_psy(chip);
 	int rc, batt_volt, batt_temp;
 	union power_supply_propval ret = {0, };
@@ -10455,7 +10444,6 @@ static void lgcc_charger_reginfo(struct work_struct *work) {
 		round_jiffies_relative(msecs_to_jiffies(delay_time)));
 
 }
-#endif
 
 static int determine_initial_status(struct smbchg_chip *chip)
 {
@@ -12381,7 +12369,7 @@ static int smbchg_probe(struct spmi_device *spmi)
 	init_completion(&chip->usbin_uv_lowered);
 	init_completion(&chip->usbin_uv_raised);
 	init_completion(&chip->hvdcp_det_done);
-#ifdef CONFIG_LGE_PM_DEBUG
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
 	INIT_DELAYED_WORK(&chip->charging_info_work, lgcc_charger_reginfo);
 	schedule_delayed_work(&chip->charging_info_work,
 		round_jiffies_relative(msecs_to_jiffies(CHARGING_INFORM_NORMAL_TIME)));
@@ -12661,7 +12649,7 @@ static int smbchg_probe(struct spmi_device *spmi)
 #endif
 #endif
 #endif
-#ifdef CONFIG_LGE_PM_DEBUG
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
 	schedule_delayed_work(&chip->charging_info_work,
 		round_jiffies_relative(msecs_to_jiffies(CHARGING_INFORM_NORMAL_TIME)));
 #endif
@@ -12762,7 +12750,7 @@ static int smbchg_remove(struct spmi_device *spmi)
 	destroy_votable(chip->usb_icl_votable);
 	destroy_votable(chip->fcc_votable);
 
-#ifdef CONFIG_LGE_PM_DEBUG
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
 	cancel_delayed_work(&chip->charging_info_work);
 #endif
 #ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL

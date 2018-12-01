@@ -576,12 +576,8 @@ enum incompatible_hvdcp_detect_step {
 	INCOMPATIBLE_DETECTED,
 };
 #endif
-#ifdef CONFIG_LGE_PM_DEBUG
-static int smbchg_debug_mask = PR_INTERRUPT | PR_STATUS | PR_PM | PR_LGE;
-#else
-static int smbchg_debug_mask;
-#endif
 
+static int smbchg_debug_mask;
 module_param_named(
 	debug_mask, smbchg_debug_mask, int, S_IRUSR | S_IWUSR
 );
@@ -928,7 +924,7 @@ EXPORT_SYMBOL(lgcc_get_effective_fcc_result);
 static void lgcc_charger_reginfo(struct work_struct *work)
 {
 	struct smbchg_chip *chip = container_of(work,
-		struct smbchg_chip, charging_info_work.work);
+	struct smbchg_chip, charging_info_work.work);
 	struct power_supply *parallel_psy = get_parallel_psy(chip);
 	int rc, batt_volt, batt_temp;
 	union power_supply_propval ret = {0, };
@@ -8431,12 +8427,9 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 		goto out;
 
 	if ((reg & USBIN_UV_BIT) && (reg & USBIN_SRC_DET_BIT)) {
-#ifdef CONFIG_LGE_PM_DEBUG
 		pr_smb(PR_STATUS, "Very weak charger detected. VBUS[%d]\n",
 				get_usb_adc());
-#else
-		pr_smb(PR_STATUS, "Very weak charger detected\n");
-#endif
+
 #ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
         if (chip->incompatible_hvdcp_det_ignore_uv){
             pr_smb(PR_LGE, "incompatible_hvdcp_det_ignore_uv. skip.\n");
