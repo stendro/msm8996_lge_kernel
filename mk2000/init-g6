@@ -61,4 +61,12 @@ on property:sys.post_boot.parsed=1
     write /sys/block/sdg/queue/scheduler "maple"
     write /sys/block/sdh/queue/scheduler "maple"
 
-    write /dev/kmsg "Boot completed"
+    # Tweak Virtual Memory
+    write /proc/sys/vm/dirty_background_ratio 15
+    write /proc/sys/vm/dirty_ratio 30
+    write /proc/sys/vm/vfs_cache_pressure 60
+    write /proc/sys/vm/oom_dump_tasks 0
+    write /proc/sys/vm/dirty_expire_centisecs 350
+    write /proc/sys/vm/dirty_writeback_centisecs 750
+
+    write /dev/kmsg "MK2K Boot Complete"
