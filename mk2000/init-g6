@@ -50,8 +50,6 @@ on property:sys.post_boot.parsed=1
 
     # Set Maple scheduler default
     write /sys/block/mmcblk0/queue/scheduler "maple"
-    write /sys/block/dm-0/queue/scheduler "maple"
-    write /sys/block/dm-1/queue/scheduler "maple"
     write /sys/block/sda/queue/scheduler "maple"
     write /sys/block/sdb/queue/scheduler "maple"
     write /sys/block/sdc/queue/scheduler "maple"
@@ -62,8 +60,7 @@ on property:sys.post_boot.parsed=1
     write /sys/block/sdh/queue/scheduler "maple"
 
     # Tweak Virtual Memory
-    write /proc/sys/vm/dirty_background_ratio 15
-    write /proc/sys/vm/dirty_ratio 30
+    write /proc/sys/vm/dirty_background_ratio 10
     write /proc/sys/vm/vfs_cache_pressure 60
     write /proc/sys/vm/oom_dump_tasks 0
     write /proc/sys/vm/dirty_expire_centisecs 350
