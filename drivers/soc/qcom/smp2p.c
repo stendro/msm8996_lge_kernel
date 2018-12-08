@@ -356,32 +356,20 @@ static void *smp2p_get_local_smem_item(int remote_pid)
 {
 	struct smp2p_smem __iomem *item_ptr = NULL;
 
-	if (remote_pid < SMP2P_REMOTE_MOCK_PROC) {
-		unsigned size;
-		int smem_id;
+	unsigned size;
+	int smem_id;
 
-		/* lookup or allocate SMEM item */
-		smem_id = smp2p_get_smem_item_id(SMP2P_APPS_PROC, remote_pid);
-		if (smem_id >= 0) {
-			item_ptr = smem_get_entry(smem_id, &size,
-								remote_pid, 0);
+	/* lookup or allocate SMEM item */
+	smem_id = smp2p_get_smem_item_id(SMP2P_APPS_PROC, remote_pid);
+	if (smem_id >= 0) {
+		item_ptr = smem_get_entry(smem_id, &size,
+							remote_pid, 0);
 
-			if (!item_ptr) {
-				size = sizeof(struct smp2p_smem_item);
-				item_ptr = smem_alloc(smem_id, size,
-								remote_pid, 0);
-			}
+		if (!item_ptr) {
+			size = sizeof(struct smp2p_smem_item);
+			item_ptr = smem_alloc(smem_id, size,
+							remote_pid, 0);
 		}
-	} else if (remote_pid == SMP2P_REMOTE_MOCK_PROC) {
-		/*
-		 * This path is only used during unit testing so
-		 * the GFP_ATOMIC allocation should not be a
-		 * concern.
-		 */
-		if (!out_list[SMP2P_REMOTE_MOCK_PROC].smem_edge_out)
-			item_ptr = kzalloc(
-					sizeof(struct smp2p_smem_item),
-					GFP_ATOMIC);
 	}
 	return item_ptr;
 }
@@ -405,20 +393,15 @@ static void *smp2p_get_remote_smem_item(int remote_pid,
 {
 	void *item_ptr = NULL;
 	unsigned size = 0;
+	int smem_id;
 
 	if (!out_item)
 		return item_ptr;
 
-	if (remote_pid < SMP2P_REMOTE_MOCK_PROC) {
-		int smem_id;
-
-		smem_id = smp2p_get_smem_item_id(remote_pid, SMP2P_APPS_PROC);
-		if (smem_id >= 0)
-			item_ptr = smem_get_entry(smem_id, &size,
-								remote_pid, 0);
-	} else if (remote_pid == SMP2P_REMOTE_MOCK_PROC) {
-		item_ptr = msm_smp2p_get_remote_mock_smem_item(&size);
-	}
+	smem_id = smp2p_get_smem_item_id(remote_pid, SMP2P_APPS_PROC);
+	if (smem_id >= 0)
+		item_ptr = smem_get_entry(smem_id, &size,
+							remote_pid, 0);
 	item_ptr = out_item->ops_ptr->validate_size(remote_pid, item_ptr, size);
 
 	return item_ptr;
@@ -1607,8 +1590,6 @@ static void smp2p_send_interrupt(int remote_pid)
 		wmb();
 		writel_relaxed(smp2p_int_cfgs[remote_pid].out_int_mask,
 			smp2p_int_cfgs[remote_pid].out_int_ptr);
-	} else {
-		smp2p_remote_mock_rx_interrupt();
 	}
 }
 
@@ -1746,46 +1727,6 @@ static irqreturn_t smp2p_interrupt_handler(int irq, void *data)
 	}
 
 	return IRQ_HANDLED;
-}
-
-/**
- * smp2p_reset_mock_edge - Reinitializes the mock edge.
- *
- * @returns: 0 on success, -EAGAIN to retry later.
- *
- * Reinitializes the mock edge to initial power-up state values.
- */
-int smp2p_reset_mock_edge(void)
-{
-	const int rpid = SMP2P_REMOTE_MOCK_PROC;
-	unsigned long flags;
-	int ret = 0;
-
-	spin_lock_irqsave(&out_list[rpid].out_item_lock_lha1, flags);
-	spin_lock(&in_list[rpid].in_item_lock_lhb1);
-
-	if (!list_empty(&out_list[rpid].list) ||
-			!list_empty(&in_list[rpid].list)) {
-		ret = -EAGAIN;
-		goto fail;
-	}
-
-	kfree(out_list[rpid].smem_edge_out);
-	out_list[rpid].smem_edge_out = NULL;
-	out_list[rpid].ops_ptr = &version_if[0];
-	out_list[rpid].smem_edge_state = SMP2P_EDGE_STATE_CLOSED;
-	out_list[rpid].feature_ssr_ack_enabled = false;
-	out_list[rpid].restart_ack = false;
-
-	in_list[rpid].smem_edge_in = NULL;
-	in_list[rpid].item_size = 0;
-	in_list[rpid].safe_total_entries = 0;
-
-fail:
-	spin_unlock(&in_list[rpid].in_item_lock_lhb1);
-	spin_unlock_irqrestore(&out_list[rpid].out_item_lock_lha1, flags);
-
-	return ret;
 }
 
 /**
