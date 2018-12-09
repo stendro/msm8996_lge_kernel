@@ -7,7 +7,7 @@ properties() { '
 kernel.string=F800K mk2000
 do.devicecheck=1
 do.droidcheck=1
-do.modules=1
+do.modules=0
 do.ssdtrim=0
 do.cleanup=1
 do.cleanuponabort=0
