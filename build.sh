@@ -91,6 +91,7 @@ VER=$(cat "$RDIR/VERSION")
 
 # compiler options
 # requires proper cross-comiler
+MK_LINKER=ld
 USE_GRAPHITE=no
 if [ "$USE_GRAPHITE" = "yes" ]; then
 MK_FLAGS="-fgraphite-identity \
@@ -121,6 +122,7 @@ ABORT() {
 }
 
 export MK_FLAGS
+export MK_LINKER
 export ARCH=arm64
 export KBUILD_COMPILER_STRING=$GCC_VER
 export KBUILD_BUILD_TIMESTAMP=$BDATE
