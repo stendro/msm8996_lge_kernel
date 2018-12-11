@@ -197,6 +197,7 @@ SETUP_BUILD() {
 	if [ "$MK_VDSO" = "yes" ]; then
 	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
 	fi
+
 }
 
 BUILD_KERNEL() {

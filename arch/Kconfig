@@ -421,10 +421,24 @@ config HAVE_ARCH_WITHIN_STACK_FRAMES
 	  which is used by CONFIG_HARDENED_USERCOPY.
 
 config THIN_ARCHIVES
-	bool
+	bool "Build the kernel using thin archives"
+	default n
+	select LD_DEAD_CODE_DATA_ELIMINATION
 	help
-	  Select this if the architecture wants to use thin archives
-	  instead of ld -r to create the built-in.o files.
+	  Enable this if you want to use thin archives (binutils `ar` thin
+	  archive format) rather than `ld -r`, to create the built-in.o and
+	  other intermediate packaging steps in the kernel build.
+
+	  This option reduces disk space for builds, especially important for
+	  debug builds and IO-constrained environments. It gives the linker
+	  more flexibility in assembling sections. And it is more amenable to
+	  link-time-optimization that may be implemented in future.
+
+	  The intention is for all architectures to move to thin archives
+	  soon, and the ld -r support code removed.
+
+	  If unsure, say N.
+	  Kernel hackers, say Y and test/fix your arch!
 
 config HAVE_CONTEXT_TRACKING
 	bool
