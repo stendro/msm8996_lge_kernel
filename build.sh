@@ -184,6 +184,9 @@ SETUP_BUILD() {
 	mkdir -p $BDIR
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build."
+	if [ "$MK_LINKER" = "ld.gold" ]; then
+	  echo "CONFIG_THIN_ARCHIVES=y" >> $BDIR/.config
+	fi
 }
 
 BUILD_KERNEL() {
