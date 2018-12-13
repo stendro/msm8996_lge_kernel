@@ -101,8 +101,7 @@ MK_FLAGS="-fgraphite-identity \
 fi
 
 # select cpu threads
-CORES=$(grep -c "processor" /proc/cpuinfo)
-THREADS=$((CORES + 1))
+THREADS=$(grep -c "processor" /proc/cpuinfo)
 
 # get build date, month day year
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
@@ -197,7 +196,7 @@ fi
 # build commands
 CLEAN_BUILD() {
 	echo -e $COLOR_G"Cleaning build folder..."$COLOR_N
-	rm -rf $BDIR
+	rm -rf $BDIR && sleep 5
 }
 
 SETUP_BUILD() {

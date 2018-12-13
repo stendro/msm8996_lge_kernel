@@ -130,11 +130,9 @@ if [ -f /tmp/anykernel/version ]; then
 fi;
 
 if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.droidcheck)" == 1 ]; then
-  android_version="$(file_getprop /system/build.prop "ro.build.version.release")";
-  supported_version=8.x;
-  if ! grep -q 'ro.build.version.release=8' /system/build.prop; then
+  if ! $bb grep -q 'ro.build.version.release=8' /system/build.prop; then
     ui_print " ";
-    ui_print "You are on $android_version but this kernel is only for $supported_version!";
+    ui_print "This kernel is only for Android Oreo!";
     exit 1;
   fi;
 fi;
