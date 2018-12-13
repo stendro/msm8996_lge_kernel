@@ -156,7 +156,7 @@ struct msm_l1_err_stats {
 };
 
 static DEFINE_PER_CPU(struct msm_l1_err_stats, msm_l1_erp_stats);
-static DEFINE_PER_CPU(struct call_single_data, handler_csd);
+static DEFINE_PER_CPU(call_single_data_t, handler_csd);
 
 #define erp_mrs(reg) ({							\
 	u64 __val;							\
@@ -292,7 +292,7 @@ static void msm_l2_erp_local_handler(void *force)
 static irqreturn_t msm_l2_erp_irq(int irq, void *dev_id)
 {
 	int cpu;
-	struct call_single_data *csd;
+	call_single_data_t *csd;
 
 	for_each_online_cpu(cpu) {
 		csd = &per_cpu(handler_csd, cpu);
