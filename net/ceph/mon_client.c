@@ -883,7 +883,8 @@ static int build_initial_monmap(struct ceph_mon_client *monc)
 	int i;
 
 	/* build initial monmap */
-	monc->monmap = kzalloc(CHECKME_struct_size(&*monc->monmap, monc->monmap->mon_inst[0], num_mon),
+	monc->monmap = kzalloc(sizeof(*monc->monmap) +
+			       num_mon*sizeof(monc->monmap->mon_inst[0]),
 			       GFP_KERNEL);
 	if (!monc->monmap)
 		return -ENOMEM;
