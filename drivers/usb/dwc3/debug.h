@@ -238,7 +238,7 @@ static inline const char *dwc3_gadget_event_type_string(u8 event)
 
 void dwc3_trace(void (*trace)(struct va_format *), const char *fmt, ...);
 
-#ifdef CONFIG_DEBUG_FS
+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_IPC_LOGGING)
 extern void dwc3_dbg_print(struct dwc3 *, u8, const char*, int, const char*);
 extern void dwc3_dbg_done(struct dwc3 *, u8, const u32, int);
 extern void dwc3_dbg_queue(struct dwc3 *, u8, const struct usb_request*, int);
