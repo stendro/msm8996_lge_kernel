@@ -1,52 +1,47 @@
-# enable blu_active & tweaks
+# apply interactive tweaks
 
 on property:sys.post_boot.parsed=1
 
     # Set scheduler parameters
     write /proc/sys/kernel/sched_upmigrate 95
-    write /proc/sys/kernel/sched_downmigrate 90
-
-    # Disable thermal/bcl stuff to switch governor
-    write /sys/module/msm_thermal/core_control/enabled 0
-    write /sys/devices/soc/soc:qcom,bcl/mode "disable"
-    write /sys/devices/soc/soc:qcom,bcl/hotplug_mask 0
-    write /sys/devices/soc/soc:qcom,bcl/hotplug_soc_mask 0
-    write /sys/devices/soc/soc:qcom,bcl/mode "enable"
+    write /proc/sys/kernel/sched_downmigrate 85
 
     # Set power cluster governor settings
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "blu_active"
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/above_hispeed_delay 20000
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/go_hispeed_load 90
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/timer_rate 20000
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/hispeed_freq 902400
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/io_is_busy 0
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/align_windows 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/target_loads 80
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/min_sample_time 40000
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/timer_slack 20000
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/fastlane 0
-    write /sys/devices/system/cpu/cpu0/cpufreq/blu_active/fastlane_threshold 50
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/enable_prediction 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 90
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_rate 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/hispeed_freq 902400
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/io_is_busy 0
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "80 1209600:75 1363200:85"
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/min_sample_time 40000
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_slack 20000
+    # these are set in init.qcom.post_boot.sh (/system/vendor/bin)
+    # write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "interactive"
+    # write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
+    # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/use_sched_load 1
+    # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/use_migration_notif 1
+    # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/ignore_hispeed_on_notif 1
+    # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/max_freq_hysteresis 79000
 
     # Set performance cluster governor settings
-    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor "blu_active"
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/above_hispeed_delay "20000 1440000:40000 1900800:20000 2150400:80000"
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/go_hispeed_load 90
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/timer_rate 20000
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/hispeed_freq 1286400
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/io_is_busy 0
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/align_windows 1
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/target_loads "85 1593600:90 1900800:70 2150400:95"
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/min_sample_time 40000
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/timer_slack 20000
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/fastlane 0
-    write /sys/devices/system/cpu/cpu2/cpufreq/blu_active/fastlane_threshold 50
-
-    # Re-enable thermal/bcl stuff
-    write /sys/module/msm_thermal/core_control/enabled 1
-    write /sys/devices/soc/soc:qcom,bcl/mode "disable"
-    write /sys/devices/soc/soc:qcom,bcl/hotplug_mask 0
-    write /sys/devices/soc/soc:qcom,bcl/hotplug_soc_mask 0
-    write /sys/devices/soc/soc:qcom,bcl/mode "enable"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/enable_prediction 1
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1440000:35000 1900800:20000 2150400:65000"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/go_hispeed_load 98
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_rate 20000
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/hispeed_freq 1286400
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/io_is_busy 0
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/target_loads "85 1516800:80 1824000:65 1900800:94"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/min_sample_time 40000
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_slack 20000
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/fast_ramp_down 1
+    # these are set in init.qcom.post_boot.sh (/system/vendor/bin)
+    # write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor "interactive"
+    # write /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq 300000
+    # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_sched_load 1
+    # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_migration_notif 1
+    # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/ignore_hispeed_on_notif 1
+    # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/max_freq_hysteresis 79000
 
     # Set Maple scheduler default
     write /sys/block/mmcblk0/queue/scheduler "maple"

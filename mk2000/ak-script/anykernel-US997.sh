@@ -36,15 +36,15 @@ chown -R root:root $ramdisk/*;
 dump_boot;
 
 ## Ramdisk modifications
-# make sure adb is working, enable blu_active tweaks, disable forced encryption and triton
+# make sure adb is working, add mktweaks, disable forced encryption and triton
 patch_prop default.prop "ro.secure" "1";
 patch_prop default.prop "ro.adb.secure" "1";
-append_file init.rc blu_active "init_rc-mod";
+append_file init.rc mktweaks "init_rc-mod";
 patch_fstab fstab.lucye /data ext4 flags "forceencrypt=" "encryptable=";
 replace_section init.lucye.power.rc "service triton" " " "service triton /system/vendor/bin/triton\n   class main\n   user root\n   group system\n   socket triton-client stream 660 system system\n   disabled\n   oneshot\n";
 
 ## System modifications
-# make sure init.blu_active.rc can run, and disable rctd
+# make sure init.mktweaks.rc can run, and disable rctd
 mount -o rw,remount -t auto /system;
 append_file /system/vendor/bin/init.qcom.post_boot.sh sys.post_boot.parsed "post_boot-mod";
 remove_section /system/vendor/etc/init/init.lge.rc "service rctd" " ";

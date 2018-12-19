@@ -40,6 +40,7 @@ OUTDIR=out
 MK2DIR=${RDIR}/mk2000
 AK_DIR=${MK2DIR}/ak-script
 MOD_DIR=${BDIR}/lib/modules
+INITRC_NAME=init.mktweaks.rc
 MDIR=modules/system/lib/modules
 KERN_DIR=${BDIR}/arch/arm64/boot
 BANNER_BETA=${MK2DIR}/banner-beta
@@ -81,13 +82,15 @@ COPY_AK() {
 COPY_INIT() {
 	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; then
 	  echo "Copying init file (G6)..."
-	  cp $INIT_FILE_G6 $DDIR/ramdisk/init.blu_active.rc \
+	  cp $INIT_FILE_G6 $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy init file"
 	else
 	  echo "Copying init file..."
-	  cp $INIT_FILE $DDIR/ramdisk/init.blu_active.rc \
+	  cp $INIT_FILE $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy init file"
 	fi
+	echo "import /$INITRC_NAME" > $DDIR/patch/init_rc-mod \
+		|| ABORT "Failed to make init_rc-mod"
 }
 
 COPY_KERNEL() {

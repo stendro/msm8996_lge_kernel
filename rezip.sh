@@ -30,6 +30,7 @@ VER=$(cat "${RDIR}/VERSION") \
 OUTDIR=out
 MK2DIR=${RDIR}/mk2000
 AK_DIR=${MK2DIR}/ak-script
+INITRC_NAME=init.mktweaks.rc
 BANNER_BETA=${MK2DIR}/banner-beta
 DDIR=${RDIR}/${OUTDIR}/${DEVICE}
 INIT_FILE_G6=${MK2DIR}/init-g6
@@ -41,6 +42,7 @@ BANNER=${MK2DIR}/banner
 CLEAN_ZIP() {
 	echo "Remove old zip..."
 	rm -f $RDIR/$OUTDIR/${DEVICE}_${VER}-mk2000.zip
+	rm -f $DDIR/ramdisk/*
 }
 
 COPY_AK() {
@@ -61,13 +63,15 @@ COPY_AK() {
 COPY_INIT() {
 	if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; then
 	  echo "Copying init file (G6)..."
-	  cp $INIT_FILE_G6 $DDIR/ramdisk/init.blu_active.rc \
+	  cp $INIT_FILE_G6 $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy init file"
 	else
 	  echo "Copying init file..."
-	  cp $INIT_FILE $DDIR/ramdisk/init.blu_active.rc \
+	  cp $INIT_FILE $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy init file"
 	fi
+	echo "import /$INITRC_NAME" > $DDIR/patch/init_rc-mod \
+		|| ABORT "Failed to make init_rc-mod"
 }
 
 ZIP_UP() {
