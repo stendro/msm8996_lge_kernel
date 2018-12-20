@@ -37,6 +37,9 @@
 #ifdef CONFIG_LGE_PM_TRITON
 #include "triton.h"
 #endif
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/cpufreq_interactive.h>
@@ -94,6 +97,7 @@ static cpumask_t controlled_cpus;
 #define DEFAULT_TARGET_LOAD 90
 static unsigned int default_target_loads[] = {DEFAULT_TARGET_LOAD};
 
+#define DEFAULT_TIMER_RATE_SUSP ((unsigned long)(50 * USEC_PER_MSEC))
 #define DEFAULT_TIMER_RATE (20 * USEC_PER_MSEC)
 #define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_TIMER_RATE
 static unsigned int default_above_hispeed_delay[] = {
@@ -166,6 +170,9 @@ struct cpufreq_interactive_tunables {
 	 * The sample rate of the timer used to increase frequency
 	 */
 	unsigned long timer_rate;
+#ifdef CONFIG_STATE_NOTIFIER
+	unsigned long timer_rate_prev;
+#endif
 	/*
 	 * Wait this long before raising speed above hispeed, by default a
 	 * single timer interval.
@@ -719,6 +726,18 @@ static void cpufreq_interactive_timer(unsigned long data)
 	now = ktime_to_us(ktime_get());
 	ppol->last_evaluated_jiffy = get_jiffies_64();
 
+#ifdef CONFIG_STATE_NOTIFIER
+	if (!state_suspended &&
+		tunables->timer_rate != tunables->timer_rate_prev)
+		tunables->timer_rate = tunables->timer_rate_prev;
+	else if (state_suspended &&
+		tunables->timer_rate != DEFAULT_TIMER_RATE_SUSP) {
+		tunables->timer_rate_prev = tunables->timer_rate;
+		tunables->timer_rate = max(tunables->timer_rate,
+				DEFAULT_TIMER_RATE_SUSP);
+	}
+#endif
+
 	if (tunables->use_sched_load)
 		sched_get_cpus_busy(sl, ppol->policy->cpus);
 	max_cpu = cpumask_first(ppol->policy->cpus);
@@ -962,9 +981,20 @@ static int cpufreq_interactive_speedchange_task(void *data)
 #ifdef CONFIG_LGE_PM_TRITON
 				if(triton_notify(CPU_OWNER_TRANSITION, (int)cpu, (void *)0))
 #endif
+#ifdef CONFIG_STATE_NOTIFIER
+			{
+			    if (state_suspended)
+				__cpufreq_driver_target(ppol->policy,
+							ppol->target_freq,
+							CPUFREQ_RELATION_C);
+			    else
+#endif
 				__cpufreq_driver_target(ppol->policy,
 							ppol->target_freq,
 							CPUFREQ_RELATION_H);
+#ifdef CONFIG_STATE_NOTIFIER
+			}
+#endif
 			trace_cpufreq_interactive_setspeed(cpu,
 						     ppol->target_freq,
 						     ppol->policy->cur);
@@ -1306,6 +1336,9 @@ static ssize_t store_timer_rate(struct cpufreq_interactive_tunables *tunables,
 		pr_warn("timer_rate not aligned to jiffy. Rounded up to %lu\n",
 			val_round);
 	tunables->timer_rate = val_round;
+#ifdef CONFIG_STATE_NOTIFIER
+	tunables->timer_rate_prev = val_round;
+#endif
 
 	if (!tunables->use_sched_load)
 		return count;
@@ -2251,6 +2284,9 @@ static struct cpufreq_interactive_tunables *alloc_tunable(
 	tunables->ntarget_loads = ARRAY_SIZE(default_target_loads);
 	tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME;
 	tunables->timer_rate = DEFAULT_TIMER_RATE;
+#ifdef CONFIG_STATE_NOTIFIER
+	tunables->timer_rate_prev = DEFAULT_TIMER_RATE;
+#endif
 	tunables->timer_slack_val = DEFAULT_TIMER_SLACK;
 
 	spin_lock_init(&tunables->target_loads_lock);
