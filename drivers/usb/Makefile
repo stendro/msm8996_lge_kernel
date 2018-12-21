@@ -63,3 +63,5 @@ obj-$(CONFIG_LGE_USB_G_LAF)	+= mausb-dev-host/
 obj-$(CONFIG_USB_COMMON)	+= common/
 
 obj-$(CONFIG_USBIP_CORE)	+= usbip/
+
+subdir-ccflags-y := -Os
