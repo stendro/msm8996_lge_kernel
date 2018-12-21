@@ -29,6 +29,7 @@ COMP=$(cat "${BDIR}/COMPRESSION") \
 		|| ABORT "No compression file found in ${BDIR}"
 
 BVER=$(cat ${RDIR}/VERSION | cut -f1 -d'-')
+BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # used to auto-generate an additional single-sim zip
 # from h990ds kernel. See "H990_SIM" below.
@@ -38,6 +39,7 @@ fi
 
 OUTDIR=out
 MK2DIR=${RDIR}/mk2000
+GITCOM=${BDIR}/GITCOMMITS
 AK_DIR=${MK2DIR}/ak-script
 MOD_DIR=${BDIR}/lib/modules
 INITRC_NAME=init.mktweaks.rc
@@ -62,6 +64,10 @@ SETUP_DIR() {
 		|| ABORT "Failed to unzip *ak-root.zip*"
 	cp $MK2DIR/update-binary $DDIR/META-INF/com/google/android \
 		|| ABORT "Failed to copy *update-binary*"
+	[ -e "$GITCOM" ] && cp $GITCOM $DDIR/gitlog &&
+	sed -i '1iVersion: '$VER'\nBuild date: '"$BDATE"'\n\nThis file contains the last 50 commits.\n' \
+		$DDIR/gitlog \
+		|| echo -e $COLOR_R"Failed to create gitlog"$COLOR_G "Continuing..."$COLOR_N
 }
 
 COPY_AK() {

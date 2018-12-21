@@ -247,7 +247,7 @@ PREPARE_NEXT() {
 	  echo gz > $BDIR/COMPRESSION \
 		|| echo -e $COLOR_R"Failed to reflect compression method!"
 	fi
-	git log --oneline -30 > $BDIR/GITCOMMITS \
+	git log --oneline -50 > $BDIR/GITCOMMITS \
 		|| echo -e $COLOR_R"Failed to reflect commit log!"
 }
 
