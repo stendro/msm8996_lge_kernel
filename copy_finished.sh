@@ -40,7 +40,6 @@ fi
 OUTDIR=out
 MK2DIR=${RDIR}/mk2000
 GITCOM=${BDIR}/GITCOMMITS
-AK_DIR=${MK2DIR}/ak-script
 MOD_DIR=${BDIR}/lib/modules
 INITRC_NAME=init.mktweaks.rc
 MDIR=modules/system/lib/modules
@@ -81,8 +80,8 @@ COPY_AK() {
 		|| ABORT "Failed to copy banner"
 	  echo "  ${VER} Oreo" > $DDIR/version
 	fi
-	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
-		|| ABORT "Failed to copy *anykernel.sh*"
+	source $MK2DIR/ak-template.sh > $DDIR/anykernel.sh \
+		|| ABORT "Failed to generate *anykernel.sh*"
 }
 
 COPY_INIT() {

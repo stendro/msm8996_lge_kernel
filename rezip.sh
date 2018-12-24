@@ -29,7 +29,6 @@ VER=$(cat "${RDIR}/VERSION") \
 
 OUTDIR=out
 MK2DIR=${RDIR}/mk2000
-AK_DIR=${MK2DIR}/ak-script
 INITRC_NAME=init.mktweaks.rc
 BANNER_BETA=${MK2DIR}/banner-beta
 DDIR=${RDIR}/${OUTDIR}/${DEVICE}
@@ -54,8 +53,8 @@ COPY_AK() {
 	  cp $BANNER $DDIR \
 		|| ABORT "Failed to copy banner"
 	fi
-	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
-		|| ABORT "Failed to copy *anykernel.sh*"
+	source $MK2DIR/ak-template.sh > $DDIR/anykernel.sh \
+		|| ABORT "Failed to generate *anykernel.sh*"
 	cp $MK2DIR/update-binary $DDIR/META-INF/com/google/android \
 		|| ABORT "Failed to copy *update-binary*"
 }
