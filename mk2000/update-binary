@@ -14,15 +14,11 @@ ui_print() {
 }
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 set_progress() { echo "set_progress $1" > $OUTFD; }
-file_getprop() { grep "^$2=" "$1" | cut -d= -f2; }
-if [ ! "$(getprop 2>/dev/null)" ]; then
-  getprop() {
-    local propval="$(file_getprop /default.prop $1 2>/dev/null)";
-    test "$propval" || local propval="$(file_getprop $root/system/build.prop $1 2>/dev/null)";
-    test "$propval" && echo "$propval" || echo "";
-  }
-fi;
-cleanup() { rm -rf /tmp/anykernel; }
+file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2-; }
+cleanup() {
+  cd /tmp;
+  rm -rf /tmp/anykernel;
+}
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
     *-debugging)
@@ -32,6 +28,7 @@ debugging() {
     ;;
   esac;
 }
+is_mounted() { $bb mount | $bb grep " $1 "; }
 unmount_all() {
   (umount /system;
   if [ -d /system_root -a ! -f /system/build.prop ]; then
@@ -44,14 +41,14 @@ unmount_all() {
 abort() {
   ui_print "$*";
   debugging;
-  if [ ! -f /tmp/anykernel/anykernel.sh -o "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
+  if [ ! -f anykernel.sh -o "$(file_getprop anykernel.sh do.cleanuponabort 2>/dev/null)" == 1 ]; then
     cleanup;
   fi;
   unmount_all;
   exit 1;
 }
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.ssdtrim)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.ssdtrim)" == 1 ]; then
   show_progress 1.00 43;
 else
   show_progress 1.00 37;
@@ -62,32 +59,54 @@ cleanup;
 mkdir -p /tmp/anykernel/bin;
 cd /tmp/anykernel;
 unzip -o "$ZIPFILE";
-if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
+if [ $? != 0 -o -z "$(ls tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
 bb=/tmp/anykernel/tools/busybox;
 chmod 755 $bb;
-$bb chmod -R 755 /tmp/anykernel/tools /tmp/anykernel/bin;
+$bb chmod -R 755 tools bin;
 
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
 ui_print " ";
-ui_print "$(file_getprop /tmp/anykernel/anykernel.sh kernel.string)";
+ui_print "$(file_getprop anykernel.sh kernel.string)";
 ui_print " ";
 
 unmount_all;
-mount -o ro -t auto /system;
-mount -o ro -t auto /vendor 2>/dev/null;
-mount /data 2>/dev/null;
-test -f /system/system/build.prop && root=/system;
+if [ ! "$(is_mounted /system)" ]; then
+  $bb mount -o ro -t auto /system;
+fi;
+($bb mount -o ro -t auto /vendor;
+$bb mount /data) 2>/dev/null;
+if [ -f /system/system/build.prop ]; then
+  umount /system;
+  (umount /system;
+  mkdir /system_root) 2>/dev/null;
+  $bb mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
+  $bb mount -o bind /system_root/system /system;
+fi;
+savedpath="$LD_LIBRARY_PATH";
+savedpre="$LD_PRELOAD";
+unset LD_LIBRARY_PATH;
+unset LD_PRELOAD;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
+if [ ! "$(getprop 2>/dev/null)" ]; then
+  getprop() {
+    local propval="$(file_getprop /default.prop $1 2>/dev/null)";
+    test "$propval" || local propval="$(file_getprop /system/build.prop $1 2>/dev/null)";
+    test "$propval" && echo "$propval" || echo "";
+  }
+elif [ ! "$(getprop ro.product.device 2>/dev/null)" -a ! "$(getprop ro.build.product 2>/dev/null)" ]; then
+  getprop() {
+    ($(which getprop) | $bb grep "$1" | $bb cut -d[ -f3 | $bb cut -d] -f1) 2>/dev/null;
+  }
+fi;
+
+if [ "$(file_getprop anykernel.sh do.devicecheck)" == 1 ]; then
   ui_print "Checking device...";
   device="$(getprop ro.product.device)";
   product="$(getprop ro.build.product)";
-  for i in 1 2 3 4 5 6 7 8 9 10; do
-    testname="$(file_getprop /tmp/anykernel/anykernel.sh device.name$i)";
-    test "$testname" || break;
+  for testname in $(file_getprop anykernel.sh 'device.name.*'); do
     if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
       ui_print "$testname";
       match=1;
@@ -100,36 +119,23 @@ if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.devicecheck)" == 1 ]; then
   fi;
 fi;
 
-if [ -f /system/system/build.prop ]; then
-  umount /system;
-  umount /system 2>/dev/null;
-  mkdir /system_root 2>/dev/null;
-  mount -o ro -t auto /dev/block/bootdevice/by-name/system /system_root;
-  mount -o bind /system_root/system /system;
-  unset root;
-fi;
-savedpath="$LD_LIBRARY_PATH";
-savedpre="$LD_PRELOAD";
-unset LD_LIBRARY_PATH;
-unset LD_PRELOAD;
-
-if [ -f /tmp/anykernel/banner ]; then
+if [ -f banner ]; then
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
-  done < /tmp/anykernel/banner;
+  done < banner;
   ui_print " ";
 fi;
 
-if [ -f /tmp/anykernel/version ]; then
+if [ -f version ]; then
   ui_print " ";
   while IFS='' read -r line || $bb [[ -n "$line" ]]; do
     ui_print "$line";
-  done < /tmp/anykernel/version;
+  done < version;
   ui_print " ";
   ui_print " ";
 fi;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.droidcheck)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.droidcheck)" == 1 ]; then
   if ! $bb grep -q 'ro.build.version.release=8' /system/build.prop; then
     ui_print " ";
     ui_print "This kernel is only for Android Oreo!";
@@ -139,43 +145,50 @@ fi;
 
 ui_print "Installing...";
 for i in $($bb --list); do
-  $bb ln -s $bb /tmp/anykernel/bin/$i;
+  $bb ln -s $bb bin/$i;
 done;
-if [ $? != 0 -o -z "$(ls /tmp/anykernel/bin)" ]; then
+if [ $? != 0 -o -z "$(ls bin)" ]; then
   abort "Recovery busybox setup failed. Aborting...";
 fi;
-PATH="/tmp/anykernel/bin:$PATH" $bb ash /tmp/anykernel/anykernel.sh $2;
+PATH="/tmp/anykernel/bin:$PATH" $bb ash anykernel.sh $2;
 if [ $? != "0" ]; then
   abort;
 fi;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.modules)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
   ui_print " ";
   ui_print "Pushing modules...";
-  mount -o rw,remount -t auto /system;
-  mount -o rw,remount -t auto /vendor 2>/dev/null;
+  $bb mount -o rw,remount -t auto /system;
+  $bb mount -o rw,remount -t auto /vendor 2>/dev/null;
   cd /tmp/anykernel/modules;
   for module in $(find . -name '*.ko'); do
-    if [ ! -e /$module ]; then
+    modtarget=$(echo $module | $bb cut -c2-);
+    if [ ! -e $modtarget ]; then
       case $module in
-        */vendor/*) mod=vendor;;
-        *) mod=system;;
+        */vendor/*) modcon=vendor;;
+        *) modcon=system;;
       esac;
     fi;
-    mkdir -p $(dirname /$module);
-    $bb cp -rLf $module /$module;
-    $bb chown 0:0 /$module;
-    $bb chmod 644 /$module;
-    if [ "$mod" ]; then
-      chcon "u:object_r:${mod}_file:s0" /$module;
+    if [ "$(is_mounted $modtarget)" ]; then
+      $bb mount -o rw,remount -t auto $modtarget;
+    fi;
+    mkdir -p $(dirname $modtarget);
+    $bb cp -rLf $module $modtarget;
+    $bb chown 0:0 $modtarget;
+    $bb chmod 644 $modtarget;
+    if [ "$modcon" ]; then
+      chcon "u:object_r:${modcon}_file:s0" $modtarget;
+    fi;
+    if [ "$(is_mounted $modtarget)" ]; then
+      $bb mount -o ro,remount -t auto $modtarget;
     fi;
   done;
   cd /tmp/anykernel;
-  mount -o ro,remount -t auto /system;
-  mount -o ro,remount -t auto /vendor 2>/dev/null;
+  $bb mount -o ro,remount -t auto /system;
+  $bb mount -o ro,remount -t auto /vendor 2>/dev/null;
 fi;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.ssdtrim)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.ssdtrim)" == 1 ]; then
   ui_print " ";
   ui_print "Trimming data and cache...";
   mount /cache 2>/dev/null;
@@ -186,7 +199,7 @@ fi;
 
 debugging;
 
-if [ "$(file_getprop /tmp/anykernel/anykernel.sh do.cleanup)" == 1 ]; then
+if [ "$(file_getprop anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;
 fi;
 
