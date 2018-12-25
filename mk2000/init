@@ -3,19 +3,21 @@
 on property:sys.post_boot.parsed=1
 
     # Set scheduler parameters
-    write /proc/sys/kernel/sched_upmigrate 95
-    write /proc/sys/kernel/sched_downmigrate 85
+    write /proc/sys/kernel/sched_upmigrate 94
+    write /proc/sys/kernel/sched_downmigrate 87
 
     # Set power cluster governor settings
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/enable_prediction 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay 20000
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 90
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/enable_prediction 0
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay "20000 1401600:35000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 94
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_rate 20000
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/hispeed_freq 844800
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/io_is_busy 0
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "80 1190400:75 1324800:85"
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/align_windows 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "80 1324800:90"
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/min_sample_time 40000
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_slack 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/fast_ramp_down 0
     # these are set in init.qcom.post_boot.sh (/system/vendor/bin)
     # write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "interactive"
     # write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 300000
@@ -25,16 +27,17 @@ on property:sys.post_boot.parsed=1
     # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/max_freq_hysteresis 79000
 
     # Set performance cluster governor settings
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/enable_prediction 1
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1324800:35000 1824000:20000 2073600:65000"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/enable_prediction 0
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1324800:35000 1824000:18000 1920000:90000"
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/go_hispeed_load 98
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_rate 20000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/hispeed_freq 1248000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/io_is_busy 0
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/target_loads "85 1478400:80 1785600:65 1824000:94"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/align_windows 1
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/target_loads "84 1324800:88 1785600:68 1824000:94"
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/min_sample_time 40000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_slack 20000
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/fast_ramp_down 1
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/fast_ramp_down 0
     # these are set in init.qcom.post_boot.sh (/system/vendor/bin)
     # write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor "interactive"
     # write /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq 300000
