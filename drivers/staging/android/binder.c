@@ -1627,6 +1627,9 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 	new_ref->data.desc = (node == context->binder_context_mgr_node) ? 0 : 1;
 	for (n = rb_first(&proc->refs_by_desc); n != NULL; n = rb_next(n)) {
 		ref = rb_entry(n, struct binder_ref, rb_node_desc);
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+		asm volatile ("isb\n");
+#endif
 		if (ref->data.desc > new_ref->data.desc)
 			break;
 		new_ref->data.desc = ref->data.desc + 1;
@@ -1636,7 +1639,9 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 	while (*p) {
 		parent = *p;
 		ref = rb_entry(parent, struct binder_ref, rb_node_desc);
-
+#ifdef CONFIG_LGE_MSM8996_ISB_WA
+		asm volatile ("isb\n");
+#endif
 		if (new_ref->data.desc < ref->data.desc)
 			p = &(*p)->rb_left;
 		else if (new_ref->data.desc > ref->data.desc)
