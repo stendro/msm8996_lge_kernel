@@ -6259,13 +6259,19 @@ static void weak_batt_pack_check_work(struct work_struct *work)
 {
 	struct smbchg_chip *chip = container_of(work,
 			struct smbchg_chip, batt_pack_check_work.work);
-	int i;
+	int rc,i;
 
 	for (i=0;i<WEAK_CHG_MONITOR_MS/25;i++) {
-		if (chip->usb_present) {
+		if (is_usb_present(chip)) {
 			chip->batt_pack_verify_cnt++;
 			pr_smb(PR_LGE, "weak battery pack is detected, count = %d\n",
 					chip->batt_pack_verify_cnt);
+			if (chip->batt_pack_verify_cnt >= WEAK_CHG_DET_CNT
+					&& is_usb_present(chip)) {
+				pr_smb(PR_LGE, "weak batt pack detected, set ICL to 1A\n");
+				rc = vote(chip->usb_icl_votable,
+						WEAK_CHARGER_ICL_VOTER, true, DEFAULT_WEAK_ICL_MA);
+			}
 			break;
 		}
 		msleep(25);
@@ -6376,17 +6382,10 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	chip->is_evp_ta = 0;
 #endif
 #ifdef CONFIG_LGE_PM
-#define BATT_PACH_CHECK_DELAY 800
+#define BATT_PACH_CHECK_DELAY 1100
     cancel_delayed_work(&chip->batt_pack_check_work);
     schedule_delayed_work(&chip->batt_pack_check_work,
             msecs_to_jiffies(BATT_PACH_CHECK_DELAY));
-    if (chip->batt_pack_verify_cnt >= WEAK_CHG_DET_CNT) {
-		chip->batt_pack_verify_cnt = 1;
-        pr_smb(PR_LGE, "weak batt pack detected, set ICL to 1A\n");
-        rc = vote(chip->usb_icl_votable,
-                WEAK_CHARGER_ICL_VOTER, true, DEFAULT_WEAK_ICL_MA);
-        return;
-    }
 #endif
 #ifdef CONFIG_LGE_PM_VFLOAT_TRIM_RESTORE
 	if (chip->vfloat_trim_restore_status) {
@@ -6512,7 +6511,7 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 #endif
 				pr_smb(PR_LGE, "rerun_hvdcp_work start\n");
 				cancel_delayed_work_sync(&chip->rerun_hvdcp_work);
-				schedule_delayed_work(&chip->rerun_hvdcp_work, 0);
+				schedule_delayed_work(&chip->rerun_hvdcp_work, msecs_to_jiffies(500));
 			}
 		}
 		cancel_delayed_work_sync(&chip->hvdcp_check_work);
@@ -8449,6 +8448,14 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
         } else if (chip->incompatible_hvdcp_detected == SECOND_APSD_DETECT_DCP){
             chip->incompatible_hvdcp_detected = INCOMPATIBLE_DETECTED;
             pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
+			if (lge_get_boot_mode() == LGE_BOOT_MODE_CHARGERLOGO){
+				if (is_hvdcp_present(chip)) {
+					pr_err("Incompatible_hvdcp_detected. Forced to 5V charge.\n");
+					cancel_delayed_work(&chip->hvdcp_disable_work);
+					schedule_delayed_work(&chip->hvdcp_disable_work,
+						msecs_to_jiffies(HVDCP_DISABLE_DELAY_MS));
+				}
+			}
         } else {
             pr_smb(PR_LGE, "weak hvdcp detected. status = %d\n",chip->incompatible_hvdcp_detected);
             if (is_hvdcp_present(chip)) {
