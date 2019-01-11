@@ -863,8 +863,8 @@ const char * lgcc_get_effective_icl(void) {
 	const char *rc;
 
 	rc = get_effective_client(smb_chip->usb_icl_votable);
-	if (!rc)
-		pr_err("Failed to get fcc votable\n");
+//	if (!rc)
+//		pr_err("Failed to get fcc votable\n");
 
 	return rc;
 }
