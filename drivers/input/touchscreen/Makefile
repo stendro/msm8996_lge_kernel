@@ -100,5 +100,3 @@ obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += touch_synaptics_rmi_dev.o
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4) += DS5/
 obj-$(CONFIG_LGE_TOUCH_CORE)		+= lge/
 obj-$(CONFIG_LGE_TOUCH_CORE_MTK)	+= lge/
-
-subdir-ccflags-y := -O3
