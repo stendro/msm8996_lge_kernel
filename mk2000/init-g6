@@ -28,13 +28,13 @@ on property:sys.post_boot.parsed=1
 
     # Set performance cluster governor settings
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/enable_prediction 0
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1824000:16000 1900800:105000"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1747200:16000 1824000:105000"
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/go_hispeed_load 88
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_rate 20000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/hispeed_freq 1286400
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/io_is_busy 0
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/align_windows 1
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/target_loads "84 1900800:92 1977600:98"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/target_loads "84 1824000:92 1900800:98"
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/min_sample_time 30000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_slack 20000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/fast_ramp_down 1
