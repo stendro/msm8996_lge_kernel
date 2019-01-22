@@ -424,6 +424,7 @@ DHDOFILES := dhd_pno.o dhd_common.o dhd_ip.o dhd_custom_gpio.o dhd_custom_lge.o	
 	sbutils.o siutils.o wl_android.o wl_cfg80211.o wl_cfgp2p.o wl_cfg_btcoex.o wldev_common.o \
 	wl_linux_mon.o wl_roam.o dhd_wlfc.o
 
+CFLAGS_dhd_linux.o += -Wno-sizeof-pointer-memaccess
 ifeq ($(CONFIG_BCMDHD_PCIE),y)
 DHDOFILES += dhd_pcie.o dhd_pcie_linux.o dhd_flowring.o	dhd_msgbuf.o pcie_core.o
 endif
