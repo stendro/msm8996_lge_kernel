@@ -74,23 +74,14 @@ RDIR=$(pwd)
 # build dir
 BDIR=build
 
-# color codes
-COLOR_N="\033[0m"
-COLOR_R="\033[0;31m"
-COLOR_G="\033[1;32m"
-COLOR_P="\033[1;35m"
-
 # enable ccache ?
 USE_CCACHE=no
 
 # version number
 VER=$(cat "$RDIR/VERSION")
 
-# twrp configuration
-[ "$2" ] && IS_TWRP=$2
-
-# compiler options
-# requires proper cross-comiler
+# compiler options. ld.gold, graphite ?
+# requires proper cross-comiler support
 MK_LINKER=ld
 USE_GRAPHITE=no
 if [ "$USE_GRAPHITE" = "yes" ]; then
@@ -107,13 +98,25 @@ THREADS=$(grep -c "processor" /proc/cpuinfo)
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
-GCC_COMP=$HOME/build/toolchain/linaro7/bin/aarch64-linux-gnu-
+GCC_COMP=$HOME/build/toolchain/linaro8/bin/aarch64-linux-gnu-
 
 # compiler version
-GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d'~' | \
-cut -f2 -d'(')+"
+GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
+	cut -f2 -d'(')"
+if $(echo $GCC_VER | grep -q '~dev'); then
+  GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
+fi
 
 ############## SCARY NO-TOUCHY STUFF ###############
+
+# color codes
+COLOR_N="\033[0m"
+COLOR_R="\033[0;31m"
+COLOR_G="\033[1;32m"
+COLOR_P="\033[1;35m"
+
+# twrp configuration
+[ "$2" = "twrp" ] && IS_TWRP=$2
 
 ABORT() {
 	echo -e $COLOR_R"Error: $*"
@@ -123,8 +126,12 @@ ABORT() {
 export MK_FLAGS
 export MK_LINKER
 export ARCH=arm64
+# these two options causes
+# android to not display kernel
+# version. Not a problem though
 export KBUILD_COMPILER_STRING=$GCC_VER
 export KBUILD_BUILD_TIMESTAMP=$BDATE
+# ^
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=github
 export MK_NAME="mk2000 ${VER}"

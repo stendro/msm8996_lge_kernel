@@ -22,7 +22,7 @@ OUTDIR=$(dirname "$RDIR")
 OUTFILE=${DEVICE}_config_regen
 
 # directory containing cross-compiler
-TOOLCHAIN=$HOME/build/toolchain/linaro7/bin/aarch64-linux-gnu-
+TOOLCHAIN=$HOME/build/toolchain/linaro8/bin/aarch64-linux-gnu-
 
 export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN
