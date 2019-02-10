@@ -49,9 +49,9 @@ abort() {
 }
 
 if [ "$(file_getprop anykernel.sh do.ssdtrim)" == 1 ]; then
-  show_progress 1.00 43;
+  show_progress 1.00 42;
 else
-  show_progress 1.00 37;
+  show_progress 1.00 36;
 fi;
 
 ui_print " ";
