@@ -3,7 +3,9 @@
 #
 obj-$(CONFIG_SH_V4L2)		+= brcm_hci_ldisc.o
 brcm_hci_ldisc-objs := brcm_hci.o brcm_sh_ldisc.o brcm_bluesleep.o
+ifneq ($(findstring clang,$(CC)),clang)
 CFLAGS_brcm_sh_ldisc.o += -Wno-stringop-overflow
+endif
 
 obj-$(CONFIG_BT_V4L2)		+= brcm_bt_drv.o
 
