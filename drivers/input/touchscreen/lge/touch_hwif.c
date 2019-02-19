@@ -323,7 +323,7 @@ enum touch_device_type touch_get_device_type(void)
 {
 	enum touch_device_type ret = TYPE_LG4946;
 #if defined(CONFIG_LGE_PANEL_MAKER_ID_SUPPORT)
-	ret = lge_get_panel_maker_id();
+	ret = (enum touch_device_type) lge_get_panel_maker_id();
 #elif defined(CONFIG_LGE_DISPLAY_COMMON)
 	ret = lge_get_panel();
 #endif
