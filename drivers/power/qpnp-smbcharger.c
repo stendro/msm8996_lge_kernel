@@ -9816,7 +9816,7 @@ static irqreturn_t usbin_uv_handler(int irq, void *_chip)
 			pr_err("%s : lge_cc_lpc is not yet ready\n", __func__);
 		else {
 			rc = chip->lge_cc_lpc->get_property(chip->lge_cc_lpc,
-				POWER_SUPPLY_PROP_USB_CURRENT_MAX_MODE,	&lge_val);
+				(enum lge_power_property) POWER_SUPPLY_PROP_USB_CURRENT_MAX_MODE,	&lge_val);
 			if (rc < 0)
 				pr_smb(PR_LGE, "could not get current_max mode,"
 					" rc=%d\n", rc);
