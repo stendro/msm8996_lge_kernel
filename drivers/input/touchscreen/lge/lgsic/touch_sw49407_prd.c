@@ -1752,7 +1752,7 @@ static ssize_t show_sd(struct device *dev, char *buf)
 	ret = snprintf(buf, PAGE_SIZE,
 			"\n========RESULT=======\n");
 	TOUCH_I("========RESULT=======\n");
-	if (rawdata_ret == 0 && (!(tc_status_val >> 28) & 0x1)) {
+	if (rawdata_ret == 0 && (!((tc_status_val >> 28) & 0x1))) {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
 				"Raw Data : Pass\n");
 		TOUCH_I("Raw Data : Pass\n");
