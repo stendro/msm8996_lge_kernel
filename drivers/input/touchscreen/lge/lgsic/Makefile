@@ -19,9 +19,11 @@ obj-$(CONFIG_LGE_TOUCH_LGSIC_LG4946)		+= touch_lg4946_abt.o
 obj-$(CONFIG_LGE_TOUCH_LGSIC_LG4946)		+= touch_lg4946_asc.o
 obj-$(CONFIG_LGE_TOUCH_LGSIC_LG4946)		+= touch_filter.o
 
+ccflags-$(CONFIG_LGE_TOUCH_LGSIC_SW49407) += -Wframe-larger-than=2800
 obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49407)           += touch_sw49407.o
 obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49407)           += touch_sw49407_watch.o
 obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49407)           += touch_sw49407_prd.o
+
 obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49407)           += touch_sw49407_abt.o
 #obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49407)           += touch_sw49407_asc.o
 obj-$(CONFIG_LGE_TOUCH_LGSIC_SW49407)           += touch_filter.o
