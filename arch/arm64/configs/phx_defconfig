@@ -1,0 +1,24 @@
+include elsa_tmo_us-perf_defconfig
+
+CONFIG_NFS_FS=y
+CONFIG_NFS_V2=y
+CONFIG_NFS_V3=y
+# CONFIG_NFS_V3_ACL is not set
+CONFIG_NFS_V4=y
+# CONFIG_NFS_SWAP is not set
+# CONFIG_NFS_V4_1 is not set
+# CONFIG_ROOT_NFS is not set
+# CONFIG_NFS_USE_LEGACY_DNS is not set
+CONFIG_NFS_USE_KERNEL_DNS=y
+# CONFIG_NFSD is not set
+CONFIG_NFS_COMMON=y
+
+# Gentoo Stuff
+CONFIG_CGROUPS=y
+CONFIG_NAMESPACES=y
+CONFIG_SYSVIPC=y
+CONFIG_IPC_NS=y
+CONFIG_NET_NS=y  
+CONFIG_PID_NS=y
+#we want devpts with gid=5 not the android gid
+CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
