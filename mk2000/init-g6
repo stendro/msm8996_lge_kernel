@@ -64,4 +64,7 @@ on property:sys.post_boot.parsed=1
     write /proc/sys/vm/dirty_expire_centisecs 350
     write /proc/sys/vm/dirty_writeback_centisecs 750
 
+    # Various tweaks
+    write /sys/module/spurious/parameters/noirqdebug Y
+
     write /dev/kmsg "MK2K Boot Complete"
