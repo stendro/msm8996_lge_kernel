@@ -370,10 +370,10 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 
 # fall back to -march=armv8-a+crc+crypto in case the compiler isn't
 # compatible with -mcpu
-ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
+#ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
 GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
- -g0 -DNDEBUG -fivopts \
- -ftree-vectorize $(MK_FLAGS)
+ -g0 -DNDEBUG -fivopts\
+-ftree-vectorize -mcpu=kryo -mno-fix-cortex-a53-835769 $(MK_FLAGS)
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
@@ -414,14 +414,10 @@ KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 
 # Snapdragon 820 doesn't need 835769/843419 erratum fixes
 # some toolchain enables those fixes automatically, so opt-out
-KBUILD_CFLAGS	+= $(call cc-option, -mno-fix-cortex-a53-835769)
-KBUILD_CFLAGS	+= $(call cc-option, -mno-fix-cortex-a53-843419)
-LDFLAGS_vmlinux	+= $(call ld-option, --no-fix-cortex-a53-835769)
-LDFLAGS_vmlinux	+= $(call ld-option, --no-fix-cortex-a53-843419)
-LDFLAGS_MODULE	+= $(call ld-option, --no-fix-cortex-a53-835769)
-LDFLAGS_MODULE	+= $(call ld-option, --no-fix-cortex-a53-843419)
-LDFLAGS		+= $(call ld-option, --no-fix-cortex-a53-835769)
-LDFLAGS		+= $(call ld-option, --no-fix-cortex-a53-843419)
+#KBUILD_CFLAGS	+= $(call cc-option, -mno-fix-cortex-a53-835769)
+#LDFLAGS_vmlinux	+= $(call ld-option, --no-fix-cortex-a53-843419)
+#LDFLAGS_MODULE	+= $(call ld-option, --no-fix-cortex-a53-835769)
+#LDFLAGS		+= $(call ld-option, --no-fix-cortex-a53-835769)
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
