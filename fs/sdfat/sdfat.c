@@ -5091,7 +5091,11 @@ static struct file_system_type sdfat_fs_type = {
 #ifdef CONFIG_SDFAT_USE_FOR_EXFAT
 static struct file_system_type exfat_fs_type = {
 	.owner       = THIS_MODULE,
+#if defined(CONFIG_MACH_LGE) || defined(CONFIG_HTC_BATT_CORE)
+	.name        = "texfat",
+#else
 	.name        = "exfat",
+#endif
 	.mount       = sdfat_fs_mount,
 #ifdef CONFIG_SDFAT_DBG_IOCTL
 	.kill_sb    = sdfat_debug_kill_sb,
