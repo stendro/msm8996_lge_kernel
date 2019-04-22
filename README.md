@@ -1,5 +1,5 @@
-MK2000 Kernel
-=============
+__MK2000 Kernel__
+=================
 
 ### Some links
 * [LG G5] XDA thread.
@@ -44,7 +44,7 @@ This kernel is for the following LG Devices:
 
 * `H872` - T-Mobile (US)
 
-## COMPILE THE KERNEL
+## __Compiling the Kernel__
 
 ### Clone
 	git clone https://github.com/stendro/msm8996_lge_kernel.git -b mko-v2
@@ -55,14 +55,17 @@ This kernel is for the following LG Devices:
 * "DEVICE" will be one of the above names (case sensitive).
 * You should also configure your compiler path in ´build.sh´.
 
-## A bit of info
+## More info
 
 This is the Oreo branch (v2).
-It builds workable kernels for all above devices.
+It builds functional kernels for all above devices.
 
-Branch 'lge-3.18-stable', like the name implies, is an upstreamed base LG kernel with
-various fixes - for convenience sake. It can be an ideal starting point for other's
-wanting to try kernel development for LG's MSM8996 devices.
+Building for H990DS will cause "copy_finished.sh" to auto-generate a H990SS zip as well.
+The kernels are the same, it's just differences in cmd-line (adjusted by ´anykernel.sh´)
+to select dual, or single sim (SS).
+
+Branch 'lge-3.18-stable' is an upstreamed base LG kernel with various fixes - for convenience sake.
+It can be an ideal starting point for others' wanting to try kernel development for LG's MSM8996 devices.
 
 [LG G5]: <https://forum.xda-developers.com/lg-g5/development/h850-mk2000-kernel-t3707822>
 [LG V20]: <https://forum.xda-developers.com/v20/development/h918-h910-us996-ucl-mk2000-kernel-t3708330>
