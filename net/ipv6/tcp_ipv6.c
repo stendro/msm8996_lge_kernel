@@ -841,6 +841,7 @@ static void tcp_v6_init_req(struct request_sock *req, struct sock *sk,
 	inet_rsk(req)->ir_mark = inet_request_mark(sk, skb);
 	/* 2015-07-10 bongsook.jeong@lge.com, LGP_DATA_TCPIP_MPTCP [END] */
 	#endif
+
 	/* So that link locals have meaning */
 	if (!sk->sk_bound_dev_if &&
 	    ipv6_addr_type(&ireq->ir_v6_rmt_addr) & IPV6_ADDR_LINKLOCAL)

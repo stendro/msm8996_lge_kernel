@@ -437,11 +437,6 @@ static void sock_warn_obsolete_bsdism(const char *name)
 	}
 }
 
-#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
-#else
-#define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
-#endif
-
 static void sock_disable_timestamp(struct sock *sk, unsigned long flags)
 {
 	if (sk->sk_flags & flags) {
