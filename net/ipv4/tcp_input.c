@@ -81,8 +81,6 @@
 #include <net/mptcp_v6.h>
 #endif
 
-//add_to_scale
-#define TCP_RMEM_SCALE 4
 int sysctl_tcp_timestamps __read_mostly = 1;
 int sysctl_tcp_window_scaling __read_mostly = 1;
 int sysctl_tcp_sack __read_mostly = 1;
@@ -4382,11 +4380,9 @@ static int tcp_try_rmem_schedule(struct sock *sk, struct sk_buff *skb,
 #ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 	if (mptcp(tcp_sk(sk)))
 		sk = mptcp_meta_sk(sk);
-	//add_to_scale
-	if (atomic_read(&sk->sk_rmem_alloc) > ((sk->sk_rcvbuf + sk->sk_sndbuf) * TCP_RMEM_SCALE)  ||
-#else
-	if (atomic_read(&sk->sk_rmem_alloc) > sk->sk_rcvbuf ||
 #endif
+
+	if (atomic_read(&sk->sk_rmem_alloc) > sk->sk_rcvbuf ||
 	    !sk_rmem_schedule(sk, skb, size)) {
 
 		if (tcp_prune_queue(sk) < 0)
