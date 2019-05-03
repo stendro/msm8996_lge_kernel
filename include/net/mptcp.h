@@ -678,9 +678,6 @@ extern struct workqueue_struct *mptcp_wq;
 
 #define MPTCP_INC_STATS(net, field)	SNMP_INC_STATS((net)->mptcp.mptcp_statistics, field)
 #define MPTCP_INC_STATS_BH(net, field)	SNMP_INC_STATS_BH((net)->mptcp.mptcp_statistics, field)
-#define MPTCP_DEC_STATS(net, field)	SNMP_DEC_STATS((net)->mptcp.mptcp_statistics, field)
-#define MPTCP_ADD_STATS_USER(net, field, val) SNMP_ADD_STATS_USER((net)->mptcp.mptcp_statistics, field, val)
-#define MPTCP_ADD_STATS(net, field, val)	SNMP_ADD_STATS((net)->mptcp.mptcp_statistics, field, val)
 
 enum
 {
@@ -969,7 +966,8 @@ static inline void mptcp_push_pending_frames(struct sock *meta_sk)
 
 static inline void mptcp_send_reset(struct sock *sk)
 {
-	tcp_sk(sk)->ops->send_active_reset(sk, GFP_ATOMIC);
+	if (tcp_need_reset(sk->sk_state))
+		tcp_sk(sk)->ops->send_active_reset(sk, GFP_ATOMIC);
 	mptcp_sub_force_close(sk);
 }
 
@@ -980,7 +978,7 @@ static inline void mptcp_sub_force_close_all(struct mptcp_cb *mpcb,
 
 	mptcp_for_each_sk_safe(mpcb, sk_it, tmp) {
 		if (sk_it != except)
-			mptcp_sub_force_close(sk_it);
+			mptcp_send_reset(sk_it);
 	}
 }
 
@@ -1242,11 +1240,6 @@ static inline void mptcp_set_rto(struct sock *sk)
 	}
 }
 
-static inline int mptcp_sysctl_syn_retries(void)
-{
-	return sysctl_mptcp_syn_retries;
-}
-
 static inline void mptcp_sub_close_passive(struct sock *sk)
 {
 	struct sock *meta_sk = mptcp_meta_sk(sk);
@@ -1283,7 +1276,7 @@ static inline bool mptcp_fallback_infinite(struct sock *sk, int flag)
 	       &inet_sk(sk)->inet_saddr, &inet_sk(sk)->inet_daddr,
 	       __builtin_return_address(0));
 	if (!is_master_tp(tp)) {
-		MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_FBACKSUB);
+		MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_FBACKSUB);
 		return true;
 	}
 
@@ -1294,7 +1287,7 @@ static inline bool mptcp_fallback_infinite(struct sock *sk, int flag)
 
 	mptcp_sub_force_close_all(mpcb, sk);
 
-	MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_FBACKINIT);
+	MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_FBACKINIT);
 
 	return false;
 }
@@ -1454,10 +1447,6 @@ static inline int mptcp_check_rtt(const struct tcp_sock *tp, int time)
 	return 0;
 }
 static inline int mptcp_check_snd_buf(const struct tcp_sock *tp)
-{
-	return 0;
-}
-static inline int mptcp_sysctl_syn_retries(void)
 {
 	return 0;
 }
