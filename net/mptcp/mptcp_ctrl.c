@@ -1930,12 +1930,12 @@ static int __mptcp_check_req_master(struct sock *child,
 		 * But, the socket has been added to the reqsk_tk_htb, so we
 		 * must still remove it.
 		 */
-		MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_MPCAPABLEPASSIVEFALLBACK);
+		MPTCP_INC_STATS_BH(sock_net(meta_sk), MPTCP_MIB_MPCAPABLEPASSIVEFALLBACK);
 		mptcp_reqsk_remove_tk(req);
 		return 1;
 	}
 
-	MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_MPCAPABLEPASSIVEACK);
+	MPTCP_INC_STATS_BH(sock_net(meta_sk), MPTCP_MIB_MPCAPABLEPASSIVEACK);
 
 	/* Just set this values to pass them to mptcp_alloc_mpcb */
 	mtreq = mptcp_rsk(req);
@@ -2054,7 +2054,7 @@ struct sock *mptcp_check_req_child(struct sock *meta_sk, struct sock *child,
 	child_tp->inside_tk_table = 0;
 
 	if (!mopt->join_ack) {
-		MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_JOINACKFAIL);
+		MPTCP_INC_STATS_BH(sock_net(meta_sk), MPTCP_MIB_JOINACKFAIL);
 		goto teardown;
 	}
 
@@ -2065,7 +2065,7 @@ struct sock *mptcp_check_req_child(struct sock *meta_sk, struct sock *child,
 			(u32 *)hash_mac_check);
 
 	if (memcmp(hash_mac_check, (char *)&mopt->mptcp_recv_mac, 20)) {
-		MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_JOINACKMAC);
+		MPTCP_INC_STATS_BH(sock_net(meta_sk), MPTCP_MIB_JOINACKMAC);
 		goto teardown;
 	}
 
@@ -2113,7 +2113,7 @@ struct sock *mptcp_check_req_child(struct sock *meta_sk, struct sock *child,
 	reqsk_queue_removed(&inet_csk(meta_sk)->icsk_accept_queue, req);
 	reqsk_free(req);
 
-	MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_JOINACKRX);
+	MPTCP_INC_STATS_BH(sock_net(meta_sk), MPTCP_MIB_JOINACKRX);
 	return child;
 
 teardown:
@@ -2298,7 +2298,7 @@ void mptcp_join_reqsk_init(struct mptcp_cb *mpcb, const struct request_sock *req
 	mtreq->rcv_low_prio = mopt.low_prio;
 	inet_rsk(req)->saw_mpc = 1;
 
-	MPTCP_INC_STATS(sock_net(mpcb->meta_sk), MPTCP_MIB_JOINSYNRX);
+	MPTCP_INC_STATS_BH(sock_net(mpcb->meta_sk), MPTCP_MIB_JOINSYNRX);
 }
 
 void mptcp_reqsk_init(struct request_sock *req, const struct sk_buff *skb,
@@ -2376,7 +2376,7 @@ int mptcp_conn_request(struct sock *sk, struct sk_buff *skb)
 			    (RTCF_BROADCAST | RTCF_MULTICAST))
 				goto drop;
 
-			MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_MPCAPABLEPASSIVE);
+			MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_MPCAPABLEPASSIVE);
 			return tcp_conn_request(&mptcp_request_sock_ops,
 						&mptcp_request_sock_ipv4_ops,
 						sk, skb);
@@ -2389,7 +2389,7 @@ int mptcp_conn_request(struct sock *sk, struct sk_buff *skb)
 			if (!ipv6_unicast_destination(skb))
 				goto drop;
 
-			MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_MPCAPABLEPASSIVE);
+			MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_MPCAPABLEPASSIVE);
 			return tcp_conn_request(&mptcp6_request_sock_ops,
 						&mptcp_request_sock_ipv6_ops,
 						sk, skb);
@@ -2660,7 +2660,7 @@ void __init mptcp_init(void)
 	if (mptcp_register_scheduler(&mptcp_sched_default))
 		goto register_sched_failed;
 
-	pr_info("MPTCP: Stable release v0.90.0");
+	pr_info("MPTCP: Stable release v0.90.3");
 
 	mptcp_init_failed = false;
 

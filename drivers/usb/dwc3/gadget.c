@@ -2255,6 +2255,7 @@ static int __dwc3_gadget_start(struct dwc3 *dwc)
 
 	/* begin to receive SETUP packets */
 	dwc->ep0state = EP0_SETUP_PHASE;
+	dwc->link_state = DWC3_LINK_STATE_SS_DIS;
 	dwc3_ep0_out_start(dwc);
 
 	dwc3_gadget_enable_irq(dwc);
@@ -3239,8 +3240,11 @@ static void dwc3_gadget_wakeup_interrupt(struct dwc3 *dwc, bool remote_wakeup)
 
 		/*
 		 * In case of remote wake up dwc3_gadget_wakeup_work()
-		 * is doing pm_runtime_get_sync().
+		 * is doing pm_runtime_get_sync(). But mark last wakeup
+		 * event here to prevent runtime_suspend happening before this
+		 * wakeup event is processed.
 		 */
+		pm_runtime_mark_last_busy(dwc->dev);
 		dev_dbg(dwc->dev, "Notify OTG from %s\n", __func__);
 		dwc->b_suspend = false;
 		dwc3_notify_event(dwc,

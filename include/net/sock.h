@@ -70,8 +70,6 @@
 #include <linux/net_tstamp.h>
 #include <net/tcp_states.h>
 
-//add_to_scale
-#define TCP_BACKLOG_SCALE 4
 struct cgroup;
 struct cgroup_subsys;
 #ifdef CONFIG_NET
@@ -629,6 +627,12 @@ static inline void sk_add_node_rcu(struct sock *sk, struct hlist_head *list)
 	hlist_add_head_rcu(&sk->sk_node, list);
 }
 
+static inline void sk_add_node_tail_rcu(struct sock *sk, struct hlist_head *list)
+{
+	sock_hold(sk);
+	hlist_add_tail_rcu(&sk->sk_node, list);
+}
+
 static inline void __sk_nulls_add_node_rcu(struct sock *sk, struct hlist_nulls_head *list)
 {
 	hlist_nulls_add_head_rcu(&sk->sk_nulls_node, list);
@@ -829,9 +833,7 @@ static inline bool sk_rcvqueues_full(const struct sock *sk, unsigned int limit)
 static inline __must_check int sk_add_backlog(struct sock *sk, struct sk_buff *skb,
 					      unsigned int limit)
 {
-//add_to_scale	
-	//if (sk_rcvqueues_full(sk, limit))
-	if (sk_rcvqueues_full(sk, limit * TCP_BACKLOG_SCALE))
+	if (sk_rcvqueues_full(sk, limit))
 		return -ENOBUFS;
 
 	/*

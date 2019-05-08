@@ -2674,6 +2674,13 @@ static int dwc3_msm_suspend(struct dwc3_msm *mdwc)
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
 	}
 #endif
+
+	if (!mdwc->in_host_mode && (mdwc->vbus_active && !mdwc->suspend)) {
+		dev_dbg(mdwc->dev,
+			"Received wakeup event before the core suspend\n");
+		return -EBUSY;
+	}
+
 	ret = dwc3_msm_prepare_suspend(mdwc);
 	if (ret)
 		return ret;
@@ -5524,6 +5531,12 @@ static void dwc3_msm_otg_sm_work(struct work_struct *w)
 			pm_runtime_get_sync(mdwc->dev);
 			dbg_event(0xFF, "SUSP gsync",
 				atomic_read(&mdwc->dev->power.usage_count));
+		} else {
+			/*
+			 * Release PM Wakelock if PM resume had happened from
+			 * peripheral mode bus suspend case.
+			 */
+			pm_relax(mdwc->dev);
 		}
 		break;
 

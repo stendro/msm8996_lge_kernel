@@ -242,10 +242,10 @@ static int tcp_write_timeout(struct sock *sk)
 		#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 		/* Stop retransmitting MP_CAPABLE options in SYN if timed out. */
 		if (tcp_sk(sk)->request_mptcp &&
-		    icsk->icsk_retransmits >= mptcp_sysctl_syn_retries()) {
+		    icsk->icsk_retransmits >= sysctl_mptcp_syn_retries) {
 			tcp_sk(sk)->request_mptcp = 0;
 			/* 2015-06-03 jewon.lee@lge.com, LGP_DATA_TCPIP_MPTCP [START] */
-			//MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_MPCAPABLERETRANSFALLBACK);
+			//MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_MPCAPABLERETRANSFALLBACK);
 			tcp_write_err(sk);
 			return 1;
 			/* 2015-06-03 jewon.lee@lge.com, LGP_DATA_TCPIP_MPTCP [END] */

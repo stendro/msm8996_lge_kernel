@@ -909,7 +909,6 @@ void mptcp_established_options(struct sock *sk, struct sk_buff *skb,
 		opts->options |= OPTION_MPTCP;
 		opts->mptcp_options |= OPTION_MP_FAIL;
 		*size += MPTCP_SUB_LEN_FAIL;
-		return;
 	}
 
 	if (unlikely(tp->send_mp_fclose)) {
@@ -1088,7 +1087,7 @@ void mptcp_options_write(__be32 *ptr, struct tcp_sock *tp,
 			ptr += MPTCP_SUB_LEN_ADD_ADDR6_ALIGN >> 2;
 		}
 
-		MPTCP_INC_STATS(sock_net((struct sock *)tp), MPTCP_MIB_ADDADDRTX);
+		MPTCP_INC_STATS_BH(sock_net((struct sock *)tp), MPTCP_MIB_ADDADDRTX);
 	}
 	if (unlikely(OPTION_REMOVE_ADDR & opts->mptcp_options)) {
 		struct mp_remove_addr *mprem = (struct mp_remove_addr *)ptr;
@@ -1116,7 +1115,7 @@ void mptcp_options_write(__be32 *ptr, struct tcp_sock *tp,
 
 		ptr += len_align >> 2;
 
-		MPTCP_INC_STATS(sock_net((struct sock *)tp), MPTCP_MIB_REMADDRTX);
+		MPTCP_INC_STATS_BH(sock_net((struct sock *)tp), MPTCP_MIB_REMADDRTX);
 	}
 	if (unlikely(OPTION_MP_FAIL & opts->mptcp_options)) {
 		struct mp_fail *mpfail = (struct mp_fail *)ptr;
@@ -1207,7 +1206,7 @@ void mptcp_send_active_reset(struct sock *meta_sk, gfp_t priority)
 {
 	struct tcp_sock *meta_tp = tcp_sk(meta_sk);
 	struct mptcp_cb *mpcb = meta_tp->mpcb;
-	struct sock *sk = NULL, *sk_it = NULL, *tmpsk;
+	struct sock *sk;
 
 	if (!mpcb->cnt_subflows)
 		return;
@@ -1217,17 +1216,19 @@ void mptcp_send_active_reset(struct sock *meta_sk, gfp_t priority)
 	/* First - select a socket */
 	sk = mptcp_select_ack_sock(meta_sk);
 
-	/* May happen if no subflow is in an appropriate state */
-	if (!sk)
-		return;
+	/* May happen if no subflow is in an appropriate state, OR
+	 * we are in infinite mode or about to go there - just send a reset */
+	if (!sk || mpcb->infinite_mapping_snd || mpcb->send_infinite_mapping ||
+	    mpcb->infinite_mapping_rcv) {
 
-	/* We are in infinite mode - just send a reset */
-	if (mpcb->infinite_mapping_snd || mpcb->infinite_mapping_rcv) {
-		sk->sk_err = ECONNRESET;
-		if (tcp_need_reset(sk->sk_state))
-			tcp_send_active_reset(sk, priority);
-		mptcp_sub_force_close(sk);
-		return;
+		/* tcp_done must be handled with bh disabled */
+		if (!in_serving_softirq())
+			local_bh_disable();
+
+		mptcp_sub_force_close_all(mpcb, NULL);
+
+		if (!in_serving_softirq())
+			local_bh_enable();
 	}
 
 
@@ -1238,15 +1239,7 @@ void mptcp_send_active_reset(struct sock *meta_sk, gfp_t priority)
 	if (!in_serving_softirq())
 		local_bh_disable();
 
-	mptcp_for_each_sk_safe(mpcb, sk_it, tmpsk) {
-		if (tcp_sk(sk_it)->send_mp_fclose)
-			continue;
-
-		sk_it->sk_err = ECONNRESET;
-		if (tcp_need_reset(sk_it->sk_state))
-			tcp_send_active_reset(sk_it, GFP_ATOMIC);
-		mptcp_sub_force_close(sk_it);
-	}
+	mptcp_sub_force_close_all(mpcb, sk);
 
 	if (!in_serving_softirq())
 		local_bh_enable();
@@ -1272,7 +1265,7 @@ static void mptcp_ack_retransmit_timer(struct sock *sk)
 		tp->retrans_stamp = tcp_time_stamp ? : 1;
 
 	if (tcp_write_timeout(sk)) {
-		MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_JOINACKRTO);
+		MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_JOINACKRTO);
 		tp->mptcp->pre_established = 0;
 		sk_stop_timer(sk, &tp->mptcp->mptcp_ack_timer);
 		tp->ops->send_active_reset(sk, GFP_ATOMIC);
@@ -1290,7 +1283,7 @@ static void mptcp_ack_retransmit_timer(struct sock *sk)
 	skb_reserve(skb, MAX_TCP_HEADER);
 	tcp_init_nondata_skb(skb, tp->snd_una, TCPHDR_ACK);
 
-	MPTCP_INC_STATS(sock_net(sk), MPTCP_MIB_JOINACKRXMIT);
+	MPTCP_INC_STATS_BH(sock_net(sk), MPTCP_MIB_JOINACKRXMIT);
 
 	if (tcp_transmit_skb(sk, skb, 0, GFP_ATOMIC) > 0) {
 		/* Retransmission failed because of local congestion,
@@ -1407,7 +1400,7 @@ int mptcp_retransmit_skb(struct sock *meta_sk, struct sk_buff *skb)
 	skb_mstamp_get(&skb->skb_mstamp);
 
 	/* Update global TCP statistics. */
-	MPTCP_INC_STATS(sock_net(meta_sk), MPTCP_MIB_RETRANSSEGS);
+	MPTCP_INC_STATS_BH(sock_net(meta_sk), MPTCP_MIB_RETRANSSEGS);
 
 	/* Diff to tcp_retransmit_skb */
 
@@ -1437,8 +1430,7 @@ void mptcp_retransmit_timer(struct sock *meta_sk)
 	int err;
 
 	/* In fallback, retransmission is handled at the subflow-level */
-	if (!meta_tp->packets_out || mpcb->infinite_mapping_snd ||
-	    mpcb->send_infinite_mapping)
+	if (!meta_tp->packets_out || mpcb->infinite_mapping_snd)
 		return;
 
 	WARN_ON(tcp_write_queue_empty(meta_sk));
