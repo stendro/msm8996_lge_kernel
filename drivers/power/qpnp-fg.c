@@ -6486,12 +6486,7 @@ static irqreturn_t fg_jeita_soft_hot_irq_handler(int irq, void *_chip)
 		pr_debug("warm state not change, ignore!\n");
 		return IRQ_HANDLED;
 	}
-#ifdef CONFIG_LGE_PM
-	if (!is_charger_available(chip)){
-		pr_err("Charger not available yet!\n");
-		return IRQ_HANDLED;
-	}
-#endif
+
 	chip->batt_warm = batt_warm;
 	if (batt_warm) {
 		val.intval = POWER_SUPPLY_HEALTH_WARM;
@@ -6537,13 +6532,6 @@ static irqreturn_t fg_jeita_soft_cold_irq_handler(int irq, void *_chip)
 		pr_debug("cool state not change, ignore\n");
 		return IRQ_HANDLED;
 	}
-
-#ifdef CONFIG_LGE_PM
-	if (!is_charger_available(chip)){
-		pr_err("Charger not available yet!\n");
-		return IRQ_HANDLED;
-	}
-#endif
 
 	chip->batt_cool = batt_cool;
 	if (batt_cool) {
@@ -6721,11 +6709,7 @@ static irqreturn_t fg_soc_irq_handler(int irq, void *_chip)
 {
 	struct fg_chip *chip = _chip;
 	u8 soc_rt_sts;
-#ifdef CONFIG_LGE_PM
-	int rc, msoc=0;
-#else
 	int rc, msoc;
-#endif
 
 	rc = fg_read(chip, &soc_rt_sts, INT_RT_STS(chip->soc_base), 1);
 	if (rc) {
@@ -6781,10 +6765,8 @@ static irqreturn_t fg_soc_irq_handler(int irq, void *_chip)
 
 	schedule_work(&chip->battery_age_work);
 
-	if (chip->power_supply_registered) {
-		pr_info("power_supply_changed by soc_irq with msoc %d\n", msoc);
+	if (chip->power_supply_registered)
 		power_supply_changed(&chip->bms_psy);
-	}
 
 	if (chip->rslow_comp.chg_rs_to_rslow > 0 &&
 			chip->rslow_comp.chg_rslow_comp_c1 > 0 &&
