@@ -99,6 +99,8 @@ BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
 GCC_COMP=$HOME/build/toolchain/linaro8/bin/aarch64-linux-gnu-
+# directory containing 32bit cross-compiler (COMPAT_VDSO)
+GCC_COMP_32=
 
 # compiler version
 GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
@@ -123,22 +125,24 @@ ABORT() {
 	exit 1
 }
 
+# MK_NAME, KBUILD_COMPILER_STRING
+# and KBUILD_BUILD_TIMESTAMP causes
+# 'kernel version' to not display
+# in android settings. Not a problem really.
 export MK_FLAGS
 export MK_LINKER
 export ARCH=arm64
-# these two options causes
-# android to not display kernel
-# version. Not a problem though
 export KBUILD_COMPILER_STRING=$GCC_VER
 export KBUILD_BUILD_TIMESTAMP=$BDATE
-# ^
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=github
 export MK_NAME="mk2000 ${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
+  export CROSS_COMPILE_ARM32="ccache $GCC_COMP_32"
 else
   export CROSS_COMPILE=$GCC_COMP
+  export CROSS_COMPILE_ARM32=$GCC_COMP_32
 fi
 
 # selected device
