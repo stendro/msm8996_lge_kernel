@@ -98,15 +98,19 @@ THREADS=$(grep -c "processor" /proc/cpuinfo)
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
-GCC_COMP=$HOME/build/toolchain/linaro8/bin/aarch64-linux-gnu-
+GCC_COMP=$HOME/build/toolchain/gcc9/bin/aarch64-elf-
 # directory containing 32bit cross-compiler (COMPAT_VDSO)
-GCC_COMP_32=
+GCC_COMP_32=$HOME/build/toolchain/gcc9-32/bin/arm-eabi-
 
 # compiler version
+if $(echo $GCC_COMP | grep -q 'gcc9'); then
+GCC_VER="GCC 9.1.1"
+else
 GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
 	cut -f2 -d'(')"
 if $(echo $GCC_VER | grep -q '~dev'); then
   GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
+fi
 fi
 
 ############## SCARY NO-TOUCHY STUFF ###############
