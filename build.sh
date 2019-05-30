@@ -201,6 +201,9 @@ fi
 [ -x "${GCC_COMP}gcc" ] \
 	|| ABORT "Cross-compiler not found at: ${GCC_COMP}gcc"
 
+[ -x "${GCC_COMP_32}gcc" ] && MK_VDSO=yes \
+	|| echo -e $COLOR_R"32-bit compiler not found, COMPAT_VDSO disabled."
+
 if [ "$USE_CCACHE" = "yes" ]; then
 	command -v ccache >/dev/null 2>&1 \
 	|| ABORT "Do you have ccache installed?"
@@ -221,6 +224,9 @@ SETUP_BUILD() {
 		|| ABORT "Failed to set up build."
 	if [ "$MK_LINKER" = "ld.gold" ]; then
 	  echo "CONFIG_THIN_ARCHIVES=y" >> $BDIR/.config
+	fi
+	if [ "$MK_VDSO" = "yes" ]; then
+	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
 	fi
 	if [ "$IS_TWRP" = "twrp" ]; then
 	  echo "include mk2000_twrp_conf" >> $BDIR/.config
