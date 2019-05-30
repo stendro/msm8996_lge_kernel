@@ -91,6 +91,9 @@ MK_FLAGS="-fgraphite-identity \
  -floop-interchange"
 fi
 
+# disable Meltdown mitigation ?
+DISABLE_MELTDOWN=no
+
 # select cpu threads
 THREADS=$(grep -c "processor" /proc/cpuinfo)
 
@@ -227,6 +230,9 @@ SETUP_BUILD() {
 	fi
 	if [ "$MK_VDSO" = "yes" ]; then
 	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
+	fi
+	if [ "$DISABLE_MELTDOWN" = "yes" ]; then
+	  echo "CONFIG_UNMAP_KERNEL_AT_EL0=n" >> $BDIR/.config
 	fi
 	if [ "$IS_TWRP" = "twrp" ]; then
 	  echo "include mk2000_twrp_conf" >> $BDIR/.config
