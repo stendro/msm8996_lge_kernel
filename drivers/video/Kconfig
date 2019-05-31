@@ -2,6 +2,17 @@
 # Video configuration
 #
 
+menu "LiveDisplay"
+
+config KLAPSE
+	bool "K-Lapse"
+	depends on FB_MSM_MDSS_KCAL_CTRL
+	default n
+	help
+        A simple rgb dynamic lapsing module similar to LineageOS' livedisplay.
+
+endmenu
+
 menu "Graphics support"
 	depends on HAS_IOMEM
 
