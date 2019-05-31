@@ -76,10 +76,7 @@
 #include <linux/aio.h>
 #include <linux/compiler.h>
 #include <linux/kcov.h>
-#ifdef CONFIG_CPU_INPUT_BOOST
-#include <linux/state_notifier.h>
 #include <linux/cpu_input_boost.h>
-#endif
 
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>
@@ -717,6 +714,26 @@ void __mmdrop(struct mm_struct *mm)
 }
 EXPORT_SYMBOL_GPL(__mmdrop);
 
+static inline void __mmput(struct mm_struct *mm)
+{
+	VM_BUG_ON(atomic_read(&mm->mm_users));
+
+	uprobe_clear_state(mm);
+	exit_aio(mm);
+	ksm_exit(mm);
+	khugepaged_exit(mm); /* must run before exit_mmap */
+	exit_mmap(mm);
+	set_mm_exe_file(mm, NULL);
+	if (!list_empty(&mm->mmlist)) {
+		spin_lock(&mmlist_lock);
+		list_del(&mm->mmlist);
+		spin_unlock(&mmlist_lock);
+	}
+	if (mm->binfmt)
+		module_put(mm->binfmt->module);
+	mmdrop(mm);
+}
+
 /*
  * Decrement the use count and release all resources for an mm.
  */
@@ -726,25 +743,26 @@ int mmput(struct mm_struct *mm)
 	might_sleep();
 
 	if (atomic_dec_and_test(&mm->mm_users)) {
-		uprobe_clear_state(mm);
-		exit_aio(mm);
-		ksm_exit(mm);
-		khugepaged_exit(mm); /* must run before exit_mmap */
-		exit_mmap(mm);
-		set_mm_exe_file(mm, NULL);
-		if (!list_empty(&mm->mmlist)) {
-			spin_lock(&mmlist_lock);
-			list_del(&mm->mmlist);
-			spin_unlock(&mmlist_lock);
-		}
-		if (mm->binfmt)
-			module_put(mm->binfmt->module);
-		mmdrop(mm);
+		__mmput(mm);
 		mm_freed = 1;
 	}
 	return mm_freed;
 }
 EXPORT_SYMBOL_GPL(mmput);
+
+static void mmput_async_fn(struct work_struct *work)
+{
+	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
+	__mmput(mm);
+}
+
+void mmput_async(struct mm_struct *mm)
+{
+	if (atomic_dec_and_test(&mm->mm_users)) {
+		INIT_WORK(&mm->async_put_work, mmput_async_fn);
+		schedule_work(&mm->async_put_work);
+	}
+}
 
 void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
 {
@@ -1726,11 +1744,9 @@ long do_fork(unsigned long clone_flags,
 	int trace = 0;
 	long nr;
 
-#ifdef CONFIG_CPU_INPUT_BOOST
-	/* Boost CPU to the max for 850 ms when userspace launches an app */
-	if (is_zygote_pid(current->pid) && !state_suspended)
-		cpu_input_boost_kick_max(850);
-#endif
+	/* Boost CPU to the max for 50 ms when userspace launches an app */
+	if (task_is_zygote(current))
+		cpu_input_boost_kick_max(50);
 
 	/*
 	 * Determine whether and which event to report to ptracer.  When

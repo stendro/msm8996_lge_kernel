@@ -84,6 +84,8 @@ patch_prop default.prop "ro.adb.secure" "1";
 append_file init.rc mktweaks "init_rc-mod";
 patch_fstab fstab.$NAME_LOW /data ext4 flags "forceencrypt=" "encryptable=";
 replace_section init.$NAME_LOW.power.rc "service triton" " " "service triton /system/vendor/bin/triton\n   class main\n   user root\n   group system\n   socket triton-client stream 660 system system\n   disabled\n   oneshot\n";
+# remove old import in case coming from older version
+remove_line init.rc "import /init.blu_active.rc"
 $H990_SIM
 ## System modifications
 # make sure init.mktweaks.rc can run, and disable rctd

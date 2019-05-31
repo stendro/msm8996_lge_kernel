@@ -1322,5 +1322,17 @@ void trace_event_init(void);
 static inline void __init trace_event_init(void) { }
 #endif
 
+/* reset all but tr, trace, and overruns */
+static __always_inline void trace_iterator_reset(struct trace_iterator * iter)
+{
+	/*
+	 * Equivalent to &iter->seq, but avoids GCC 9 complaining about
+	 * overwriting more members than just iter->seq (-Warray-bounds)
+	 */
+	const unsigned int offset = offsetof(struct trace_iterator, seq);
+	memset(offset + (void *)iter, 0, sizeof(*iter) - offset);
+	iter->iter_flags |= TRACE_FILE_LAT_FMT;
+	iter->pos = -1;
+}
 
 #endif /* _LINUX_KERNEL_TRACE_H */

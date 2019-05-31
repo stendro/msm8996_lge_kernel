@@ -271,12 +271,27 @@ config CPU_INPUT_BOOST
 	  frame drops are near-zero at the boosted frequencies and power
 	  consumption is minimized at said frequency combination.
 
+if CPU_INPUT_BOOST
+
 config WAKE_BOOST_DURATION_MS
 	int "Wake boost duration"
-	depends on CPU_INPUT_BOOST
 	default "1000"
 	help
 	  Wake boost duration in milliseconds.
+
+config MAX_BOOST_FREQ_LP
+	int "Low-power cluster max-boost freq"
+	default "0"
+	help
+	  Max-boost frequency for the low-power CPU cluster.
+
+config MAX_BOOST_FREQ_PERF
+	int "Performance cluster max-boost freq"
+	default "0"
+	help
+	  Max-boost frequency for the performance CPU cluster.
+
+endif
 
 comment "CPU frequency scaling drivers"
 

@@ -91,6 +91,9 @@ MK_FLAGS="-fgraphite-identity \
  -floop-interchange"
 fi
 
+# disable Meltdown mitigation ?
+DISABLE_MELTDOWN=no
+
 # select cpu threads
 THREADS=$(grep -c "processor" /proc/cpuinfo)
 
@@ -98,13 +101,19 @@ THREADS=$(grep -c "processor" /proc/cpuinfo)
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 
 # directory containing cross-compiler
-GCC_COMP=$HOME/build/toolchain/linaro8/bin/aarch64-linux-gnu-
+GCC_COMP=$HOME/build/toolchain/gcc9/bin/aarch64-elf-
+# directory containing 32bit cross-compiler (COMPAT_VDSO)
+GCC_COMP_32=$HOME/build/toolchain/gcc9-32/bin/arm-eabi-
 
 # compiler version
+if $(echo $GCC_COMP | grep -q 'gcc9'); then
+GCC_VER="GCC 9.1.1"
+else
 GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
 	cut -f2 -d'(')"
 if $(echo $GCC_VER | grep -q '~dev'); then
   GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
+fi
 fi
 
 ############## SCARY NO-TOUCHY STUFF ###############
@@ -123,22 +132,24 @@ ABORT() {
 	exit 1
 }
 
+# MK_NAME, KBUILD_COMPILER_STRING
+# and KBUILD_BUILD_TIMESTAMP causes
+# 'kernel version' to not display
+# in android settings. Not a problem really.
 export MK_FLAGS
 export MK_LINKER
 export ARCH=arm64
-# these two options causes
-# android to not display kernel
-# version. Not a problem though
 export KBUILD_COMPILER_STRING=$GCC_VER
 export KBUILD_BUILD_TIMESTAMP=$BDATE
-# ^
 export KBUILD_BUILD_USER=stendro
 export KBUILD_BUILD_HOST=github
 export MK_NAME="mk2000 ${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
+  export CROSS_COMPILE_ARM32="ccache $GCC_COMP_32"
 else
   export CROSS_COMPILE=$GCC_COMP
+  export CROSS_COMPILE_ARM32=$GCC_COMP_32
 fi
 
 # selected device
@@ -193,6 +204,9 @@ fi
 [ -x "${GCC_COMP}gcc" ] \
 	|| ABORT "Cross-compiler not found at: ${GCC_COMP}gcc"
 
+[ -x "${GCC_COMP_32}gcc" ] && MK_VDSO=yes \
+	|| echo -e $COLOR_R"32-bit compiler not found, COMPAT_VDSO disabled."
+
 if [ "$USE_CCACHE" = "yes" ]; then
 	command -v ccache >/dev/null 2>&1 \
 	|| ABORT "Do you have ccache installed?"
@@ -213,6 +227,12 @@ SETUP_BUILD() {
 		|| ABORT "Failed to set up build."
 	if [ "$MK_LINKER" = "ld.gold" ]; then
 	  echo "CONFIG_THIN_ARCHIVES=y" >> $BDIR/.config
+	fi
+	if [ "$MK_VDSO" = "yes" ]; then
+	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
+	fi
+	if [ "$DISABLE_MELTDOWN" = "yes" ]; then
+	  echo "CONFIG_UNMAP_KERNEL_AT_EL0=n" >> $BDIR/.config
 	fi
 	if [ "$IS_TWRP" = "twrp" ]; then
 	  echo "include mk2000_twrp_conf" >> $BDIR/.config

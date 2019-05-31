@@ -6878,12 +6878,7 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
 
 		cnt++;
 
-		/* reset all but tr, trace, and overruns */
-		memset(&iter.seq, 0,
-		       sizeof(struct trace_iterator) -
-		       offsetof(struct trace_iterator, seq));
-		iter.iter_flags |= TRACE_FILE_LAT_FMT;
-		iter.pos = -1;
+		trace_iterator_reset(&iter);
 
 		if (trace_find_next_entry_inc(&iter) != NULL) {
 			int ret;
