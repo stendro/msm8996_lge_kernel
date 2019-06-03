@@ -46,16 +46,7 @@ on property:sys.post_boot.parsed=1
     # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_sched_load 1
     # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_migration_notif 1
 
-    # Set Maple scheduler default
-    write /sys/block/mmcblk0/queue/scheduler "maple"
-    write /sys/block/sda/queue/scheduler "maple"
-    write /sys/block/sdb/queue/scheduler "maple"
-    write /sys/block/sdc/queue/scheduler "maple"
-    write /sys/block/sdd/queue/scheduler "maple"
-    write /sys/block/sde/queue/scheduler "maple"
-    write /sys/block/sdf/queue/scheduler "maple"
-    write /sys/block/sdg/queue/scheduler "maple"
-    write /sys/block/sdh/queue/scheduler "maple"
+    # Set I/O Scheduler
 
     # Tweak Virtual Memory
     write /proc/sys/vm/dirty_background_ratio 10
