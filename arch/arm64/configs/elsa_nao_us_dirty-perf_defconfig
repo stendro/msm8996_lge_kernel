@@ -1,0 +1,10 @@
+include elsa_nao_us_common
+include elsa_common-perf
+#############################################################
+#   Fix kernel command-line (may or may not be important)   #
+#############################################################
+CONFIG_CMDLINE="androidboot.bl_unlock_complete=false androidboot.authorized_kernel=true"
+CONFIG_CMDLINE_EXTEND=y
+CONFIG_CMDLINE_SAR_ENABLE0=y
+CONFIG_CMDLINE_SAR_SEARCH0=" slub_debug=FZPU "
+CONFIG_CMDLINE_SAR_REPLACE0=" "
