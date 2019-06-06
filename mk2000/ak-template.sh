@@ -39,7 +39,7 @@ DEV_LOW=$(echo "$AK_DEV" | awk '{print tolower($0)}')
 NAME_LOW=$(echo "$DEV_NAME" | awk '{print tolower($0)}')
 
 cat << EOF
-# AnyKernel2 Ramdisk Mod Script
+# AnyKernel3 Ramdisk Mod Script
 # osm0sis @ xda-developers
 
 ## AnyKernel setup
@@ -67,7 +67,7 @@ ramdisk_compression=auto;
 
 ## AnyKernel methods (DO NOT CHANGE)
 # import patching functions/variables - see for reference
-. /tmp/anykernel/tools/ak2-core.sh;
+. tools/ak3-core.sh;
 
 ## AnyKernel file attributes
 # set permissions/ownership for included ramdisk files
