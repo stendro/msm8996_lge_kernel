@@ -482,6 +482,14 @@ int msm_hdmi_get_timing_info(
 	case HDMI_VFRMT_3840x2160p60_64_27:
 		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_3840x2160p60_64_27);
 		break;
+	/* Add LG VR SVD LGE_S*/
+	case HDMI_VFRMT_1440x960p60_3_2:
+		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_1440x960p60_3_2);
+		break;
+	case HDMI_VFRMT_1440x960p57_3_2:
+		MSM_HDMI_MODES_GET_DETAILS(mode, HDMI_VFRMT_1440x960p57_3_2);
+		break;
+	/* Add LG VR SVD LGE_E*/
 	default:
 		ret = hdmi_get_resv_timing_info(mode, id);
 	}
@@ -734,7 +742,11 @@ static int hdmi_ddc_read_retry(struct hdmi_tx_ddc_ctrl *ddc_ctrl)
 	u32 reg_val, ndx, time_out_count, wait_time;
 	struct hdmi_tx_ddc_data *ddc_data;
 	int status;
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	int busy_wait_us = 0;
+#else
 	int busy_wait_us;
+#endif
 
 	if (!ddc_ctrl || !ddc_ctrl->io) {
 		pr_err("invalid input\n");
@@ -1212,7 +1224,11 @@ int hdmi_ddc_write(struct hdmi_tx_ddc_ctrl *ddc_ctrl)
 	u32 time_out_count;
 	struct hdmi_tx_ddc_data *ddc_data;
 	u32 wait_time;
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	int busy_wait_us = 0;
+#else
 	int busy_wait_us;
+#endif
 
 	if (!ddc_ctrl || !ddc_ctrl->io) {
 		pr_err("invalid input\n");
