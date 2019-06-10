@@ -963,9 +963,13 @@ static void smb138x_batt_external_power_changed(struct power_supply *psy)
 
 	if (!chg->usb_psy)
 		return;
-
+#if CONFIG_LGE_PM
+	rc = chg->usb_psy->get_property(chg->usb_psy,
+					POWER_SUPPLY_PROP_REAL_TYPE, &prop);
+#else
 	rc = chg->usb_psy->get_property(chg->usb_psy,
 					POWER_SUPPLY_PROP_TYPE, &prop);
+#endif
 	if (rc < 0) {
 		pr_err("Couldn't get usb supply type rc=%d\n", rc);
 		return;

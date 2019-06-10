@@ -32,6 +32,10 @@
 #include <linux/platform_device.h>
 #include <linux/power_supply.h>
 #include <linux/thermal.h>
+#ifdef CONFIG_LGE_PM
+#include <soc/qcom/smem.h>
+#include <soc/qcom/lge/power/lge_cable_detect.h>
+#endif
 
 /* QPNP VADC register definition */
 #define QPNP_VADC_REVISION1				0x0
@@ -270,6 +274,23 @@ static int qpnp_vadc_is_valid(struct qpnp_vadc_chip *vadc)
 
 	return -EINVAL;
 }
+
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+int32_t set_pm_gpio_value (struct qpnp_vadc_chip *vadc, int16_t reg,
+			u8 *buf, int len)
+{
+	struct spmi_device *spmi = vadc->adc->spmi;
+	int rc;
+
+	rc = spmi_ext_register_writel(spmi->ctrl, spmi->sid, reg, buf, len);
+	if (rc < 0) {
+		pr_err("qpnp adc write reg %d failed with %d\n", reg, rc);
+		return rc;
+	}
+
+	return 0;
+}
+#endif
 
 static int32_t qpnp_vadc_warm_rst_configure(struct qpnp_vadc_chip *vadc)
 {
@@ -2205,7 +2226,72 @@ int32_t qpnp_vadc_read(struct qpnp_vadc_chip *vadc,
 		}
 
 		return 0;
-	} else
+	}
+#ifdef CONFIG_LGE_PM
+#if defined(CONFIG_MACH_MSM8996_H1)
+	else if (channel == LR_MUX10_PU1_AMUX_USB_ID_LV || channel == LR_MUX10_USB_ID_LV) {
+		u8 data;
+		struct spmi_device *spmi = vadc->adc->spmi;
+
+		data = 0x11;
+		spmi_ext_register_writel(spmi->ctrl, spmi->sid, 0xc240, &data, 1);
+		data = 0x03;
+		spmi_ext_register_writel(spmi->ctrl, spmi->sid, 0xc245, &data, 1);
+
+		rc = qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
+				channel, result);
+
+		data = 0x10;
+		spmi_ext_register_writel(spmi->ctrl, spmi->sid, 0xc240, &data, 1);
+		data = 0x01;
+		spmi_ext_register_writel(spmi->ctrl, spmi->sid, 0xc245, &data, 1);
+
+		return rc;
+	}
+#elif defined(CONFIG_MACH_MSM8996_ELSA) || defined(CONFIG_MACH_MSM8996_ANNA)
+	else if (channel == LR_MUX10_USB_ID_LV) {
+		unsigned int *cable_info = NULL;
+		unsigned int cable_smem_size = 0;
+
+		cable_info = smem_get_entry(SMEM_ID_VENDOR1,
+						&cable_smem_size, 0, 0);
+
+		if ((cable_info) &&
+			((*cable_info == LT_CABLE_56K) ||
+			(*cable_info == LT_CABLE_130K) ||
+			(*cable_info == LT_CABLE_910K))) {
+			u8 data, gpio3_mode, gpio3_out;
+			struct spmi_device *spmi = vadc->adc->spmi;
+
+			spmi_ext_register_readl(spmi->ctrl, spmi->sid,
+					0xc240, &gpio3_mode, 1);
+			spmi_ext_register_readl(spmi->ctrl, spmi->sid,
+					0xc245, &gpio3_out, 1);
+
+			data = 0x11;
+			spmi_ext_register_writel(spmi->ctrl, spmi->sid,
+					0xc240, &data, 1);
+			data = 0x03;
+			spmi_ext_register_writel(spmi->ctrl, spmi->sid,
+					0xc245, &data, 1);
+
+			rc = qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
+					channel, result);
+
+			spmi_ext_register_writel(spmi->ctrl, spmi->sid,
+					0xc240, &gpio3_mode, 1);
+			spmi_ext_register_writel(spmi->ctrl, spmi->sid,
+					0xc245, &gpio3_out, 1);
+
+			return rc;
+		}
+
+		return qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
+				channel, result);;
+	}
+#endif
+#endif
+	else
 		return qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
 				channel, result);
 }
