@@ -274,3 +274,8 @@ config USB_QTI_KS_BRIDGE
 	  boot images, ram-dumps and efs sync.
 	  To compile this driver as a module, choose M here: the module
 	  will be called ks_bridge. If unsure, choose N.
+
+source "drivers/usb/misc/anx7418/Kconfig"
+source "drivers/usb/misc/anx7688/Kconfig"
+source "drivers/usb/misc/alice_friends/Kconfig"
+source "drivers/usb/misc/tusb422/Kconfig"
