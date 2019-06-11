@@ -343,7 +343,9 @@ struct msm_otg_platform_data {
 #define PHY_LANE_B			BIT(7)
 #define PHY_HSFS_MODE			BIT(8)
 #define PHY_LS_MODE			BIT(9)
-
+#ifdef CONFIG_LGE_USB_G_ANDROID
+#define PHY_OTG_MODE			BIT(10)
+#endif
 #define USB_NUM_BUS_CLOCKS      3
 
 /**

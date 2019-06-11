@@ -1149,7 +1149,12 @@ static void anx7688_src_detect(struct anx7688_chip *chip, int cc1, int cc2)
 	if (!chip->is_pd_connected) {
 		if ((cc1 == CC_RP3P0) || (cc2 == CC_RP3P0)) {
 			if(anx7688_cc_vadc_check(chip))
+#ifdef CONFIG_MACH_MSM8996_ANNA
+				//Anna does not support 10K HVDCP
+				prop.intval = 0;
+#else
 				prop.intval = 1;
+#endif
 			else
 				prop.intval = 0;
 		} else {

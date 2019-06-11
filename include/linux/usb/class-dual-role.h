@@ -11,6 +11,9 @@ enum dual_role_supported_modes {
 	DUAL_ROLE_SUPPORTED_MODES_DFP_AND_UFP = 0,
 	DUAL_ROLE_SUPPORTED_MODES_DFP,
 	DUAL_ROLE_SUPPORTED_MODES_UFP,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_SUPPORTED_MODES_DFP_AND_UFP_AND_FAULT,
+#endif
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_SUPPORTED_MODES_TOTAL,
 };
@@ -18,6 +21,9 @@ enum dual_role_supported_modes {
 enum {
 	DUAL_ROLE_PROP_MODE_UFP = 0,
 	DUAL_ROLE_PROP_MODE_DFP,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_MODE_FAULT,
+#endif
 	DUAL_ROLE_PROP_MODE_NONE,
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_MODE_TOTAL,
@@ -26,6 +32,9 @@ enum {
 enum {
 	DUAL_ROLE_PROP_PR_SRC = 0,
 	DUAL_ROLE_PROP_PR_SNK,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_PR_FAULT,
+#endif
 	DUAL_ROLE_PROP_PR_NONE,
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_PR_TOTAL,
@@ -35,6 +44,9 @@ enum {
 enum {
 	DUAL_ROLE_PROP_DR_HOST = 0,
 	DUAL_ROLE_PROP_DR_DEVICE,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_DR_FAULT,
+#endif
 	DUAL_ROLE_PROP_DR_NONE,
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_DR_TOTAL,
@@ -47,13 +59,84 @@ enum {
 	DUAL_ROLE_PROP_VCONN_SUPPLY_TOTAL,
 };
 
+#ifdef CONFIG_LGE_USB_TYPE_C
+enum {
+	DUAL_ROLE_PROP_CC_OPEN = 0,
+	DUAL_ROLE_PROP_CC_RP_DEFAULT,
+	DUAL_ROLE_PROP_CC_RP_POWER1P5,
+	DUAL_ROLE_PROP_CC_RP_POWER3P0,
+	DUAL_ROLE_PROP_CC_RD,
+	DUAL_ROLE_PROP_CC_RA,
+/*The following should be the last element*/
+	DUAL_ROLE_PROP_CC_TOTAL,
+};
+#endif
+
+
 enum dual_role_property {
 	DUAL_ROLE_PROP_SUPPORTED_MODES = 0,
 	DUAL_ROLE_PROP_MODE,
 	DUAL_ROLE_PROP_PR,
 	DUAL_ROLE_PROP_DR,
 	DUAL_ROLE_PROP_VCONN_SUPPLY,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_CC1,
+	DUAL_ROLE_PROP_CC2,
+	DUAL_ROLE_PROP_PDO1,
+	DUAL_ROLE_PROP_PDO2,
+	DUAL_ROLE_PROP_PDO3,
+	DUAL_ROLE_PROP_PDO4,
+	DUAL_ROLE_PROP_RDO,
+#endif
 };
+
+#ifdef CONFIG_LGE_USB_TYPE_C
+/* PDO */
+enum {
+	DUAL_ROLE_PROP_PDO_TYPE_FIXED,
+	DUAL_ROLE_PROP_PDO_TYPE_BATTERY,
+	DUAL_ROLE_PROP_PDO_TYPE_VARIABLE,
+};
+
+#define DUAL_ROLE_PROP_PDO_SET_TYPE(type)	(((type) & 0x3) << 30)
+
+#define DUAL_ROLE_PROP_PDO_SET_FIXED_VOLT(mV)	((((mV) / 50U) & 0x3FF) << 10)
+#define DUAL_ROLE_PROP_PDO_SET_FIXED_CURR(mA)	(((mA) / 10U) & 0x3FF)
+
+#define DUAL_ROLE_PROP_PDO_SET_BATTERY_MAX_VOLT(mV)  ((((mV) / 50U) & 0x3FF) << 20)
+#define DUAL_ROLE_PROP_PDO_SET_BATTERY_MIN_VOLT(mV)  ((((mV) / 50U) & 0x3FF) << 10)
+#define DUAL_ROLE_PROP_PDO_SET_BATTERY_MAX_POWER(mW) (((mV) / 250U) & 0x3FF)
+
+#define DUAL_ROLE_PROP_PDO_SET_VARIABLE_MAX_VOLT(mV) ((((mV) / 50U) & 0x3FF) << 20)
+#define DUAL_ROLE_PROP_PDO_SET_VARIABLE_MIN_VOLT(mV) ((((mV) / 50U) & 0x3FF) << 10)
+#define DUAL_ROLE_PROP_PDO_SET_VARIABLE_MAX_CURR(mW) (((mW) / 10U) & 0x3FF)
+
+#define DUAL_ROLE_PROP_PDO_GET_TYPE(pdo)	(((pdo) >> 30) & 0x3)
+
+#define DUAL_ROLE_PROP_PDO_GET_FIXED_VOLT(pdo)	((((pdo) >> 10) & 0x3FF) * 50U)
+#define DUAL_ROLE_PROP_PDO_GET_FIXED_CURR(pdo)	(((pdo) & 0x3FF) * 10U)
+
+#define DUAL_ROLE_PROP_PDO_GET_BATTERY_MAX_VOLT(pdo)  ((((pdo) >> 20) & 0x3FF) * 50U)
+#define DUAL_ROLE_PROP_PDO_GET_BATTERY_MIN_VOLT(pdo)  ((((pdo) >> 10) & 0x3FF) * 50U)
+#define DUAL_ROLE_PROP_PDO_GET_BATTERY_MAX_POWER(pdo) (((pdo) & 0x3FF) * 250U)
+
+#define DUAL_ROLE_PROP_PDO_GET_VARIABLE_MAX_VOLT(pdo) ((((pdo) >> 20) & 0x3FF) * 50U)
+#define DUAL_ROLE_PROP_PDO_GET_VARIABLE_MIN_VOLT(pdo) ((((pdo) >> 10) & 0x3FF) * 50U)
+#define DUAL_ROLE_PROP_PDO_GET_VARIABLE_MAX_CURR(pdo) (((pdo) & 0x3FF) * 10U)
+
+/* RDO */
+#define DUAL_ROLE_PROP_RDO_SET_OBJ_POS(pos)	(((pos) & 0x7) << 28)
+#define DUAL_ROLE_PROP_RDO_SET_OP_CURR(mA)	((((mA) / 10U) & 0x3FF) << 10)
+#define DUAL_ROLE_PROP_RDO_SET_MIN_CURR(mA)	((((mA) / 10U) & 0x3FF)
+#define DUAL_ROLE_PROP_RDO_SET_OP_POWER(mW)	((((mW) / 250U) & 0x3FF) << 10)
+#define DUAL_ROLE_PROP_RDO_SET_MIN_POWER(mW)	((((mW) / 250U) & 0x3FF)
+
+#define DUAL_ROLE_PROP_RDO_GET_OBJ_POS(rdo)	(((rdo) >> 28) & 0x7)
+#define DUAL_ROLE_PROP_RDO_GET_OP_CURR(rdo)	((((rdo) >> 10) & 0x3FF) * 10U)
+#define DUAL_ROLE_PROP_RDO_GET_MIN_CURR(rdo)	(((rdo) & 0x3FF) * 10U)
+#define DUAL_ROLE_PROP_RDO_GET_OP_POWER(rdo)	((((rdo) >> 10) & 0x3FF) * 250U)
+#define DUAL_ROLE_PROP_RDO_GET_MIN_POWER(rdo)	(((rdo) & 0x3FF) * 250U)
+#endif
 
 struct dual_role_phy_instance;
 
@@ -86,7 +169,11 @@ struct dual_role_phy_instance {
 	void *drv_data;
 
 	struct device dev;
+#if defined(CONFIG_LGE_USB_ANX7418)
+	struct delayed_work changed_work;
+#else
 	struct work_struct changed_work;
+#endif
 };
 
 #if IS_ENABLED(CONFIG_DUAL_ROLE_USB_INTF)
