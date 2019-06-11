@@ -21,11 +21,23 @@
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/err.h>
+#ifdef CONFIG_TSPDRV
+#include <linux/string.h>
+#endif
 
 #include "timed_output.h"
 
 static struct class *timed_output_class;
 static atomic_t device_count;
+#ifdef CONFIG_TSPDRV
+static struct timed_output_dev *hdev = NULL;
+
+struct timed_output_dev *timed_output_dev_find_by_name(const char *name)
+{
+	return hdev;
+}
+EXPORT_SYMBOL_GPL(timed_output_dev_find_by_name);
+#endif
 
 static ssize_t enable_show(struct device *dev, struct device_attribute *attr,
 			   char *buf)
@@ -91,6 +103,10 @@ int timed_output_dev_register(struct timed_output_dev *tdev)
 
 	dev_set_drvdata(tdev->dev, tdev);
 	tdev->state = 0;
+#ifdef CONFIG_TSPDRV
+	if (!strcmp(tdev->name, "vibrator"))
+		hdev = tdev;
+#endif
 	return 0;
 }
 EXPORT_SYMBOL_GPL(timed_output_dev_register);
