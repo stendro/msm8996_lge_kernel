@@ -309,6 +309,21 @@ config BW_MONITOR
 	 it by registering the bus bandwidth as a sensor in
 	 thermal core framework.
 
+config LGE_QPNP_HAPTIC_OV_RB
+	boolean "LGE Add DIRECT MODE Over Drive, Reverse Brake voltage"
+	depends on QPNP_HAPTIC
+	default n
+	help
+	  LGE implements Over Drive and Reverse Brake voltage on Direct mode.
+
+config LGE_QPNP_REMOVE_OV_RB
+	boolean "LGE Remove DIRECT MODE Over Drive, Modify Reverse Brake voltage"
+	depends on QPNP_HAPTIC
+	depends on MACH_MSM8996_ELSA_DCM_JP || MACH_MSM8996_ELSA_KDDI_JP
+	default n
+	help
+	  LGE remove Over Drive and modify Reverse Brake voltage on Direct mode.
+
 source "drivers/platform/msm/spmi/Kconfig"
 
 endmenu

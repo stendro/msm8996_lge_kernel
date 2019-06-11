@@ -172,3 +172,6 @@ obj-$(CONFIG_BIF)		+= bif/
 
 obj-$(CONFIG_SENSORS)		+= sensors/
 obj-$(CONFIG_SENSORS_SSC)	+= sensors/
+
+#immersion tsp3000
+obj-$(CONFIG_TSPDRV)		+= tspdrv/
