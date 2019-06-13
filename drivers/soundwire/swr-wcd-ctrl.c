@@ -507,7 +507,7 @@ static int swrm_read(struct swr_master *master, u8 dev_num, u16 reg_addr,
 {
 	struct swr_mstr_ctrl *swrm = swr_get_ctrl_data(master);
 	int ret = 0;
-	int val;
+	int val = 0;
 	u8 *reg_val = (u8 *)buf;
 
 	if (!swrm) {
@@ -1104,7 +1104,22 @@ static int swrm_disconnect_port(struct swr_master *master,
 
 	return 0;
 }
+#ifdef CONFIG_MACH_LGE
+static int swrm_wakeup_soundwire_master(struct swr_master *master)
+{
+	struct swr_mstr_ctrl *swrm = swr_get_ctrl_data(master);
 
+	if(!swrm) {
+		dev_err(&master->dev, "%s: swrm is NULL\n", __func__);
+		return -EINVAL;
+	}
+
+	pm_runtime_get_sync(&swrm->pdev->dev);
+	pm_runtime_mark_last_busy(&swrm->pdev->dev);
+	pm_runtime_put_autosuspend(&swrm->pdev->dev);
+	return 0;
+}
+#endif
 static int swrm_check_slave_change_status(struct swr_mstr_ctrl *swrm,
 					int status, u8 *devnum)
 {
@@ -1243,7 +1258,7 @@ static int swrm_get_logical_dev_num(struct swr_master *mstr, u64 dev_id,
 				u8 *dev_num)
 {
 	int i;
-	u64 id;
+	u64 id = 0;
 	int ret = -EINVAL;
 	struct swr_mstr_ctrl *swrm = swr_get_ctrl_data(mstr);
 
@@ -1406,6 +1421,9 @@ static int swrm_probe(struct platform_device *pdev)
 	swrm->master.get_logical_dev_num = swrm_get_logical_dev_num;
 	swrm->master.connect_port = swrm_connect_port;
 	swrm->master.disconnect_port = swrm_disconnect_port;
+#ifdef CONFIG_MACH_LGE
+	swrm->master.wakeup_soundwire_master = swrm_wakeup_soundwire_master;
+#endif
 	swrm->master.slvdev_datapath_control = swrm_slvdev_datapath_control;
 	swrm->master.remove_from_group = swrm_remove_from_group;
 	swrm->master.dev.parent = &pdev->dev;
@@ -1685,7 +1703,8 @@ int swrm_wcd_notify(struct platform_device *pdev, u32 id, void *data)
 		mutex_lock(&swrm->reslock);
 		if ((swrm->state == SWR_MSTR_RESUME) ||
 		    (swrm->state == SWR_MSTR_UP)) {
-			dev_dbg(swrm->dev, "%s: SWR master is already UP: %d\n",
+			pm_runtime_mark_last_busy(&pdev->dev);
+			dev_dbg(swrm->dev, "%s: SWR master is already UP: %d, Just call pm_runtime_mark_last_busy\n",
 				__func__, swrm->state);
 		} else {
 			pm_runtime_mark_last_busy(&pdev->dev);
