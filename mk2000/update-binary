@@ -4,10 +4,13 @@
 
 OUTFD=/proc/self/fd/$2;
 ZIPFILE="$3";
-DIR=$(dirname "$ZIPFILE");
+
+ps | grep zygote | grep -v grep >/dev/null && BOOTMODE=true || BOOTMODE=false;
+$BOOTMODE || ps -A 2>/dev/null | grep zygote | grep -v grep >/dev/null && BOOTMODE=true;
+
+$BOOTMODE && DIR=/sdcard || DIR=$(dirname "$ZIPFILE");
 
 test "$home" || home=/tmp/anykernel;
-parent=$(dirname $home);
 
 ui_print() {
   until [ ! "$1" ]; do
@@ -18,14 +21,15 @@ ui_print() {
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2-; }
 cleanup() {
-  cd $parent;
+  cd $home/..;
   rm -rf $home;
 }
 debugging() {
   case $(basename "$ZIPFILE" .zip) in
     *-debugging)
-      ui_print " " "Creating debugging archive in zip directory...";
-      $bb tar -czvf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $parent/*;
+      ui_print " " "Creating debugging archive in $DIR...";
+      test -f /tmp/recovery.log && log=/tmp/recovery.log;
+      $bb tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $home $log;
     ;;
   esac;
 }
@@ -50,9 +54,9 @@ abort() {
 }
 
 if [ "$(file_getprop anykernel.sh do.ssdtrim)" == 1 ]; then
-  show_progress 1.00 16;
+  show_progress 1.00 17;
 else
-  show_progress 1.00 10;
+  show_progress 1.00 11;
 fi;
 
 ui_print " ";
