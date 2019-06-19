@@ -740,11 +740,7 @@ start_journal_io:
 				clear_buffer_dirty(bh);
 				set_buffer_uptodate(bh);
 				bh->b_end_io = journal_end_buffer_io_sync;
-#ifdef CONFIG_MACH_LGE
-				submit_bh(WRITE_SYNC | REQ_PREEMPT, bh);
-#else
-				submit_bh(WRITE_SYNC , bh);
-#endif
+				submit_bh(WRITE_SYNC, bh);
 			}
 			cond_resched();
 			stats.run.rs_blocks_logged += bufs;
