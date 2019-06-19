@@ -103,10 +103,12 @@ GCC_COMP=$HOME/build/toolchain/gcc9/bin/aarch64-elf-
 GCC_COMP_32=$HOME/build/toolchain/gcc9-32/bin/arm-eabi-
 
 # compiler version
-if $(echo $GCC_COMP | grep -q 'gcc9'); then
-GCC_VER="GCC 9.1.1"
-else
-GCC_VER="$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
+# gnu gcc (non-linaro)
+if $(${GCC_COMP}gcc --version | grep -q '(GCC)'); then
+GCC_STRING=$(${GCC_COMP}gcc --version | head -n1 | cut -f2 -d')')
+GCC_VER="GCC$GCC_STRING"
+else # linaro gcc
+GCC_VER="$(${GCC_COMP}gcc --version | head -n1 | cut -f1 -d')' | \
 	cut -f2 -d'(')"
 if $(echo $GCC_VER | grep -q '~dev'); then
   GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
@@ -122,7 +124,7 @@ COLOR_G="\033[1;32m"
 COLOR_P="\033[1;35m"
 
 # twrp configuration
-[ "$2" = "twrp" ] && IS_TWRP=$2
+[ "$2" = "twrp" ] && MK_TWRP=yes
 
 ABORT() {
 	echo -e $COLOR_R"Error: $*"
@@ -228,7 +230,7 @@ SETUP_BUILD() {
 	if [ "$MK_VDSO" = "yes" ]; then
 	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
 	fi
-	if [ "$IS_TWRP" = "twrp" ]; then
+	if [ "$MK_TWRP" = "yes" ]; then
 	  echo "include mk2000_twrp_conf" >> $BDIR/.config
 	fi
 }
@@ -273,7 +275,7 @@ PREPARE_NEXT() {
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
-if [ "$IS_TWRP" = "twrp" ]; then
+if [ "$MK_TWRP" = "yes" ]; then
   echo -e $COLOR_P"TWRP configuration selected."
 fi
 echo -e $COLOR_G"Building ${DEVICE} ${VER}..."
