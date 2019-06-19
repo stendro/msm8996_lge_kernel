@@ -47,6 +47,7 @@ on property:sys.post_boot.parsed=1
     # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_migration_notif 1
 
     # Set I/O Scheduler
+    write /sys/block/sda/queue/read_ahead_kb 128
 
     # Tweak Virtual Memory
     write /proc/sys/vm/vfs_cache_pressure 80
