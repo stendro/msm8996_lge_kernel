@@ -1,2 +1,3 @@
 include elsa_nao_us_common
 include elsa_common-perf
+CONFIG_LGE_DIRTY_ABOOT_FIXUP=n

@@ -39,11 +39,8 @@ struct blkcg_gq;
 struct blk_flush_queue;
 
 #define BLKDEV_MIN_RQ	4
-#ifdef CONFIG_MACH_LGE
-#define BLKDEV_MAX_RQ	256	/* Default maximum */
-#else
-#define BLKDEV_MAX_RQ	128	/* Default maximum */
-#endif
+#define BLKDEV_MAX_RQ	32	/* Default maximum */
+
 /*
  * Maximum number of blkcg policies allowed to be registered concurrently.
  * Defined here to simplify include dependency.
@@ -520,10 +517,13 @@ struct request_queue {
 #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
 				 (1 << QUEUE_FLAG_STACKABLE)	|	\
 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+				 (1 << QUEUE_FLAG_SAME_FORCE)	|	\
 				 (1 << QUEUE_FLAG_ADD_RANDOM))
 
 #define QUEUE_FLAG_MQ_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
-				 (1 << QUEUE_FLAG_SAME_COMP))
+				 (1 << QUEUE_FLAG_STACKABLE)	|	\
+				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+				 (1 << QUEUE_FLAG_SAME_FORCE))
 
 static inline void queue_lockdep_assert_held(struct request_queue *q)
 {

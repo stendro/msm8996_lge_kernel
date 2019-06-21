@@ -1,20 +1,20 @@
-# apply interactive tweaks
+# Apply MK2000 Tweaks
 
 on property:sys.post_boot.parsed=1
 
-    # Set scheduler parameters
+    # Set Scheduler Parameters
     write /proc/sys/kernel/sched_upmigrate 94
-    write /proc/sys/kernel/sched_downmigrate 87
+    write /proc/sys/kernel/sched_downmigrate 88
 
-    # Set power cluster governor settings
+    # Set Power (efficient) Cluster Governor Settings
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/enable_prediction 0
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay "25000 1478400:40000"
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 84
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/above_hispeed_delay "15000 1324800:30000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/go_hispeed_load 82
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_rate 20000
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/hispeed_freq 844800
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/io_is_busy 0
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/align_windows 1
-    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "80 1478400:96"
+    write /sys/devices/system/cpu/cpu0/cpufreq/interactive/target_loads "78 1324800:88"
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/min_sample_time 30000
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/timer_slack 20000
     write /sys/devices/system/cpu/cpu0/cpufreq/interactive/fast_ramp_down 0
@@ -26,9 +26,9 @@ on property:sys.post_boot.parsed=1
     # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/use_sched_load 1
     # write /sys/devices/system/cpu/cpu0/cpufreq/interactive/use_migration_notif 1
 
-    # Set performance cluster governor settings
+    # Set Performance Cluster Governor Settings
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/enable_prediction 0
-    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1785600:16000 1824000:105000"
+    write /sys/devices/system/cpu/cpu2/cpufreq/interactive/above_hispeed_delay "20000 1785600:15000 1824000:115000"
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/go_hispeed_load 88
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/timer_rate 20000
     write /sys/devices/system/cpu/cpu2/cpufreq/interactive/hispeed_freq 1248000
@@ -46,25 +46,14 @@ on property:sys.post_boot.parsed=1
     # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_sched_load 1
     # write /sys/devices/system/cpu/cpu2/cpufreq/interactive/use_migration_notif 1
 
-    # Set Maple scheduler default
-    write /sys/block/mmcblk0/queue/scheduler "maple"
-    write /sys/block/sda/queue/scheduler "maple"
-    write /sys/block/sdb/queue/scheduler "maple"
-    write /sys/block/sdc/queue/scheduler "maple"
-    write /sys/block/sdd/queue/scheduler "maple"
-    write /sys/block/sde/queue/scheduler "maple"
-    write /sys/block/sdf/queue/scheduler "maple"
-    write /sys/block/sdg/queue/scheduler "maple"
-    write /sys/block/sdh/queue/scheduler "maple"
+    # Set I/O Scheduler
+    write /sys/block/sda/queue/read_ahead_kb 128
 
     # Tweak Virtual Memory
-    write /proc/sys/vm/dirty_background_ratio 10
-    write /proc/sys/vm/vfs_cache_pressure 65
+    write /proc/sys/vm/vfs_cache_pressure 80
     write /proc/sys/vm/oom_dump_tasks 0
-    write /proc/sys/vm/dirty_expire_centisecs 350
-    write /proc/sys/vm/dirty_writeback_centisecs 750
 
-    # Various tweaks
+    # Various Tweaks
     write /sys/module/spurious/parameters/noirqdebug Y
 
     write /dev/kmsg "MK2K Boot Complete"

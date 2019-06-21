@@ -394,7 +394,7 @@ static int msm_pcm_capture_prepare(struct snd_pcm_substream *substream)
 	int i = 0;
 	uint16_t bits_per_sample = 16;
 	uint16_t sample_word_size;
-#ifdef CONFIG_MACH_MSM8996_ELSA
+#if defined(CONFIG_MACH_MSM8996_ELSA_TMO_US) || defined(CONFIG_MACH_MSM8996_ELSA_NAO_US)
 	unsigned int be_id = soc_prtd->dai_link->be_id;
 #endif
 	pdata = (struct msm_plat_data *)
@@ -501,7 +501,7 @@ static int msm_pcm_capture_prepare(struct snd_pcm_substream *substream)
 
 	prtd->enabled = RUNNING;
 
-#ifdef CONFIG_MACH_MSM8996_ELSA
+#if defined(CONFIG_MACH_MSM8996_ELSA_TMO_US) || defined(CONFIG_MACH_MSM8996_ELSA_NAO_US)
 	if (prtd->ch_mixer) {
 		pr_err("ptrd->ch_mixer = %d\n", prtd->ch_mixer);
 		lge_msm_pcm_routing_channel_mixer(

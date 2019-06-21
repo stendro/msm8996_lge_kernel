@@ -1088,7 +1088,7 @@ int msm_pcm_routing_reg_phy_compr_stream(int fe_id, int perf_mode,
 	return 0;
 }
 
-#ifdef CONFIG_MACH_MSM8996_ELSA
+#if defined(CONFIG_MACH_MSM8996_ELSA_TMO_US) || defined(CONFIG_MACH_MSM8996_ELSA_NAO_US)
 int lge_msm_pcm_routing_channel_mixer(int fedai_id, bool perf_mode,
 				  int dspst_id, int stream_type, int be_id)
 {

@@ -1,13 +1,11 @@
 #!/bin/bash
 # Generate AnyKernel2 Script
 
-AK_DEV=$DEVICE
-
-if [ "$AK_DEV" = "H870" ] || [ "$AK_DEV" = "US997" ] || [ "$AK_DEV" = "H872" ]; then
+if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; then
   DEV_NAME=LUCYE
-elif [ "$AK_DEV" = "H850" ] || [ "$AK_DEV" = "RS988" ] || [ "$AK_DEV" = "H830" ]; then
+elif [ "$DEVICE" = "H850" ] || [ "$DEVICE" = "RS988" ] || [ "$DEVICE" = "H830" ]; then
   DEV_NAME=H1
-elif [ "$AK_DEV" = "US996Santa" ] || [ "$AK_DEV" = "US996" ] || [ "$AK_DEV" = "H918" ]; then
+elif [ "$DEVICE" = "US996Santa" ] || [ "$DEVICE" = "US996" ] || [ "$DEVICE" = "H918" ]; then
   DEV_NAME=ELSA
 else
   DEV_NAME=ELSA
@@ -15,37 +13,39 @@ else
   ABOOT_LOW=us996
 fi
 
-if [ "$AK_DEV" = "H990DS" ]; then
+if [ "$DEVICE" = "H990DS" ]; then
   H990_SIM=$(echo '
 # Set simcount (H990)
 patch_cmdline "lge.dsds=" "lge.dsds=dsds";
 patch_cmdline "lge.sim_num=" "lge.sim_num=2";')$'\n'
-elif [ "$AK_DEV" = "H990SS" ]; then
+elif [ "$DEVICE" = "H990SS" ]; then
   H990_SIM=$(echo '
 # Set simcount (H990)
 patch_cmdline "lge.dsds=" "lge.dsds=none";
 patch_cmdline "lge.sim_num=" "lge.sim_num=1";')$'\n'
 fi
 
-if [ "$AK_DEV" = "US996Santa" ]; then
+if [ "$DEVICE" = "US996Santa" ]; then
   AK_DEV=US996
-elif [[ "$AK_DEV" = F800* ]]; then
+elif [[ "$DEVICE" = F800* ]]; then
   AK_DEV=F800
-elif [[ "$AK_DEV" = H990* ]]; then
+elif [[ "$DEVICE" = H990* ]]; then
   AK_DEV=H990
+else
+  AK_DEV=$DEVICE
 fi
 
 DEV_LOW=$(echo "$AK_DEV" | awk '{print tolower($0)}')
 NAME_LOW=$(echo "$DEV_NAME" | awk '{print tolower($0)}')
 
 cat << EOF
-# AnyKernel2 Ramdisk Mod Script
+# AnyKernel3 Ramdisk Mod Script
 # osm0sis @ xda-developers
 
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=$DEVICE mk2000
+kernel.string=$DEVICE Kernel by askermk2000 @ xda-developers
 do.devicecheck=1
 do.droidcheck=1
 do.modules=0
@@ -67,7 +67,7 @@ ramdisk_compression=auto;
 
 ## AnyKernel methods (DO NOT CHANGE)
 # import patching functions/variables - see for reference
-. /tmp/anykernel/tools/ak2-core.sh;
+. tools/ak3-core.sh;
 
 ## AnyKernel file attributes
 # set permissions/ownership for included ramdisk files

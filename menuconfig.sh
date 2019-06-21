@@ -22,7 +22,7 @@ OUTDIR=$(dirname "$RDIR")
 OUTFILE=${DEVICE}_config_regen
 
 # directory containing cross-compiler
-TOOLCHAIN=$HOME/build/toolchain/linaro8/bin/aarch64-linux-gnu-
+TOOLCHAIN=$HOME/build/toolchain/gcc9/bin/aarch64-elf-
 
 export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN
@@ -52,7 +52,7 @@ elif [ "$DEVICE" = "H990TR" ]; then
 elif [ "$DEVICE" = "US996" ]; then
   DEVICE_DEFCONFIG=elsa_nao_us-perf_defconfig
 elif [ "$DEVICE" = "US996Santa" ]; then
-  DEVICE_DEFCONFIG=elsa_usc_us-perf_defconfig
+  DEVICE_DEFCONFIG=elsa_nao_us_dirty-perf_defconfig
 elif [ "$DEVICE" = "LS997" ]; then
   DEVICE_DEFCONFIG=elsa_spr_us-perf_defconfig
 elif [ "$DEVICE" = "VS995" ]; then
