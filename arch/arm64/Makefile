@@ -25,10 +25,16 @@ ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
 LD		+= -EB
+ifeq ($(MK_LINKER),ld.gold)
+LDFLAGS		+= -maarch64_elf64_be_vec
+endif
 else
 KBUILD_CPPFLAGS	+= -mlittle-endian
 AS		+= -EL
 LD		+= -EL
+ifeq ($(MK_LINKER),ld.gold)
+LDFLAGS		+= -maarch64_elf64_le_vec
+endif
 endif
 
 CHECKFLAGS	+= -D__aarch64__
