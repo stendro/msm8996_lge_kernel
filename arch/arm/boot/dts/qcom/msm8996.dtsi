@@ -21,7 +21,7 @@
 	interrupt-parent = <&intc>;
 
 	chosen {
-		bootargs = "sched_enable_hmp=1 sched_enable_power_aware=1 app_setting.use_32bit_app_setting=1 kpti=1";
+		bootargs = "app_setting.use_32bit_app_setting=1 kpti=1";
 	};
 
 	aliases {
@@ -62,6 +62,7 @@
 			qcom,limits-info = <&mitigation_profile0>;
 			enable-method = "psci";
 			qcom,ea = <&ea0>;
+			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L2_0: l2-cache {
 			      compatible = "arm,arch-cache";
@@ -84,6 +85,7 @@
 			qcom,limits-info = <&mitigation_profile1>;
 			enable-method = "psci";
 			qcom,ea = <&ea1>;
+			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_D_1: l1-dcache {
 				compatible = "arm,arch-cache";
@@ -101,6 +103,7 @@
 			qcom,limits-info = <&mitigation_profile2>;
 			enable-method = "psci";
 			qcom,ea = <&ea2>;
+			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L2_1: l2-cache {
 			      compatible = "arm,arch-cache";
@@ -123,6 +126,7 @@
 			enable-method = "psci";
 			qcom,limits-info = <&mitigation_profile3>;
 			qcom,ea = <&ea3>;
+			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_D_101: l1-dcache {
 				compatible = "arm,arch-cache";
@@ -154,6 +158,121 @@
 				};
 			};
 		};
+		energy-costs {
+			CPU_COST_0: core-cost0 {
+				busy-cost-data = <
+					149 90
+					207 122
+					233 140
+					263 166
+					298 196
+					342 231
+					406 306
+					459 367
+					494 423
+					529 480
+					570 536
+					589 566
+					630 642
+					666 711
+					707 800
+					763 925
+				>;
+				idle-cost-data = <
+				      2 2 0
+				>;
+			};
+			CPU_COST_1: core-cost1 {
+				busy-cost-data = <
+					149  93
+					197  117
+					233  140
+					263  166
+					298  196
+					342  231
+					368  281
+					415  322
+					449  356
+					494  423
+					529  480
+					570  536
+					596  582
+					630  642
+					666  711
+					707  800
+					746  887
+					779  972
+					814  1046
+					850  1141
+					868  1209
+					917  1331
+					959  1451
+					988  1560
+					1024 1715
+				>;
+				idle-cost-data = <
+				      2 2 0
+				>;
+			};
+			CLUSTER_COST_0: cluster-cost0 {
+				busy-cost-data = <
+					149 4
+					207 4
+					233 4
+					263 4
+					298 4
+					342 6
+					406 9
+					459 16
+					494 20
+					529 22
+					570 27
+					589 30
+					630 37
+					666 46
+					707 50
+					763 52
+				>;
+				idle-cost-data = <
+					0
+					0
+				>;
+			};
+			CLUSTER_COST_1: cluster-cost1 {
+				busy-cost-data = <
+					149  4
+					197  4
+					233  4
+					263  4
+					298  4
+					342  6
+					368  9
+					415  14
+					449  16
+					494  20
+					529  22
+					570  27
+					596  31
+					630  37
+					666  46
+					707  50
+					746  51
+					779  57
+					814  66
+					850  72
+					868  75
+					917  83
+					959  91
+					988  94
+					1024 96
+				>;
+				idle-cost-data = <
+					0
+					0
+				>;
+			};
+		};
+
 	};
 
 	soc: soc { };

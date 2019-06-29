@@ -47,21 +47,6 @@ DEFINE_PER_CPU(struct tick_sched, tick_cpu_sched);
  */
 static ktime_t last_jiffies_update;
 
-u64 jiffy_to_ktime_ns(u64 *now, u64 *jiffy_ktime_ns)
-{
-	u64 cur_jiffies;
-	unsigned long seq;
-
-	do {
-		seq = read_seqbegin(&jiffies_lock);
-		*now = ktime_get_ns();
-		*jiffy_ktime_ns = ktime_to_ns(last_jiffies_update);
-		cur_jiffies = get_jiffies_64();
-	} while (read_seqretry(&jiffies_lock, seq));
-
-	return cur_jiffies;
-}
-
 struct tick_sched *tick_get_tick_sched(int cpu)
 {
 	return &per_cpu(tick_cpu_sched, cpu);
@@ -297,7 +282,7 @@ void tick_nohz_full_kick_all(void)
  * It might need the tick due to per task/process properties:
  * perf events, posix cpu timers, ...
  */
-void __tick_nohz_task_switch(struct task_struct *tsk)
+void __tick_nohz_task_switch(void)
 {
 	unsigned long flags;
 
@@ -945,6 +930,18 @@ static void tick_nohz_restart_sched_tick(struct tick_sched *ts, ktime_t now)
 	ts->idle_exittime = now;
 
 	tick_nohz_restart(ts, now);
+}
+
+/**
+ * tick_nohz_get_idle_calls - return the current idle calls counter value
+ *
+ * Called from the schedutil frequency scaling governor in scheduler context.
+ */
+unsigned long tick_nohz_get_idle_calls(void)
+{
+	struct tick_sched *ts = this_cpu_ptr(&tick_cpu_sched);
+
+	return ts->idle_calls;
 }
 
 static void tick_nohz_account_idle_ticks(struct tick_sched *ts)

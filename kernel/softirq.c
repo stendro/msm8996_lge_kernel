@@ -57,6 +57,13 @@ static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp
 
 DEFINE_PER_CPU(struct task_struct *, ksoftirqd);
 
+/*
+ * active_softirqs -- per cpu, a mask of softirqs that are being handled,
+ * with the expectation that approximate answers are acceptable and therefore
+ * no synchronization.
+ */
+DEFINE_PER_CPU(__u32, active_softirqs);
+
 const char * const softirq_to_name[NR_SOFTIRQS] = {
 	"HI", "TIMER", "NET_TX", "NET_RX", "BLOCK", "BLOCK_IOPOLL",
 	"TASKLET", "SCHED", "HRTIMER", "RCU"
@@ -223,6 +230,8 @@ static inline bool lockdep_softirq_start(void) { return false; }
 static inline void lockdep_softirq_end(bool in_hardirq) { }
 #endif
 
+#define long_softirq_pending()	(local_softirq_pending() & LONG_SOFTIRQ_MASK)
+#define defer_for_rt()		(long_softirq_pending() && cpupri_check_rt())
 asmlinkage __visible void __do_softirq(void)
 {
 	unsigned long end = jiffies + MAX_SOFTIRQ_TIME;
@@ -230,7 +239,7 @@ asmlinkage __visible void __do_softirq(void)
 	int max_restart = MAX_SOFTIRQ_RESTART;
 	struct softirq_action *h;
 	bool in_hardirq;
-	__u32 pending;
+	__u32 pending, pending_now, pending_delay, pending_mask;
 	int softirq_bit;
 
 	/*
@@ -240,7 +249,20 @@ asmlinkage __visible void __do_softirq(void)
 	 */
 	current->flags &= ~PF_MEMALLOC;
 
+	/*
+	 * If this is not the ksoftirqd thread,
+	 * and there is an RT task that is running or is waiting to run,
+	 * delay handling the long-running softirq handlers by leaving
+	 * them for the ksoftirqd thread.
+	 */
+	if (current != __this_cpu_read(ksoftirqd) &&
+	    cpu_has_rt_task(smp_processor_id()))
+		pending_mask = LONG_SOFTIRQ_MASK;
+	else
+		pending_mask = 0;
 	pending = local_softirq_pending();
+	pending_delay = pending & pending_mask;
+	pending_now   = pending & ~pending_mask;
 	account_irq_enter_time(current);
 
 	__local_bh_disable_ip(_RET_IP_, SOFTIRQ_OFFSET);
@@ -248,13 +270,14 @@ asmlinkage __visible void __do_softirq(void)
 
 restart:
 	/* Reset the pending bitmask before enabling irqs */
-	set_softirq_pending(0);
+	__this_cpu_write(active_softirqs, pending_now);
+	set_softirq_pending(pending_delay);
 
 	local_irq_enable();
 
 	h = softirq_vec;
 
-	while ((softirq_bit = ffs(pending))) {
+	while ((softirq_bit = ffs(pending_now))) {
 		unsigned int vec_nr;
 		int prev_count;
 
@@ -275,18 +298,28 @@ restart:
 			preempt_count_set(prev_count);
 		}
 		h++;
-		pending >>= softirq_bit;
+		pending_now >>= softirq_bit;
 	}
 
+	__this_cpu_write(active_softirqs, 0);
 	rcu_bh_qs();
 	local_irq_disable();
 
 	pending = local_softirq_pending();
+	pending_delay = pending & pending_mask;
+	pending_now   = pending & ~pending_mask;
 	if (pending) {
-		if (time_before(jiffies, end) && !need_resched() &&
-		    --max_restart)
+		if (pending_now && time_before(jiffies, end) &&
+		    !defer_for_rt() &&
+		    !need_resched() && --max_restart)
 			goto restart;
 
+		/*
+		 * Wake up ksoftirqd to handle remaining softirq's, either
+		 * because we are delaying a subset (pending_delayed)
+		 * to avoid interrupting an RT task, or because we have
+		 * exhausted the time limit.
+		 */
 		wakeup_softirqd();
 	}
 
@@ -336,7 +369,7 @@ void irq_enter(void)
 
 static inline void invoke_softirq(void)
 {
-	if (!force_irqthreads) {
+	if (!force_irqthreads && !defer_for_rt()) {
 #ifdef CONFIG_HAVE_IRQ_EXIT_ON_IRQ_STACK
 		/*
 		 * We can safely execute softirq on the current stack if

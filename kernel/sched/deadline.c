@@ -18,6 +18,8 @@
 
 #include <linux/slab.h>
 
+#include "walt.h"
+
 struct dl_bandwidth def_dl_bandwidth;
 
 static inline struct task_struct *dl_task_of(struct sched_dl_entity *dl_se)
@@ -41,6 +43,24 @@ static inline struct dl_rq *dl_rq_of_se(struct sched_dl_entity *dl_se)
 static inline int on_dl_rq(struct sched_dl_entity *dl_se)
 {
 	return !RB_EMPTY_NODE(&dl_se->rb_node);
+}
+
+static void add_average_bw(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
+{
+	u64 se_bw = dl_se->dl_bw;
+
+	dl_rq->avg_bw += se_bw;
+}
+
+static void clear_average_bw(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
+{
+	u64 se_bw = dl_se->dl_bw;
+
+	dl_rq->avg_bw -= se_bw;
+	if (dl_rq->avg_bw < 0) {
+		WARN_ON(1);
+		dl_rq->avg_bw = 0;
+	}
 }
 
 static inline int is_leftmost(struct task_struct *p, struct dl_rq *dl_rq)
@@ -69,7 +89,7 @@ void init_dl_bw(struct dl_bw *dl_b)
 	dl_b->total_bw = 0;
 }
 
-void init_dl_rq(struct dl_rq *dl_rq, struct rq *rq)
+void init_dl_rq(struct dl_rq *dl_rq)
 {
 	dl_rq->rb_root = RB_ROOT;
 
@@ -350,6 +370,11 @@ static void replenish_dl_entity(struct sched_dl_entity *dl_se,
 		dl_se->deadline = rq_clock(rq) + pi_se->dl_deadline;
 		dl_se->runtime = pi_se->dl_runtime;
 	}
+
+	if (dl_se->dl_yielded)
+		dl_se->dl_yielded = 0;
+	if (dl_se->dl_throttled)
+		dl_se->dl_throttled = 0;
 }
 
 /*
@@ -420,6 +445,9 @@ static void update_dl_entity(struct sched_dl_entity *dl_se,
 {
 	struct dl_rq *dl_rq = dl_rq_of_se(dl_se);
 	struct rq *rq = rq_of_dl_rq(dl_rq);
+
+	if (dl_se->dl_new)
+		add_average_bw(dl_se, dl_rq);
 
 	/*
 	 * The arrival of a new instance needs special treatment, i.e.,
@@ -536,23 +564,19 @@ again:
 
 	sched_clock_tick();
 	update_rq_clock(rq);
-	dl_se->dl_throttled = 0;
-	dl_se->dl_yielded = 0;
-	if (task_on_rq_queued(p)) {
-		enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
-		if (dl_task(rq->curr))
-			check_preempt_curr_dl(rq, p, 0);
-		else
-			resched_curr(rq);
+	enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
+	if (dl_task(rq->curr))
+		check_preempt_curr_dl(rq, p, 0);
+	else
+		resched_curr(rq);
 #ifdef CONFIG_SMP
-		/*
-		 * Queueing this task back might have overloaded rq,
-		 * check if we need to kick someone away.
-		 */
-		if (has_pushable_dl_tasks(rq))
-			push_dl_task(rq);
+	/*
+	 * Queueing this task back might have overloaded rq,
+	 * check if we need to kick someone away.
+	 */
+	if (has_pushable_dl_tasks(rq))
+		push_dl_task(rq);
 #endif
-	}
 unlock:
 	raw_spin_unlock(&rq->lock);
 
@@ -563,17 +587,12 @@ void init_dl_task_timer(struct sched_dl_entity *dl_se)
 {
 	struct hrtimer *timer = &dl_se->dl_timer;
 
-	if (hrtimer_active(timer)) {
-		hrtimer_try_to_cancel(timer);
-		return;
-	}
-
 	hrtimer_init(timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	timer->function = dl_task_timer;
 }
 
 static
-int dl_runtime_exceeded(struct rq *rq, struct sched_dl_entity *dl_se)
+int dl_runtime_exceeded(struct sched_dl_entity *dl_se)
 {
 	return (dl_se->runtime <= 0);
 }
@@ -605,6 +624,9 @@ static void update_curr_dl(struct rq *rq)
 	if (unlikely((s64)delta_exec <= 0))
 		return;
 
+	/* kick cpufreq (see the comment in kernel/sched/sched.h). */
+	cpufreq_update_this_cpu(rq, SCHED_CPUFREQ_DL);
+
 	schedstat_set(curr->se.statistics.exec_max,
 		      max(curr->se.statistics.exec_max, delta_exec));
 
@@ -614,14 +636,11 @@ static void update_curr_dl(struct rq *rq)
 	curr->se.exec_start = rq_clock_task(rq);
 	cpuacct_charge(curr, delta_exec);
 
-	sched_rt_avg_update(rq, delta_exec);
-
-	dl_se->runtime -= delta_exec;
-	if (dl_runtime_exceeded(rq, dl_se)) {
+	dl_se->runtime -= dl_se->dl_yielded ? 0 : delta_exec;
+	if (dl_runtime_exceeded(dl_se)) {
+		dl_se->dl_throttled = 1;
 		__dequeue_task_dl(rq, curr, 0);
-		if (likely(start_dl_timer(dl_se, curr->dl.dl_boosted)))
-			dl_se->dl_throttled = 1;
-		else
+		if (unlikely(!start_dl_timer(dl_se, curr->dl.dl_boosted)))
 			enqueue_task_dl(rq, curr, ENQUEUE_REPLENISH);
 
 		if (!is_leftmost(curr, &rq->dl))
@@ -725,50 +744,6 @@ static inline void dec_dl_deadline(struct dl_rq *dl_rq, u64 deadline) {}
 
 #endif /* CONFIG_SMP */
 
-#ifdef CONFIG_SCHED_HMP
-
-static void
-inc_hmp_sched_stats_dl(struct rq *rq, struct task_struct *p)
-{
-	inc_cumulative_runnable_avg(&rq->hmp_stats, p);
-}
-
-static void
-dec_hmp_sched_stats_dl(struct rq *rq, struct task_struct *p)
-{
-	dec_cumulative_runnable_avg(&rq->hmp_stats, p);
-}
-
-#ifdef CONFIG_SCHED_QHMP
-static void
-fixup_hmp_sched_stats_dl(struct rq *rq, struct task_struct *p,
-			 u32 new_task_load)
-{
-	fixup_cumulative_runnable_avg(&rq->hmp_stats, p, new_task_load);
-}
-#else
-static void
-fixup_hmp_sched_stats_dl(struct rq *rq, struct task_struct *p,
-			 u32 new_task_load, u32 new_pred_demand)
-{
-	s64 task_load_delta = (s64)new_task_load - task_load(p);
-	s64 pred_demand_delta = PRED_DEMAND_DELTA;
-
-	fixup_cumulative_runnable_avg(&rq->hmp_stats, p, task_load_delta,
-				      pred_demand_delta);
-}
-#endif
-
-#else	/* CONFIG_SCHED_HMP */
-
-static inline void
-inc_hmp_sched_stats_dl(struct rq *rq, struct task_struct *p) { }
-
-static inline void
-dec_hmp_sched_stats_dl(struct rq *rq, struct task_struct *p) { }
-
-#endif	/* CONFIG_SCHED_HMP */
-
 static inline
 void inc_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 {
@@ -778,7 +753,7 @@ void inc_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 	WARN_ON(!dl_prio(prio));
 	dl_rq->dl_nr_running++;
 	add_nr_running(rq_of_dl_rq(dl_rq), 1);
-	inc_hmp_sched_stats_dl(rq_of_dl_rq(dl_rq), dl_task_of(dl_se));
+	walt_inc_cumulative_runnable_avg(rq_of_dl_rq(dl_rq), dl_task_of(dl_se));
 
 	inc_dl_deadline(dl_rq, deadline);
 	inc_dl_migration(dl_se, dl_rq);
@@ -793,7 +768,7 @@ void dec_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 	WARN_ON(!dl_rq->dl_nr_running);
 	dl_rq->dl_nr_running--;
 	sub_nr_running(rq_of_dl_rq(dl_rq), 1);
-	dec_hmp_sched_stats_dl(rq_of_dl_rq(dl_rq), dl_task_of(dl_se));
+	walt_dec_cumulative_runnable_avg(rq_of_dl_rq(dl_rq), dl_task_of(dl_se));
 
 	dec_dl_deadline(dl_rq, dl_se->deadline);
 	dec_dl_migration(dl_se, dl_rq);
@@ -904,7 +879,7 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 	 * its rq, the bandwidth timer callback (which clearly has not
 	 * run yet) will take care of this.
 	 */
-	if (p->dl.dl_throttled)
+	if (p->dl.dl_throttled && !(flags & ENQUEUE_REPLENISH))
 		return;
 
 	enqueue_dl_entity(&p->dl, pi_se, flags);
@@ -957,7 +932,8 @@ static void yield_task_dl(struct rq *rq)
 static int find_later_rq(struct task_struct *task);
 
 static int
-select_task_rq_dl(struct task_struct *p, int cpu, int sd_flag, int flags)
+select_task_rq_dl(struct task_struct *p, int cpu, int sd_flag, int flags,
+		  int sibling_count_hint)
 {
 	struct task_struct *curr;
 	struct rq *rq;
@@ -1140,6 +1116,8 @@ static void task_dead_dl(struct task_struct *p)
 {
 	struct hrtimer *timer = &p->dl.dl_timer;
 	struct dl_bw *dl_b = dl_bw_of(task_cpu(p));
+	struct dl_rq *dl_rq = dl_rq_of_se(&p->dl);
+	struct rq *rq = rq_of_dl_rq(dl_rq);
 
 	/*
 	 * Since we are TASK_DEAD we won't slip out of the domain!
@@ -1149,6 +1127,8 @@ static void task_dead_dl(struct task_struct *p)
 	raw_spin_unlock_irq(&dl_b->lock);
 
 	hrtimer_cancel(timer);
+
+	clear_average_bw(&p->dl, &rq->dl);
 }
 
 static void set_curr_task_dl(struct rq *rq)
@@ -1421,9 +1401,11 @@ retry:
 	}
 
 	deactivate_task(rq, next_task, 0);
+	clear_average_bw(&next_task->dl, &rq->dl);
 	next_task->on_rq = TASK_ON_RQ_MIGRATING;
 	set_task_cpu(next_task, later_rq->cpu);
 	next_task->on_rq = TASK_ON_RQ_QUEUED;
+	add_average_bw(&next_task->dl, &later_rq->dl);
 	activate_task(later_rq, next_task, 0);
 
 	resched_curr(later_rq);
@@ -1509,9 +1491,11 @@ static int pull_dl_task(struct rq *this_rq)
 			ret = 1;
 
 			deactivate_task(src_rq, p, 0);
+			clear_average_bw(&p->dl, &src_rq->dl);
 			p->on_rq = TASK_ON_RQ_MIGRATING;
 			set_task_cpu(p, this_cpu);
 			p->on_rq = TASK_ON_RQ_QUEUED;
+			add_average_bw(&p->dl, &this_rq->dl);
 			activate_task(this_rq, p, 0);
 			dmin = p->dl.deadline;
 
@@ -1550,9 +1534,32 @@ static void set_cpus_allowed_dl(struct task_struct *p,
 				const struct cpumask *new_mask)
 {
 	struct rq *rq;
+	struct root_domain *src_rd;
 	int weight;
 
 	BUG_ON(!dl_task(p));
+
+	rq = task_rq(p);
+	src_rd = rq->rd;
+	/*
+	 * Migrating a SCHED_DEADLINE task between exclusive
+	 * cpusets (different root_domains) entails a bandwidth
+	 * update. We already made space for us in the destination
+	 * domain (see cpuset_can_attach()).
+	 */
+	if (!cpumask_intersects(src_rd->span, new_mask)) {
+		struct dl_bw *src_dl_b;
+
+		src_dl_b = dl_bw_of(cpu_of(rq));
+		/*
+		 * We now free resources of the root_domain we are migrating
+		 * off. In the worst case, sched_setattr() may temporary fail
+		 * until we complete the update.
+		 */
+		raw_spin_lock(&src_dl_b->lock);
+		__dl_clear(src_dl_b, p->dl.dl_bw);
+		raw_spin_unlock(&src_dl_b->lock);
+	}
 
 	/*
 	 * Update only if the task is actually running (i.e.,
@@ -1569,8 +1576,6 @@ static void set_cpus_allowed_dl(struct task_struct *p,
 	 */
 	if ((p->nr_cpus_allowed > 1) == (weight > 1))
 		return;
-
-	rq = task_rq(p);
 
 	/*
 	 * The process used to be able to migrate OR it can now migrate
@@ -1619,14 +1624,42 @@ void init_sched_dl_class(void)
 
 #endif /* CONFIG_SMP */
 
+/*
+ *  Ensure p's dl_timer is cancelled. May drop rq->lock for a while.
+ */
+static void cancel_dl_timer(struct rq *rq, struct task_struct *p)
+{
+	struct hrtimer *dl_timer = &p->dl.dl_timer;
+
+	/* Nobody will change task's class if pi_lock is held */
+	lockdep_assert_held(&p->pi_lock);
+
+	if (hrtimer_active(dl_timer)) {
+		int ret = hrtimer_try_to_cancel(dl_timer);
+
+		if (unlikely(ret == -1)) {
+			/*
+			 * Note, p may migrate OR new deadline tasks
+			 * may appear in rq when we are unlocking it.
+			 * A caller of us must be fine with that.
+			 */
+			raw_spin_unlock(&rq->lock);
+			hrtimer_cancel(dl_timer);
+			raw_spin_lock(&rq->lock);
+		}
+	}
+}
+
 static void switched_from_dl(struct rq *rq, struct task_struct *p)
 {
-	if (hrtimer_active(&p->dl.dl_timer) && !dl_policy(p->policy))
-		hrtimer_try_to_cancel(&p->dl.dl_timer);
+	cancel_dl_timer(rq, p);
 
 	__dl_clear_params(p);
 
+	clear_average_bw(&p->dl, &rq->dl);
+
 #ifdef CONFIG_SMP
+
 	/*
 	 * Since this might be the only -deadline task on the rq,
 	 * this is the right place to try to pull some other one
@@ -1736,9 +1769,4 @@ const struct sched_class dl_sched_class = {
 	.switched_to		= switched_to_dl,
 
 	.update_curr		= update_curr_dl,
-#ifdef CONFIG_SCHED_HMP
-	.inc_hmp_sched_stats	= inc_hmp_sched_stats_dl,
-	.dec_hmp_sched_stats	= dec_hmp_sched_stats_dl,
-	.fixup_hmp_sched_stats	= fixup_hmp_sched_stats_dl,
-#endif
 };

@@ -23,8 +23,6 @@
 #include <linux/tick.h>
 #include <trace/events/power.h>
 
-#include <trace/events/sched.h>
-
 #include "smpboot.h"
 
 #ifdef CONFIG_SMP
@@ -90,6 +88,11 @@ static struct {
 #define cpuhp_lock_acquire()      lock_map_acquire(&cpu_hotplug.dep_map)
 #define cpuhp_lock_release()      lock_map_release(&cpu_hotplug.dep_map)
 
+void cpu_hotplug_mutex_held(void)
+{
+	lockdep_assert_held(&cpu_hotplug.lock);
+}
+EXPORT_SYMBOL(cpu_hotplug_mutex_held);
 
 void get_online_cpus(void)
 {
@@ -391,8 +394,10 @@ static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
 	 *
 	 * Wait for the stop thread to go away.
 	 */
-	while (!idle_cpu(cpu))
+	while (!per_cpu(cpu_dead_idle, cpu))
 		cpu_relax();
+	smp_mb(); /* Read from cpu_dead_idle before __cpu_die(). */
+	per_cpu(cpu_dead_idle, cpu) = false;
 
 	hotplug_cpu__broadcast_tick_pull(cpu);
 	/* This actually kills the CPU. */
@@ -405,7 +410,6 @@ static int __ref _cpu_down(unsigned int cpu, int tasks_frozen)
 
 out_release:
 	cpu_hotplug_done();
-	trace_sched_cpu_hotplug(cpu, err, 0);
 	if (!err)
 		cpu_notify_nofail(CPU_POST_DEAD | mod, hcpu);
 	return err;
@@ -509,7 +513,6 @@ out_notify:
 		__cpu_notify(CPU_UP_CANCELED | mod, hcpu, nr_calls, NULL);
 out:
 	cpu_hotplug_done();
-	trace_sched_cpu_hotplug(cpu, ret, 1);
 
 	return ret;
 }
