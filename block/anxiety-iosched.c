@@ -22,7 +22,7 @@
 #define	DEFAULT_MAX_WRITES_STARVED	(4)
 
 struct anxiety_data {
-	struct list_head queue[2];
+	struct list_head queue[2] ____cacheline_aligned;
 	uint16_t writes_starved;
 
 	/* Tunables */
