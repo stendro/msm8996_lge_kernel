@@ -248,6 +248,10 @@
 
 #endif	/* gcc version >= 40000 specific checks */
 
+#if GCC_VERSION >= 90000
+#define __copy(symbol) __attribute__((__copy__(symbol)))
+#endif
+
 #if !defined(__noclone)
 #define __noclone	/* not needed */
 #endif
