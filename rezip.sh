@@ -29,7 +29,7 @@ VER=$(cat "${RDIR}/VERSION") \
 
 OUTDIR=out
 MK2DIR=${RDIR}/mk2000
-AK_DIR=${MK2DIR}/ak-script
+INITRC_NAME=init.mktweaks.rc
 BANNER_BETA=${MK2DIR}/banner-beta
 DDIR=${RDIR}/${OUTDIR}/${DEVICE}
 INIT_FILE=${MK2DIR}/init
@@ -40,6 +40,7 @@ BANNER=${MK2DIR}/banner
 CLEAN_ZIP() {
 	echo "Remove old zip..."
 	rm -f $RDIR/$OUTDIR/${DEVICE}_${VER}-mk2000.zip
+	rm -f $DDIR/ramdisk/*
 }
 
 COPY_AK() {
@@ -51,16 +52,18 @@ COPY_AK() {
 	  cp $BANNER $DDIR \
 		|| ABORT "Failed to copy banner"
 	fi
-	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
-		|| ABORT "Failed to copy *anykernel.sh*"
+	source $MK2DIR/ak-template.sh > $DDIR/anykernel.sh \
+		|| ABORT "Failed to generate *anykernel.sh*"
 	cp $MK2DIR/update-binary $DDIR/META-INF/com/google/android \
 		|| ABORT "Failed to copy *update-binary*"
 }
 
 COPY_INIT() {
-	  echo "Copying init file..."
-	  cp $INIT_FILE $DDIR/ramdisk/init.blu_active.rc \
+	echo "Copying init file..."
+	cp $INIT_FILE $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy init file"
+	echo "import /$INITRC_NAME" > $DDIR/patch/init_rc-mod \
+		|| ABORT "Failed to make init_rc-mod"
 }
 
 ZIP_UP() {

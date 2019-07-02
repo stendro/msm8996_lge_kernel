@@ -13,19 +13,11 @@
 #
 ##################### VARIANTS #####################
 #
-# H850		= International (Global)
-#		LGH850   (LG G5)
-#
-# H830		= T-Mobile (US)
-#		LGH830   (LG G5)
-#
-# RS988		= Unlocked (US)
-#		LGRS988  (LG G5)
-#
-#   *************************
-#
 # H910		= AT&T (US)
 #		LGH910   (LG V20)
+#
+# H915		= Canada (CA)
+#		LGH915   (LG V20)
 #
 # H918		= T-Mobile (US)
 #		LGH918   (LG V20)
@@ -48,13 +40,8 @@
 # LS997		= Sprint (US)
 #		LGLS997  (LG V20)
 #
-#   *************************
-#
-# H870		= International (Global)
-#		LGH870   (LG G6)
-#
-# US997		= US Cellular & Unlocked (US)
-#		US997    (LG G6)
+# F800K/L/S	= Korea (KR)
+#		LGF800   (LG V20)
 #
 ###################### CONFIG ######################
 
@@ -64,14 +51,8 @@ RDIR=$(pwd)
 # build dir
 BDIR=build
 
-# color codes
-COLOR_N="\033[0m"
-COLOR_R="\033[0;31m"
-COLOR_G="\033[1;32m"
-COLOR_P="\033[1;35m"
-
 # enable ccache ?
-USE_CCACHE=yes
+USE_CCACHE=no
 
 # version number
 VER=$(cat "$RDIR/VERSION")
@@ -87,8 +68,7 @@ MK_FLAGS="-fgraphite-identity \
 fi
 
 # select cpu threads
-CORES=$(grep -c "processor" /proc/cpuinfo)
-THREADS=$((CORES + 1))
+THREADS=$(grep -c "processor" /proc/cpuinfo)
 
 # get build date, month day year
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
@@ -97,10 +77,25 @@ BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 GCC_COMP=$HOME/build/toolchain/linaro7/bin/aarch64-linux-gnu-
 
 # compiler version
-GCC_VER=$(${GCC_COMP}gcc --version | head -n 1 | cut -f1 -d')' | \
-cut -f2 -d'(')
+# gnu gcc (non-linaro)
+if $(${GCC_COMP}gcc --version | grep -q '(GCC)'); then
+GCC_STRING=$(${GCC_COMP}gcc --version | head -n1 | cut -f2 -d')')
+GCC_VER="GCC$GCC_STRING"
+else # linaro gcc
+GCC_VER="$(${GCC_COMP}gcc --version | head -n1 | cut -f1 -d')' | \
+	cut -f2 -d'(')"
+if $(echo $GCC_VER | grep -q '~dev'); then
+  GCC_VER="$(echo $GCC_VER | cut -f1 -d'~')+"
+fi
+fi
 
 ############## SCARY NO-TOUCHY STUFF ###############
+
+# color codes
+COLOR_N="\033[0m"
+COLOR_R="\033[0;31m"
+COLOR_G="\033[1;32m"
+COLOR_P="\033[1;35m"
 
 ABORT() {
 	echo -e $COLOR_R"Error: $*"
@@ -128,7 +123,7 @@ DEVICE_DEFCONFIG=device_lge_${DEVICE}
 
 # check for stuff
 [ -f "$RDIR/arch/$ARCH/configs/${DEFCONFIG}" ] \
-	|| ABORT "$DEFCONFIG not found in $ARCH configs!"
+	|| ABORT "$DEFCONFIG not found in $ARCH configs! Make sure to use upper-case."
 
 [ -f "$RDIR/arch/$ARCH/configs/${DEVICE_DEFCONFIG}" ] \
 	|| ABORT "$DEVICE_DEFCONFIG not found in $ARCH configs!"
@@ -147,6 +142,7 @@ fi
 CLEAN_BUILD() {
 	echo -e $COLOR_G"Cleaning build folder..."$COLOR_N
 	rm -rf $BDIR
+	sleep 3
 }
 
 SETUP_BUILD() {

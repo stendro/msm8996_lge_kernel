@@ -53,7 +53,9 @@ CONFIG_UFS_LGE_CARD_RESET=y
 #########################################################################
 # Fix kernel command-line (may or may not be important)			#
 #########################################################################
-CONFIG_CMDLINE="lge.sim_num=2 lge.dsds=dsds androidboot.bl_unlock_complete=false androidboot.authorized_kernel=true"
+# lge.sim_num and lge.dsds is set by AnyKernel in boot.img              #
+#########################################################################
+CONFIG_CMDLINE="androidboot.bl_unlock_complete=false androidboot.authorized_kernel=true"
 CONFIG_CMDLINE_EXTEND=y
 CONFIG_CMDLINE_SEARCHREPLACE=y
 CONFIG_CMDLINE_SAR_VERIFY_GREEN=y

@@ -30,10 +30,16 @@ COMP=$(cat "${BDIR}/COMPRESSION") \
 
 BVER=$(cat ${RDIR}/VERSION | cut -f1 -d'-')
 
+# used to auto-generate an additional single-sim zip
+# from h990ds kernel. See "H990_SIM" below.
+if [ "$DEVICE" = "H990DS" ] && [ "$1" = "SS" ]; then
+  DEVICE=H990SS
+fi
+
 OUTDIR=out
 MK2DIR=${RDIR}/mk2000
-AK_DIR=${MK2DIR}/ak-script
 MOD_DIR=${BDIR}/lib/modules
+INITRC_NAME=init.mktweaks.rc
 MDIR=modules/system/lib/modules
 KERN_DIR=${BDIR}/arch/arm64/boot
 BANNER_BETA=${MK2DIR}/banner-beta
@@ -67,14 +73,16 @@ COPY_AK() {
 		|| ABORT "Failed to copy banner"
 	  echo "  ${VER} Nougat" > $DDIR/version
 	fi
-	cp $AK_DIR/anykernel-${DEVICE}.sh $DDIR/anykernel.sh \
-		|| ABORT "Failed to copy *anykernel.sh*"
+	source $MK2DIR/ak-template.sh > $DDIR/anykernel.sh \
+		|| ABORT "Failed to generate *anykernel.sh*"
 }
 
 COPY_INIT() {
-	  echo "Copying init file..."
-	  cp $INIT_FILE $DDIR/ramdisk/init.blu_active.rc \
+	echo "Copying init file..."
+	cp $INIT_FILE $DDIR/ramdisk/$INITRC_NAME \
 		|| ABORT "Failed to copy init file"
+	echo "import /$INITRC_NAME" > $DDIR/patch/init_rc-mod \
+		|| ABORT "Failed to make init_rc-mod"
 }
 
 COPY_KERNEL() {
@@ -95,6 +103,13 @@ ZIP_UP() {
 		|| ABORT "Failed to create zip archive"
 }
 
+H990_SIM() {
+	if [ "$DEVICE" = "H990DS" ]; then
+	  cd $RDIR
+	  exec bash "$0" "SS"
+	fi
+}
+
 cd "$RDIR" || ABORT "Failed to enter ${RDIR}"
 echo -e $COLOR_G"Preparing ${DEVICE} ${VER}"$COLOR_N
 
@@ -104,4 +119,5 @@ COPY_AK &&
 COPY_INIT &&
 COPY_KERNEL &&
 ZIP_UP &&
+H990_SIM &&
 echo -e $COLOR_G"Finished! -- Look in *${OUTDIR}* folder."
