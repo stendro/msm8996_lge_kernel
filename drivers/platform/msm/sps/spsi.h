@@ -144,6 +144,7 @@ extern u8 print_limit_option;
 #else
 #define SPS_IPC(idx, dev, msg, args...) /* Do nothing */
 #endif
+#ifdef CONFIG_IPC_LOGGING
 #define SPS_DUMP(msg, args...) do {					\
 		SPS_IPC(4, sps, msg, args); \
 		if (sps) { \
@@ -151,6 +152,9 @@ extern u8 print_limit_option;
 				pr_info(msg, ##args);	\
 		} \
 	} while (0)
+#else
+#define SPS_DUMP(msg, args...) /* Do nothing */
+#endif
 #define SPS_ERR(dev, msg, args...) do {					\
 		if (logging_option != 1) {	\
 			if (unlikely(print_limit_option > 2))	\
