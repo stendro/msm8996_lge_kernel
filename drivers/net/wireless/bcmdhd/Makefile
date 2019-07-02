@@ -4,6 +4,7 @@
 ######################
 
 ccflags-y += $(call cc-disable-warning,maybe-uninitialized,)
+ccflags-y += $(call cc-disable-warning,stringop-overflow,)
 
 DHDCFLAGS += -Wall -Wstrict-prototypes -Dlinux -DLINUX -DBCMDRIVER            \
         -DBCMDONGLEHOST -DUNRELEASEDCHIP -DBCMDMA32 -DBCMFILEIMAGE            \

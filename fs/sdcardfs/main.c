@@ -340,7 +340,7 @@ static int sdcardfs_read_super(struct super_block *sb, const char *dev_name,
 
 		sb_info->devpath = kzalloc(PATH_MAX, GFP_KERNEL);
 		if(sb_info->devpath && dev_name)
-			strncpy(sb_info->devpath, dev_name, strlen(dev_name));
+			strlcpy(sb_info->devpath, dev_name, sizeof(sb_info->devpath));
 
 		if (!silent)
 			printk(KERN_INFO "sdcardfs: mounted on top of %s type %s\n",
