@@ -109,6 +109,7 @@ struct msm_audio {
 	int cmd_interrupt;
 	bool meta_data_mode;
 	uint32_t volume;
+	int ch_mixer;
 	/* array of frame info */
 	struct msm_audio_in_frame_info in_frame_info[CAPTURE_MAX_NUM_PERIODS];
 };
