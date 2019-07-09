@@ -88,6 +88,8 @@ THREADS=$(grep -c "processor" /proc/cpuinfo)
 
 # directory containing cross-compiler
 GCC_COMP=$HOME/Android/toolchain/gcc9/bin/aarch64-elf-
+# directory containing 32bit cross-compiler (COMPAT_VDSO)
+GCC_COMP_32=$HOME/Android/toolchain/gcc9-32/bin/arm-eabi-
 
 # compiler version
 # gnu gcc (non-linaro)
@@ -122,8 +124,10 @@ export KBUILD_BUILD_HOST=github
 export LOCALVERSION="mk2k-${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
+  export CROSS_COMPILE_ARM32="ccache $GCC_COMP_32"
 else
   export CROSS_COMPILE=$GCC_COMP
+  export CROSS_COMPILE_ARM32=$GCC_COMP_32
 fi
 
 # selected device
@@ -168,6 +172,9 @@ fi
 [ -x "${GCC_COMP}gcc" ] \
 	|| ABORT "Cross-compiler not found at: ${GCC_COMP}gcc"
 
+[ -x "${GCC_COMP_32}gcc" ] && MK_VDSO=yes \
+	|| echo -e $COLOR_R"32-bit compiler not found, COMPAT_VDSO disabled."
+
 if [ "$USE_CCACHE" = "yes" ]; then
 	command -v ccache >/dev/null 2>&1 \
 	|| ABORT "Do you have ccache installed?"
@@ -186,6 +193,9 @@ SETUP_BUILD() {
 		|| ABORT "Failed to set up build."
 	if [ "$MK_LINKER" = "ld.gold" ]; then
 	  echo "CONFIG_THIN_ARCHIVES=y" >> $BDIR/.config
+	fi
+	if [ "$MK_VDSO" = "yes" ]; then
+	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
 	fi
 }
 
