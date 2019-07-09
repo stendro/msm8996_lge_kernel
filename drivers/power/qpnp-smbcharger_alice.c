@@ -1481,7 +1481,7 @@ static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
 static enum power_supply_type get_usb_pd_supply_type(struct smbchg_chip *chip)
 {
    union power_supply_propval pval = {0, };
-   int rc;
+   int rc = 0;
 
    if (!chip->ctype_psy) {
        chip->ctype_psy = power_supply_get_by_name("usb_pd");
@@ -6063,13 +6063,13 @@ static void smbchg_hvdcp_check_work(struct work_struct *work)
 	vbus_mv = get_usb_adc();
 
 	if (smbchg_is_hvdcp_type(chip) && (vbus_mv < HVDCP_UV_MV)) {
-	    pr_smb(PR_LGE, "rerun apsd is needed, vbus[%d]\n", vbus_mv);
-        prop.intval = 0;
-        chip->usb_psy->set_property(chip->usb_psy,
-                POWER_SUPPLY_PROP_APSD_RERUN_NEED, &prop);
+		pr_smb(PR_LGE, "rerun apsd is needed, vbus[%d]\n", vbus_mv);
+		prop.intval = 0;
+		rc = chip->usb_psy->set_property(chip->usb_psy,
+			POWER_SUPPLY_PROP_APSD_RERUN_NEED, &prop);
 
 		if (rc < 0)
-            dev_err(chip->dev, "could not set apsd_rerun_need:%d\n", rc);
+			dev_err(chip->dev, "could not set apsd_rerun_need:%d\n", rc);
 	}
 }
 #endif
@@ -10182,7 +10182,7 @@ static int smbchg_probe(struct spmi_device *spmi)
 	int rc;
 	struct smbchg_chip *chip;
 	struct power_supply *usb_psy;
-	struct qpnp_vadc_chip *vadc_dev;
+	struct qpnp_vadc_chip *vadc_dev = NULL;
 
 #ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
 	pr_smb(PR_LGE, "smbchg_probe start for alice\n");
