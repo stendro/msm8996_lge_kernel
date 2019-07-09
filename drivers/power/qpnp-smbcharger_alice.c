@@ -1466,7 +1466,7 @@ static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
 static enum power_supply_type get_usb_pd_supply_type(struct smbchg_chip *chip)
 {
    union power_supply_propval pval = {0, };
-   int rc;
+   int rc = 0;
 
    if (!chip->ctype_psy) {
        chip->ctype_psy = power_supply_get_by_name("usb_pd");
@@ -9974,7 +9974,7 @@ static int smbchg_probe(struct spmi_device *spmi)
 	int rc;
 	struct smbchg_chip *chip;
 	struct power_supply *usb_psy;
-	struct qpnp_vadc_chip *vadc_dev;
+	struct qpnp_vadc_chip *vadc_dev = NULL;
 
 #ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
 	pr_smb(PR_LGE, "smbchg_probe start for alice\n");

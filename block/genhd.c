@@ -1640,7 +1640,7 @@ static void disk_check_events(struct disk_events *ev,
 	struct gendisk *disk = ev->disk;
 	char *envp[ARRAY_SIZE(disk_uevents) + 1] = { };
 	unsigned int clearing = *clearing_ptr;
-	unsigned int events;
+	unsigned int events = 0;
 	unsigned long intv;
 	int nr_events = 0, i;
 
