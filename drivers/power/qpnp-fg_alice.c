@@ -9368,7 +9368,14 @@ out:
 static int fg_memif_init(struct fg_chip *chip)
 {
 	int rc;
+#ifndef CONFIG_LGE_PM
 	u8 dig_major;
+#endif
+#ifdef CONFIG_LGE_PM
+	static u8 count = 0;
+
+retry:
+#endif
 
 	rc = fg_read(chip, chip->revision, chip->mem_base + DIG_MINOR, 4);
 	if (rc) {
@@ -9386,7 +9393,11 @@ static int fg_memif_init(struct fg_chip *chip)
 		chip->ima_supported = true;
 		break;
 	default:
+#ifdef CONFIG_LGE_PM
+		pr_err("Digital Major rev=%d not supported\n", chip->revision[DIG_MAJOR]);
+#else
 		pr_err("Digital Major rev=%d not supported\n", dig_major);
+#endif
 		return -EINVAL;
 	}
 
@@ -9407,8 +9418,17 @@ static int fg_memif_init(struct fg_chip *chip)
 		/* check for error condition */
 		rc = fg_check_ima_exception(chip, true);
 		if (rc) {
+#ifdef CONFIG_LGE_PM
+			pr_err("Error in clearing IMA exception rc=%d, count %d\n", rc, count);
+			if (count < 3) {
+				count++;
+				goto retry;
+			} else
+				return -EPROBE_DEFER;
+#else
 			pr_err("Error in clearing IMA exception rc=%d", rc);
 			return rc;
+#endif
 		}
 	}
 
