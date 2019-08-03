@@ -21,7 +21,7 @@ ui_print() {
 show_progress() { echo "progress $1 $2" > $OUTFD; }
 file_getprop() { $bb grep "^$2=" "$1" | $bb cut -d= -f2-; }
 cleanup() {
-  cd $home/..;
+  cd $(dirname $home);
   rm -rf $home;
 }
 debugging() {
@@ -33,14 +33,14 @@ debugging() {
     ;;
   esac;
 }
-is_mounted() { $bb mount | $bb grep " $1 "; }
+is_mounted() { $bb mount | $bb grep -q " $1 "; }
 unmount_all() {
   ($bb umount /system;
   if [ -d /system_root -a ! -f /system/build.prop ]; then
     $bb umount /system_root;
   fi;
   $bb umount /system;
-  $bb umount /vendor;
+  umount /vendor;
   $bb umount /data) 2>/dev/null;
 }
 abort() {
@@ -67,6 +67,17 @@ unzip -o "$ZIPFILE";
 if [ $? != 0 -o ! "$(ls tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
+for arch32 in x86 arm; do
+  if [ -d $home/tools/$arch32 ]; then
+    bb=$home/tools/$arch32/busybox;
+    chmod 755 $bb;
+    $bb >/dev/null 2>&1;
+    if [ $? == 0 ]; then
+      $bb mv -f $home/tools/$arch32/* $home/tools;
+      break;
+    fi;
+  fi;
+done;
 bb=$home/tools/busybox;
 chmod 755 $bb;
 $bb chmod -R 755 tools bin;
@@ -79,7 +90,7 @@ ui_print "AnyKernel3 by osm0sis @ xda-developers" " " " ";
 ui_print "$(file_getprop anykernel.sh kernel.string)" " ";
 
 unmount_all;
-if [ ! "$(is_mounted /system)" ]; then
+if ! is_mounted /system; then
   $bb mount -o ro -t auto /system;
 fi;
 ($bb mount -o ro -t auto /vendor;
@@ -169,7 +180,7 @@ if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
         *) modcon=system;;
       esac;
     fi;
-    if [ "$(is_mounted $modtarget)" ]; then
+    if is_mounted $modtarget; then
       $bb mount -o rw,remount -t auto $modtarget;
     fi;
     mkdir -p $(dirname $modtarget);
@@ -179,7 +190,7 @@ if [ "$(file_getprop anykernel.sh do.modules)" == 1 ]; then
     if [ "$modcon" ]; then
       chcon "u:object_r:${modcon}_file:s0" $modtarget;
     fi;
-    if [ "$(is_mounted $modtarget)" ]; then
+    if is_mounted $modtarget; then
       $bb mount -o ro,remount -t auto $modtarget;
     fi;
   done;
