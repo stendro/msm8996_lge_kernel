@@ -416,7 +416,7 @@ void msm_pcm_routing_reg_stream_app_type_cfg(int fedai_id, int app_type,
 			int acdb_dev_id, int sample_rate, int session_type);
 int msm_pcm_routing_get_stream_app_type_cfg(int fedai_id, int session_type,
 			int *app_type, int *acdb_dev_id, int *sample_rate);
-#if defined(CONFIG_MACH_MSM8996_ELSA_TMO_US) || defined(CONFIG_MACH_MSM8996_ELSA_NAO_US)
+#ifdef CONFIG_MACH_MSM8996_ELSA
 int lge_msm_pcm_routing_channel_mixer(int fedai_id, bool perf_mode,
 				int dspst_id, int stream_type, int be_id);
 #endif

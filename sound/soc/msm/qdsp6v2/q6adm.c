@@ -523,7 +523,7 @@ fail_cmd:
 	return ret;
 }
 
-#if defined(CONFIG_MACH_MSM8996_ELSA_TMO_US) || defined(CONFIG_MACH_MSM8996_ELSA_NAO_US)
+#ifdef CONFIG_MACH_MSM8996_ELSA
 int lge_popoulate_channel_weight(u16 *ptr, struct msm_pcm_channel_mux *ch_mux,
 							u8 num_ch)
 {
