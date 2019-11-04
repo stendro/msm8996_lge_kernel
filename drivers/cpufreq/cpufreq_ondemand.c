@@ -191,13 +191,10 @@ static void od_check_cpu(int cpu, unsigned int load)
 	}
 }
 
-static unsigned int od_dbs_timer(struct cpu_dbs_info *cdbs,
-				 struct dbs_data *dbs_data, bool modify_all)
+static unsigned int od_dbs_timer(struct cpufreq_policy *policy, bool modify_all)
 {
-	struct cpufreq_policy *policy = cdbs->shared->policy;
-	unsigned int cpu = policy->cpu;
-	struct od_cpu_dbs_info_s *dbs_info = &per_cpu(od_cpu_dbs_info,
-			cpu);
+	struct dbs_data *dbs_data = policy->governor_data;
+	struct od_cpu_dbs_info_s *dbs_info = &per_cpu(od_cpu_dbs_info, policy->cpu);
 	struct od_dbs_tuners *od_tuners = dbs_data->tuners;
 	int delay = 0, sample_type = dbs_info->sample_type;
 
@@ -211,7 +208,7 @@ static unsigned int od_dbs_timer(struct cpu_dbs_info *cdbs,
 		__cpufreq_driver_target(policy, dbs_info->freq_lo,
 					CPUFREQ_RELATION_H);
 	} else {
-		dbs_check_cpu(dbs_data, cpu);
+		dbs_check_cpu(policy);
 		if (dbs_info->freq_lo) {
 			/* Setup timer for SUB_SAMPLE */
 			dbs_info->sample_type = OD_SUB_SAMPLE;
@@ -271,13 +268,11 @@ static void update_sampling_rate(struct dbs_data *dbs_data,
 			continue;
 
 		next_sampling = jiffies + usecs_to_jiffies(new_rate);
-		appointed_at = dbs_info->cdbs.dwork.timer.expires;
+		appointed_at = dbs_info->cdbs.timer.expires;
 
 		if (time_before(next_sampling, appointed_at)) {
-			cancel_delayed_work_sync(&dbs_info->cdbs.dwork);
-
-			gov_queue_work(dbs_data, policy,
-				       usecs_to_jiffies(new_rate), true);
+			gov_cancel_work(shared);
+			gov_add_timers(policy, usecs_to_jiffies(new_rate));
 
 		}
 	}
