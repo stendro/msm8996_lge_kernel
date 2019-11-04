@@ -100,10 +100,6 @@ struct cpufreq_policy {
 	 * - Any routine that will write to the policy structure and/or may take away
 	 *   the policy altogether (eg. CPU hotplug), will hold this lock in write
 	 *   mode before doing so.
-	 *
-	 * Additional rules:
-	 * - Lock should not be held across
-	 *     __cpufreq_governor(data, CPUFREQ_GOV_POLICY_EXIT);
 	 */
 	struct rw_semaphore	rwsem;
 
@@ -569,6 +565,15 @@ struct governor_attr {
 	ssize_t (*store)(struct gov_attr_set *attr_set, const char *buf,
 			 size_t count);
 };
+
+static inline bool cpufreq_this_cpu_can_update(struct cpufreq_policy *policy)
+{
+	/* Allow remote callbacks only on the CPUs sharing cpufreq policy */
+	if (cpumask_test_cpu(smp_processor_id(), policy->cpus))
+		return true;
+
+	return false;
+}
 
 /*********************************************************************
  *                     FREQUENCY TABLE HELPERS                       *
