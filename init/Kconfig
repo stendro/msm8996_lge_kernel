@@ -1423,6 +1423,10 @@ config LD_DEAD_CODE_DATA_ELIMINATION
 	  present. This option is not well tested yet, so use at your
 	  own risk.
 
+config LTO
+	bool "Enable Link Time Optimization"
+	select THIN_ARCHIVES
+
 config SYSCTL
 	bool
 

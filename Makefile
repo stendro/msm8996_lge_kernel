@@ -357,8 +357,8 @@ AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)$(MK_LINKER)
 CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
-AR		= $(CROSS_COMPILE)ar
-NM		= $(CROSS_COMPILE)nm
+AR		?= $(CROSS_COMPILE)ar
+NM		?= $(CROSS_COMPILE)nm
 STRIP		= $(CROSS_COMPILE)strip
 OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
@@ -632,6 +632,22 @@ all: vmlinux
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
+ifdef CONFIG_LTO
+LTO_CFLAGS    := -flto -flto=jobserver -fno-fat-lto-objects \
+                 -fuse-linker-plugin -fwhole-program
+KBUILD_CFLAGS += $(LTO_CFLAGS) --param=max-inline-insns-auto=1000
+LTO_LDFLAGS   := $(LTO_CFLAGS) -Wno-lto-type-mismatch -Wno-psabi \
+                 -flinker-output=nolto-rel
+LDFINAL       := $(CONFIG_SHELL) $(srctree)/scripts/gcc-ld $(LTO_LDFLAGS)
+AR            := $(CROSS_COMPILE)gcc-ar
+NM            := $(CROSS_COMPILE)gcc-nm
+DISABLE_LTO   := -fno-lto
+export DISABLE_LTO LDFINAL
+else
+LDFINAL       := $(LD)
+export LDFINAL
+endif
+
 KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
@@ -847,6 +863,17 @@ include $(srctree)/scripts/Makefile.ubsan
 KBUILD_CPPFLAGS += $(KCPPFLAGS)
 KBUILD_AFLAGS += $(KAFLAGS)
 KBUILD_CFLAGS += $(KCFLAGS)
+
+
+# In principle gcc should pass through options in the object files,
+# but it doesn't always work. So do it here manually.
+ifdef CONFIG_LTO
+LDFINAL += $(filter -g%,${KBUILD_CFLAGS})
+LDFINAL += $(filter -O%,${KBUILD_CFLAGS})
+LDFINAL += $(filter -f%,${KBUILD_CFLAGS})
+LDFINAL += $(filter -m%,${KBUILD_CFLAGS})
+LDFINAL += $(filter -W%,${KBUILD_CFLAGS})
+endif
 
 # Use --build-id when available.
 LDFLAGS_BUILD_ID = $(patsubst -Wl$(comma)%,%,\
