@@ -358,8 +358,8 @@ static inline void gic_write_eoir(u64 irq)
 
 struct irq_domain;
 int its_cpu_init(void);
-int its_init(struct device_node *node, struct rdists *rdists,
-	     struct irq_domain *domain);
+int __init its_init(struct device_node *node, struct rdists *rdists,
+		    struct irq_domain *parent_domain);
 
 #endif
 
