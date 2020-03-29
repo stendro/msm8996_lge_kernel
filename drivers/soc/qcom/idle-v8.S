@@ -59,6 +59,7 @@ align:  .quad .
 msm_pm_boot_vector:
 	.space  8 * 4 * 4
 
+	.align 8
 	.globl msm_pc_debug_counters_phys
 msm_pc_debug_counters_phys:
 	.long 0x0
