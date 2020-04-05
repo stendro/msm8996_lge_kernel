@@ -85,7 +85,7 @@ struct vbif_debug_bus {
 #define ATRACE_INT(name, value) \
 	trace_mdp_trace_counter(current->tgid, name, value)
 
-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_FB_MSM_MDSS)
+#if defined(CONFIG_DEBUG_FS2) && defined(CONFIG_FB_MSM_MDSS)
 
 #define MDSS_DEBUG_BASE_MAX 10
 
