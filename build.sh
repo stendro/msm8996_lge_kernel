@@ -9,7 +9,7 @@
 # file to point to the toolchain's root directory.
 #
 # once you've set up the config section how you like it, you can simply run
-# ./build.sh [VARIANT]
+# ./build.sh [VARIANT] (nethunter)
 #
 ##################### VARIANTS #####################
 #
@@ -63,12 +63,13 @@ RDIR=$(pwd)
 VER=$(cat "$RDIR/VERSION")
 
 # directory containing cross-compile arm64 toolchain
-TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+#TOOLCHAIN=$HOME/build/toolchain/bin/aarch64-linux-gnu-
+TOOLCHAIN=$HOME/build/toolchain/linaro7/bin/aarch64-linaro-linux-android-
 
 CPU_THREADS=$(grep -c "processor" /proc/cpuinfo)
 # amount of cpu threads to use in kernel make process
 # I'm using a VM on a slow pc...
-THREADS=2
+THREADS=$CPU_THREADS
 #THREADS=$((CPU_THREADS + 1))
 
 ############## SCARY NO-TOUCHY STUFF ###############
@@ -91,6 +92,10 @@ ABORT "Unable to find gcc cross-compiler at location: ${CROSS_COMPILE}gcc"
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified"
 
+if [ $# -eq 2 ] ; then
+TARGET=$2	
+fi
+
 DEFCONFIG=${TARGET}_defconfig
 DEVICE_DEFCONFIG=device_lge_${DEVICE}
 
@@ -101,11 +106,12 @@ ABORT "Config $DEFCONFIG not found in $ARCH configs!"
 ABORT "Device config $DEVICE_DEFCONFIG not found in $ARCH configs!"
 
 KDIR="$RDIR/build/arch/$ARCH/boot"
-export LOCALVERSION=${DEVICE}_${VER}-mk2000
+export LOCALVERSION=${TARGET}_${DEVICE}_${VER}-mk2000
 
 CLEAN_BUILD() {
 	echo "Cleaning build..."
-	rm -rf build
+	#rm -rf build
+	rm -rf build/lib/modules
 }
 
 SETUP_BUILD() {
@@ -136,14 +142,19 @@ INSTALL_MODULES() {
 		INSTALL_MOD_PATH="." \
 		INSTALL_MOD_STRIP=1 \
 		modules_install
-	rm build/lib/modules/*/build build/lib/modules/*/source
+	#rm build/lib/modules/*/build build/lib/modules/*/source
 }
 
 cd "$RDIR" || ABORT "Failed to enter $RDIR!"
-echo "Starting build for ${DEVICE} ${VER}"
+echo "Starting build for ${DEVICE} ${VER} ${TARGET}"
 
 CLEAN_BUILD &&
 SETUP_BUILD &&
 BUILD_KERNEL &&
 INSTALL_MODULES &&
-echo "Finished building $LOCALVERSION - Run ./copy_finished.sh"
+#echo "Finished building $LOCALVERSION - Run ./copy_finished.sh"
+if [ "$TARGET" = "nethunter" ]; then
+	source copy_finished.sh $TARGET
+else
+	source copy_finished.sh
+fi

@@ -44,7 +44,12 @@ This kernel is for the following LG DEVICES:
 	git clone https://github.com/stendro/msm8996_lge_kernel.git -b mk2k-gold
 
 ### Build
-	./build.sh "DEVICE" && ./copy_finished.sh
+	./build.sh "DEVICE"
+
+* "DEVICE" will be one of the above names (case sensitive).
+
+### Build nethunter
+	./build.sh "DEVICE" nethunter
 
 * "DEVICE" will be one of the above names (case sensitive).
 

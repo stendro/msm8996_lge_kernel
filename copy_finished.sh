@@ -32,6 +32,10 @@ DDIR=${RDIR}/out/${DEVICE}
 INIT_FILE=${RDISK}/init
 BANNER=${RDISK}/banner
 
+if [ $# -eq 1 ] ; then
+TARGET=$1	
+fi
+
 CLEAN_DIR() {
 	echo "Cleaning folder..."
 	rm -rf $DDIR
@@ -88,22 +92,31 @@ COPY_KERNEL() {
 	fi
 	find $MOD_DIR/ -name '*.ko' -exec cp {} $DDIR/modules \; \
 		|| ABORT "Failed to copy modules"
+	if [ "$TARGET" = "nethunter" ]; then
+	  echo "Copying modules nethunter"
+	  rsync -r --no-links $MOD_DIR/* $DDIR/modules/
+	fi
 }
 
 ZIP_UP() {
 	echo "Creating AnyKernel2 archive..."
 	cd $DDIR
+	if [ "$TARGET" = "nethunter" ]; then
+	  zip -7qr $RDIR/out/${DEVICE}_${TARGET}_${VER}-mk2000.zip * \
+		|| ABORT "Failed to create zip archive"
+	else
 	zip -7qr $RDIR/out/${DEVICE}_${VER}-mk2000.zip * \
 		|| ABORT "Failed to create zip archive"
+	fi
 }
 
 cd "$RDIR" || ABORT "Failed to enter ${RDIR}"
-echo "Preparing ${DEVICE} ${VER}"
+echo "Preparing ${DEVICE} ${VER} ${TARGET}"
 
 CLEAN_DIR &&
 SETUP_DIR &&
 COPY_AK &&
-COPY_INIT &&
+#COPY_INIT &&
 COPY_KERNEL &&
 ZIP_UP &&
 echo "Finished!"
