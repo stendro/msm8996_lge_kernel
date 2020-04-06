@@ -10938,6 +10938,57 @@ void nl80211_send_roamed(struct cfg80211_registered_device *rdev,
 	nlmsg_free(msg);
 
 }
+void nl80211_send_roamed2(struct cfg80211_registered_device *rdev,
+			 struct net_device *netdev,
+			 struct cfg80211_roam_info *info, gfp_t gfp)
+{
+	struct sk_buff *msg;
+	void *hdr;
+	const u8 *bssid = info->bss ? info->bss->bssid : info->bssid;
+
+	msg = nlmsg_new(100 + info->req_ie_len + info->resp_ie_len +
+			info->fils.kek_len + info->fils.pmk_len +
+			(info->fils.pmkid ? WLAN_PMKID_LEN : 0), gfp);
+	if (!msg)
+		return;
+
+	hdr = nl80211hdr_put(msg, 0, 0, 0, NL80211_CMD_ROAM);
+	if (!hdr) {
+		nlmsg_free(msg);
+		return;
+	}
+
+	if (nla_put_u32(msg, NL80211_ATTR_WIPHY, rdev->wiphy_idx) ||
+	    nla_put_u32(msg, NL80211_ATTR_IFINDEX, netdev->ifindex) ||
+	    nla_put(msg, NL80211_ATTR_MAC, ETH_ALEN, bssid) ||
+	    (info->req_ie &&
+	     nla_put(msg, NL80211_ATTR_REQ_IE, info->req_ie_len,
+		     info->req_ie)) ||
+	    (info->resp_ie &&
+	     nla_put(msg, NL80211_ATTR_RESP_IE, info->resp_ie_len,
+		     info->resp_ie)) ||
+	    (info->fils.update_erp_next_seq_num &&
+	     nla_put_u16(msg, NL80211_ATTR_FILS_ERP_NEXT_SEQ_NUM,
+			 info->fils.erp_next_seq_num)) ||
+	    (info->fils.kek &&
+	     nla_put(msg, NL80211_ATTR_FILS_KEK, info->fils.kek_len,
+		     info->fils.kek)) ||
+	    (info->fils.pmk &&
+	     nla_put(msg, NL80211_ATTR_PMK, info->fils.pmk_len, info->fils.pmk)) ||
+	    (info->fils.pmkid &&
+	     nla_put(msg, NL80211_ATTR_PMKID, WLAN_PMKID_LEN, info->fils.pmkid)))
+		goto nla_put_failure;
+
+	genlmsg_end(msg, hdr);
+
+	genlmsg_multicast_netns(&nl80211_fam, wiphy_net(&rdev->wiphy), msg, 0,
+				NL80211_MCGRP_MLME, gfp);
+	return;
+
+ nla_put_failure:
+	nlmsg_free(msg);
+}
+
 
 void nl80211_send_disconnected(struct cfg80211_registered_device *rdev,
 			       struct net_device *netdev, u16 reason,
