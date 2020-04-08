@@ -99,7 +99,7 @@ static int get_v4l2_window32(struct v4l2_window __user *kp,
 static int put_v4l2_window32(struct v4l2_window __user *kp,
 			     struct v4l2_window32 __user *up)
 {
-	struct v4l2_clip __user *kclips = kp->clips;
+	struct v4l2_clip __user *kclips;
 	struct v4l2_clip32 __user *uclips;
 	compat_caddr_t p;
 	u32 clipcount;
@@ -114,6 +114,8 @@ static int put_v4l2_window32(struct v4l2_window __user *kp,
 	if (!clipcount)
 		return 0;
 
+	if (get_user(kclips, &kp->clips))
+		return -EFAULT;
 	if (get_user(p, &up->clips))
 		return -EFAULT;
 	uclips = compat_ptr(p);
