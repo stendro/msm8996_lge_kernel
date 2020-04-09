@@ -39,7 +39,11 @@ fi
 CLEAN_DIR() {
 	echo "Cleaning folder..."
 	rm -rf $DDIR
-	rm -f $RDIR/out/${DEVICE}_${VER}-mk2000.zip
+	if [ "$TARGET" = "nethunter" ]; then
+		rm -f $RDIR/out/${DEVICE}_${TARGET}_${VER}-mk2000.zip
+	else
+		rm -f $RDIR/out/${DEVICE}_${VER}-mk2000.zip
+	fi
 }
 
 SETUP_DIR() {
