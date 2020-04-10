@@ -75,7 +75,7 @@
 
 #define UFS_BIT(x)	BIT(x)
 
-#if defined(CONFIG_UFS_LGE_FEATURE) && defined(CONFIG_MACH_MSM8996_ELSA) && !defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) && !defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP)
+#if defined(CONFIG_UFS_LGE_FEATURE) && defined(CONFIG_MACH_MSM8996_ELSA) && !defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) && !defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) && !defined(CONFIG_MACH_MSM8996_ANNA)
 #define LGE_UFS_THERM_TWEAK
 #endif
 
@@ -433,6 +433,7 @@ struct ufs_clk_gating {
 	struct device_attribute enable_attr;
 	bool is_enabled;
 	int active_reqs;
+	struct workqueue_struct *ungating_workq;
 };
 
 /* Hibern8 state  */
@@ -914,6 +915,8 @@ struct ufs_hba {
 
 	int scsi_block_reqs_cnt;
 
+	int			latency_hist_enabled;
+	struct io_latency_state io_lat_s;
 	bool do_full_init;
 
 #ifdef CONFIG_UFS_LGE_CARD_RESET
@@ -930,7 +933,7 @@ static inline bool ufshcd_can_hibern8_during_gating(struct ufs_hba *hba)
 {
 	return hba->caps & UFSHCD_CAP_HIBERN8_WITH_CLK_GATING;
 }
-static inline int ufshcd_is_clkscaling_enabled(struct ufs_hba *hba)
+static inline int ufshcd_is_clkscaling_supported(struct ufs_hba *hba)
 {
 	return hba->caps & UFSHCD_CAP_CLK_SCALING;
 }
@@ -1264,7 +1267,7 @@ static inline void ufshcd_vops_remove_debugfs(struct ufs_hba *hba)
 		hba->var->vops->remove_debugfs(hba);
 }
 #else
-static inline void ufshcd_vops_add_debugfs(struct ufs_hba *hba, struct dentry *root)
+static inline void ufshcd_vops_add_debugfs(struct ufs_hba *hba, struct dentry *)
 {
 }
 
