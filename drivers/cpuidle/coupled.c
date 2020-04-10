@@ -120,13 +120,13 @@ struct cpuidle_coupled {
 #define CPUIDLE_COUPLED_NOT_IDLE	(-1)
 
 static DEFINE_MUTEX(cpuidle_coupled_lock);
-static DEFINE_PER_CPU(struct call_single_data, cpuidle_coupled_poke_cb);
+static DEFINE_PER_CPU(call_single_data_t, cpuidle_coupled_poke_cb);
 
 /*
  * The cpuidle_coupled_poke_pending mask is used to avoid calling
- * __smp_call_function_single with the per cpu call_single_data struct already
+ * __smp_call_function_single with the per cpu call_single_data_t struct already
  * in use.  This prevents a deadlock where two cpus are waiting for each others
- * call_single_data struct to be available
+ * call_single_data_t struct to be available
  */
 static cpumask_t cpuidle_coupled_poke_pending;
 
