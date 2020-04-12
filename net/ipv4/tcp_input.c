@@ -81,8 +81,6 @@
 #include <net/mptcp_v6.h>
 #endif
 
-//add_to_scale
-#define TCP_RMEM_SCALE 4
 int sysctl_tcp_timestamps __read_mostly = 1;
 int sysctl_tcp_window_scaling __read_mostly = 1;
 int sysctl_tcp_sack __read_mostly = 1;
@@ -107,8 +105,7 @@ int sysctl_tcp_thin_dupack __read_mostly;
 int sysctl_tcp_moderate_rcvbuf __read_mostly = 1;
 int sysctl_tcp_early_retrans __read_mostly = 3;
 int sysctl_tcp_default_init_rwnd __read_mostly = TCP_INIT_CWND * 2;
-#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
-#else
+#ifndef CONFIG_LGP_DATA_TCPIP_MPTCP
 #define FLAG_DATA              0x01 /* Incoming frame contained data.          */
 #define FLAG_WIN_UPDATE                0x02 /* Incoming ACK was a window update.       */
 #define FLAG_DATA_ACKED                0x04 /* This ACK acknowledged new data.         */
@@ -192,11 +189,8 @@ static void tcp_incr_quickack(struct sock *sk, unsigned int max_quickacks)
 	if (quickacks > icsk->icsk_ack.quick)
 		icsk->icsk_ack.quick = quickacks;
 }
-#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
+
 void tcp_enter_quickack_mode(struct sock *sk, unsigned int max_quickacks)
-#else
-void tcp_enter_quickack_mode(struct sock *sk, unsigned int max_quickacks)
-#endif
 {
 	struct inet_connection_sock *icsk = inet_csk(sk);
 
@@ -391,20 +385,19 @@ static int __tcp_grow_window(const struct sock *sk, const struct sk_buff *skb)
 static void tcp_grow_window(struct sock *sk, const struct sk_buff *skb)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
+	int room;
 	#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 	struct sock *meta_sk = mptcp(tp) ? mptcp_meta_sk(sk) : sk;
 	struct tcp_sock *meta_tp = tcp_sk(meta_sk);
+
+	room = min_t(int, meta_tp->window_clamp, tcp_space(meta_sk)) - meta_tp->rcv_ssthresh;
+	#else
+
+	room = min_t(int, tp->window_clamp, tcp_space(sk)) - tp->rcv_ssthresh;
 	#endif
 
 	/* Check #1 */
-	#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
-	if (meta_tp->rcv_ssthresh < meta_tp->window_clamp &&
-	    (int)meta_tp->rcv_ssthresh < tcp_space(meta_sk) &&
-	#else
-	if (tp->rcv_ssthresh < tp->window_clamp &&
-			(int)tp->rcv_ssthresh < tcp_space(sk) &&	
-	#endif
-	    !sk_under_memory_pressure(sk)) {
+	if (room > 0 && !sk_under_memory_pressure(sk)) {
 		int incr;
 
 		/* Check #2. Increase window, if skb with such overhead
@@ -426,11 +419,9 @@ static void tcp_grow_window(struct sock *sk, const struct sk_buff *skb)
 		if (incr) {
 			incr = max_t(int, incr, 2 * skb->len);
 			#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
-			meta_tp->rcv_ssthresh = min(meta_tp->rcv_ssthresh + incr,
-					            meta_tp->window_clamp);
+			meta_tp->rcv_ssthresh += min(room, incr);
 			#else
-			tp->rcv_ssthresh = min(tp->rcv_ssthresh + incr,
-                                            tp->window_clamp);
+			tp->rcv_ssthresh += min(room, incr);
 			#endif
 			inet_csk(sk)->icsk_ack.quick |= 1;
 		}
@@ -726,7 +717,7 @@ static void tcp_event_data_recv(struct sock *sk, struct sk_buff *skb)
 			/* Too long gap. Apparently sender failed to
 			 * restart window, so that we send ACKs quickly.
 			 */
-		tcp_incr_quickack(sk, TCP_MAX_QUICKACKS);
+			tcp_incr_quickack(sk, TCP_MAX_QUICKACKS);
 			sk_mem_reclaim(sk);
 		}
 	}
@@ -1380,7 +1371,7 @@ static bool tcp_shifted_skb(struct sock *sk, struct sk_buff *skb,
 	TCP_SKB_CB(skb)->seq += shifted;
 
 	tcp_skb_pcount_add(prev, pcount);
-	BUG_ON(tcp_skb_pcount(skb) < pcount);
+	WARN_ON_ONCE(tcp_skb_pcount(skb) < pcount);
 	tcp_skb_pcount_add(skb, -pcount);
 
 	/* When we're adding to gso_segs == 1, gso_size will be zero,
@@ -1446,6 +1437,21 @@ static int skb_can_shift(const struct sk_buff *skb)
 	return !skb_headlen(skb) && skb_is_nonlinear(skb);
 }
 
+int tcp_skb_shift(struct sk_buff *to, struct sk_buff *from,
+		  int pcount, int shiftlen)
+{
+	/* TCP min gso_size is 8 bytes (TCP_MIN_GSO_SIZE)
+	 * Since TCP_SKB_CB(skb)->tcp_gso_segs is 16 bits, we need
+	 * to make sure not storing more than 65535 * 8 bytes per skb,
+	 * even if current MSS is bigger.
+	 */
+	if (unlikely(to->len + shiftlen >= 65535 * TCP_MIN_GSO_SIZE))
+		return 0;
+	if (unlikely(tcp_skb_pcount(to) + pcount > 65535))
+		return 0;
+	return skb_shift(to, from, shiftlen);
+}
+
 /* Try collapsing SACK blocks spanning across multiple skbs to a single
  * skb.
  */
@@ -1457,6 +1463,7 @@ static struct sk_buff *tcp_shift_skb_data(struct sock *sk, struct sk_buff *skb,
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct sk_buff *prev;
 	int mss;
+	int next_pcount;
 	int pcount = 0;
 	int len;
 	int in_sack;
@@ -1559,7 +1566,7 @@ static struct sk_buff *tcp_shift_skb_data(struct sock *sk, struct sk_buff *skb,
 	if (!after(TCP_SKB_CB(skb)->seq + len, tp->snd_una))
 		goto fallback;
 
-	if (!skb_shift(prev, skb, len))
+	if (!tcp_skb_shift(prev, skb, pcount, len))
 		goto fallback;
 	if (!tcp_shifted_skb(sk, skb, state, pcount, len, mss, dup_sack))
 		goto out;
@@ -1578,11 +1585,11 @@ static struct sk_buff *tcp_shift_skb_data(struct sock *sk, struct sk_buff *skb,
 		goto out;
 
 	len = skb->len;
-	if (skb_shift(prev, skb, len)) {
-		pcount += tcp_skb_pcount(skb);
-		tcp_shifted_skb(sk, skb, state, tcp_skb_pcount(skb), len, mss, 0);
+	next_pcount = tcp_skb_pcount(skb);
+	if (tcp_skb_shift(prev, skb, next_pcount, len)) {
+		pcount += next_pcount;
+		tcp_shifted_skb(sk, skb, state, next_pcount, len, mss, 0);
 	}
-
 out:
 	state->fack_count += pcount;
 	return prev;
@@ -2596,6 +2603,9 @@ static void tcp_cwnd_reduction(struct sock *sk, const int prior_unsacked,
 	int newly_acked_sacked = prior_unsacked -
 				 (tp->packets_out - tp->sacked_out);
 
+	if (newly_acked_sacked <= 0 || WARN_ON_ONCE(!tp->prior_cwnd))
+		return;
+
 	tp->prr_delivered += newly_acked_sacked;
 	if (tcp_packets_in_flight(tp) > tp->snd_ssthresh) {
 		u64 dividend = (u64)tp->snd_ssthresh * tp->prr_delivered +
@@ -3434,7 +3444,8 @@ static void tcp_send_challenge_ack(struct sock *sk)
 	/* unprotected vars, we dont care of overwrites */
 	static u32 challenge_timestamp;
 	static unsigned int challenge_count;
-	u32 count, now;
+	u32 now = jiffies / HZ;
+	u32 count;
 
 	/* Check host-wide RFC 5961 rate limit. */
 	now = jiffies / HZ;
@@ -4370,8 +4381,7 @@ static void tcp_ofo_queue(struct sock *sk)
 			kfree_skb_partial(skb, fragstolen);
 	}
 }
-#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
-#else
+#ifndef CONFIG_LGP_DATA_TCPIP_MPTCP
 static bool tcp_prune_ofo_queue(struct sock *sk);
 #endif
 
@@ -4384,9 +4394,8 @@ static int tcp_try_rmem_schedule(struct sock *sk, struct sk_buff *skb,
 	if (mptcp(tcp_sk(sk)))
 		sk = mptcp_meta_sk(sk);
 #endif
-	//add_to_scale
-	//if (atomic_read(&sk->sk_rmem_alloc) > sk->sk_rcvbuf ||
-	if (atomic_read(&sk->sk_rmem_alloc) > ((sk->sk_rcvbuf + sk->sk_sndbuf) * TCP_RMEM_SCALE)  ||
+
+	if (atomic_read(&sk->sk_rmem_alloc) > sk->sk_rcvbuf ||
 	    !sk_rmem_schedule(sk, skb, size)) {
 
 		if (tcp_prune_queue(sk) < 0)
@@ -4524,8 +4533,10 @@ static void tcp_data_queue_ofo(struct sock *sk, struct sk_buff *skb)
 		}
 		#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 		/* MPTCP allows non-data data-fin to be in the ofo-queue */
-		if (mptcp(tp) && TCP_SKB_CB(skb1)->seq == TCP_SKB_CB(skb1)->end_seq)
+		if (mptcp(tp) && TCP_SKB_CB(skb1)->seq == TCP_SKB_CB(skb1)->end_seq) {
+			skb = skb1;
 			continue;
+		}
 		#endif
 		__skb_unlink(skb1, &tp->out_of_order_queue);
 		tcp_dsack_extend(sk, TCP_SKB_CB(skb1)->seq,
@@ -4535,7 +4546,7 @@ static void tcp_data_queue_ofo(struct sock *sk, struct sk_buff *skb)
 	}
 
 add_sack:
-	if (tcp_is_sack(tp))
+	if (tcp_is_sack(tp) && seq != end_seq)
 		tcp_sack_new_ofo_skb(sk, seq, end_seq);
 end:
 	if (skb) {
@@ -5636,10 +5647,6 @@ void tcp_finish_connect(struct sock *sk, struct sk_buff *skb)
 	else
 		tp->pred_flags = 0;
 
-	if (!sock_flag(sk, SOCK_DEAD)) {
-		sk->sk_state_change(sk);
-		sk_wake_async(sk, SOCK_WAKE_IO, POLL_OUT);
-	}
 }
 
 static bool tcp_rcv_fastopen_synack(struct sock *sk, struct sk_buff *synack,
@@ -5706,17 +5713,19 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct tcp_fastopen_cookie foc = { .len = -1 };
 	int saved_clamp = tp->rx_opt.mss_clamp;
-	#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
+	bool fastopen_fail;
+
+#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 	struct mptcp_options_received mopt;
 	mptcp_init_mp_opt(&mopt);
-	#endif
+#endif
 
-	#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
+#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 	tcp_parse_options(skb, &tp->rx_opt,
 			  mptcp(tp) ? &tp->mptcp->rx_opt : &mopt, 0, &foc);
-	#else
+#else
 	tcp_parse_options(skb, &tp->rx_opt, 0, &foc);
-	#endif
+#endif
 	if (tp->rx_opt.saw_tstamp && tp->rx_opt.rcv_tsecr)
 		tp->rx_opt.rcv_tsecr -= tp->tsoffset;
 
@@ -5847,9 +5856,16 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
 
 		tcp_finish_connect(sk, skb);
 
-		if ((tp->syn_fastopen || tp->syn_data) &&
-		    tcp_rcv_fastopen_synack(sk, skb, &foc))
+		fastopen_fail = (tp->syn_fastopen || tp->syn_data) &&
+				tcp_rcv_fastopen_synack(sk, skb, &foc);
+
+		if (!sock_flag(sk, SOCK_DEAD)) {
+			sk->sk_state_change(sk);
+			sk_wake_async(sk, SOCK_WAKE_IO, POLL_OUT);
+		}
+		if (fastopen_fail)
 			return -1;
+
 #ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 		/* With MPTCP we cannot send data on the third ack due to the
 		 * lack of option-space to combine with an MP_CAPABLE.
@@ -5862,7 +5878,7 @@ static int tcp_rcv_synsent_state_process(struct sock *sk, struct sk_buff *skb,
 #ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 		    icsk->icsk_ack.pingpong)) {
 #else
-			icsk->icsk_ack.pingpong) {
+		    icsk->icsk_ack.pingpong) {
 #endif
 			/* Save one ACK. Data will be ready after
 			 * several ticks, if write_pending is set.
@@ -6382,7 +6398,7 @@ int tcp_conn_request(struct request_sock_ops *rsk_ops,
 	 *
 	 * MPTCP: new subflows cannot be established in a stateless manner.
 	 */
- 	#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
+	#ifdef CONFIG_LGP_DATA_TCPIP_MPTCP
 	if (((!is_meta_sk(sk) && sysctl_tcp_syncookies == 2) ||
 	#else
 	if ((sysctl_tcp_syncookies == 2 ||
