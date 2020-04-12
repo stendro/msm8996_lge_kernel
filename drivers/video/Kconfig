@@ -2,6 +2,8 @@
 # Video configuration
 #
 
+source "drivers/video/klapse/Kconfig"
+
 menu "Graphics support"
 	depends on HAS_IOMEM
 
