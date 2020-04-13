@@ -982,6 +982,11 @@ extern unsigned int up_down_migrate_scale_factor;
 extern unsigned int sysctl_sched_restrict_cluster_spill;
 extern unsigned int sched_pred_alert_load;
 
+#ifdef CONFIG_SCHED_FREQ_INPUT
+#define MAJOR_TASK_PCT 85
+extern unsigned int sched_major_task_runtime;
+#endif
+
 extern void reset_cpu_hmp_stats(int cpu, int reset_cra);
 extern unsigned int max_task_load(void);
 extern void sched_account_irqtime(int cpu, struct task_struct *curr,
@@ -1059,7 +1064,7 @@ static inline int cpu_max_power_cost(int cpu)
 	return cpu_rq(cpu)->cluster->max_power_cost;
 }
 
-static inline u32 cpu_cycles_to_freq(u64 cycles, u32 period)
+static inline u32 cpu_cycles_to_freq(u64 cycles, u64 period)
 {
 	return div64_u64(cycles, period);
 }
@@ -1711,9 +1716,9 @@ static const u32 prio_to_wmult[40] = {
 #define ENQUEUE_HEAD		0x08
 #define ENQUEUE_REPLENISH	0x10
 #ifdef CONFIG_SMP
-#define ENQUEUE_MIGRATED	0x20
+#define ENQUEUE_WAKING		0x20
 #else
-#define ENQUEUE_MIGRATED	0x00
+#define ENQUEUE_WAKING		0x00
 #endif
 #define ENQUEUE_MIGRATING	0x40
 
@@ -1746,6 +1751,7 @@ struct sched_class {
 	void (*migrate_task_rq)(struct task_struct *p, int next_cpu);
 
 	void (*post_schedule) (struct rq *this_rq);
+	void (*task_waking) (struct task_struct *task);
 	void (*task_woken) (struct rq *this_rq, struct task_struct *task);
 
 	void (*set_cpus_allowed)(struct task_struct *p,
@@ -2215,10 +2221,4 @@ static inline u64 irq_time_read(int cpu)
 }
 #endif /* CONFIG_64BIT */
 #endif /* CONFIG_IRQ_TIME_ACCOUNTING */
-
-/*
- * task_may_not_preempt - check whether a task may not be preemptible soon
- */
-extern bool task_may_not_preempt(struct task_struct *task, int cpu);
-
 #endif /* CONFIG_SCHED_QHMP */

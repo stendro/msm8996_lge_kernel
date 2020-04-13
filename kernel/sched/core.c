@@ -198,14 +198,12 @@ struct static_key sched_feat_keys[__SCHED_FEAT_NR] = {
 
 static void sched_feat_disable(int i)
 {
-	if (static_key_enabled(&sched_feat_keys[i]))
-		static_key_slow_dec(&sched_feat_keys[i]);
+	static_key_disable(&sched_feat_keys[i]);
 }
 
 static void sched_feat_enable(int i)
 {
-	if (!static_key_enabled(&sched_feat_keys[i]))
-		static_key_slow_inc(&sched_feat_keys[i]);
+	static_key_enable(&sched_feat_keys[i]);
 }
 #else
 static void sched_feat_disable(int i) { };
@@ -550,15 +548,19 @@ static inline void init_hrtick(void)
 /*
  * cmpxchg based fetch_or, macro so it works for different integer types
  */
-#define fetch_or(ptr, val)						\
-({	typeof(*(ptr)) __old, __val = *(ptr);				\
- 	for (;;) {							\
- 		__old = cmpxchg((ptr), __val, __val | (val));		\
- 		if (__old == __val)					\
- 			break;						\
- 		__val = __old;						\
- 	}								\
- 	__old;								\
+#define fetch_or(ptr, mask)						\
+	({								\
+		typeof(ptr) _ptr = (ptr);				\
+		typeof(mask) _mask = (mask);				\
+		typeof(*_ptr) _old, _val = *_ptr;			\
+									\
+		for (;;) {						\
+			_old = cmpxchg(_ptr, _val, _val | _mask);	\
+			if (_old == _val)				\
+				break;					\
+			_val = _old;					\
+		}							\
+	_old;								\
 })
 
 #if defined(CONFIG_SMP) && defined(TIF_POLLING_NRFLAG)
@@ -582,7 +584,7 @@ static bool set_nr_and_not_polling(struct task_struct *p)
 static bool set_nr_if_polling(struct task_struct *p)
 {
 	struct thread_info *ti = task_thread_info(p);
-	typeof(ti->flags) old, val = ACCESS_ONCE(ti->flags);
+	typeof(ti->flags) old, val = READ_ONCE(ti->flags);
 
 	for (;;) {
 		if (!(val & _TIF_POLLING_NRFLAG))
@@ -829,15 +831,6 @@ void sched_set_cluster_dstate(const cpumask_t *cluster_cpus, int dstate,
 	cluster->dstate_wakeup_latency = wakeup_latency;
 }
 
-#ifdef CONFIG_LGE_PM_TRITON /* ADAPT_LGE_BMC */
-int
-sched_get_cpu_cstate(int cpu)
-{
-	struct rq *rq = cpu_rq(cpu);
-
-	return rq->cstate;
-}
-#endif
 #endif /* CONFIG_SCHED_HMP */
 
 #endif /* CONFIG_SMP */
@@ -1775,7 +1768,13 @@ __read_mostly unsigned int sched_ravg_window = 10000000;
 /* Temporarily disable window-stats activity on all cpus */
 unsigned int __read_mostly sched_disable_window_stats;
 
+/*
+ * Major task runtime. If a task runs for more than sched_major_task_runtime
+ * in a window, it's considered to be generating majority of workload
+ * for this window. Prediction could be adjusted for such tasks.
+ */
 #ifdef CONFIG_SCHED_FREQ_INPUT
+__read_mostly unsigned int sched_major_task_runtime = 10000000;
 
 /*
  * Demand aggregation for frequency purpose:
@@ -1983,7 +1982,7 @@ static int send_notification(struct rq *rq, int check_pred, int check_groups)
 	unsigned int cur_freq, freq_required;
 	unsigned long flags;
 	int rc = 0;
-	u64 group_load = 0, new_load;
+	u64 group_load = 0, new_load = 0;
 
 	if (!sched_enable_hmp)
 		return 0;
@@ -2149,6 +2148,8 @@ scale_load_to_freq(u64 load, unsigned int src_freq, unsigned int dst_freq)
 	return div64_u64(load * (u64)src_freq, (u64)dst_freq);
 }
 
+#define HEAVY_TASK_SKIP 2
+#define HEAVY_TASK_SKIP_LIMIT 4
 /*
  * get_pred_busy - calculate predicted demand for a task on runqueue
  *
@@ -2176,7 +2177,7 @@ static u32 get_pred_busy(struct rq *rq, struct task_struct *p,
 	u32 *hist = p->ravg.sum_history;
 	u32 dmin, dmax;
 	u64 cur_freq_runtime = 0;
-	int first = NUM_BUSY_BUCKETS, final;
+	int first = NUM_BUSY_BUCKETS, final, skip_to;
 	u32 ret = runtime;
 
 	/* skip prediction for new tasks due to lack of history */
@@ -2196,6 +2197,36 @@ static u32 get_pred_busy(struct rq *rq, struct task_struct *p,
 
 	/* compute the bucket for prediction */
 	final = first;
+	if (first < HEAVY_TASK_SKIP_LIMIT) {
+		/* compute runtime at current CPU frequency */
+		cur_freq_runtime = mult_frac(runtime, max_possible_efficiency,
+					     rq->cluster->efficiency);
+		cur_freq_runtime = scale_load_to_freq(cur_freq_runtime,
+				max_possible_freq, rq->cluster->cur_freq);
+		/*
+		 * if the task runs for majority of the window, try to
+		 * pick higher buckets.
+		 */
+		if (cur_freq_runtime >= sched_major_task_runtime) {
+			int next = NUM_BUSY_BUCKETS;
+			/*
+			 * if there is a higher bucket that's consistently
+			 * hit, don't jump beyond that.
+			 */
+			for (i = start + 1; i <= HEAVY_TASK_SKIP_LIMIT &&
+			     i < NUM_BUSY_BUCKETS; i++) {
+				if (buckets[i] > CONSISTENT_THRES) {
+					next = i;
+					break;
+				}
+			}
+			skip_to = min(next, start + HEAVY_TASK_SKIP);
+			/* don't jump beyond HEAVY_TASK_SKIP_LIMIT */
+			skip_to = min(HEAVY_TASK_SKIP_LIMIT, skip_to);
+			/* don't go below first non-empty bucket, if any */
+			final = max(first, skip_to);
+		}
+	}
 
 	/* determine demand range for the predicted bucket */
 	if (final < 2) {
@@ -3744,12 +3775,12 @@ static void transfer_busy_time(struct rq *rq, struct related_thread_group *grp,
 {
 	u64 wallclock;
 	struct group_cpu_time *cpu_time;
-	u64 *src_curr_runnable_sum, *dst_curr_runnable_sum;
-	u64 *src_prev_runnable_sum, *dst_prev_runnable_sum;
-	u64 *src_nt_curr_runnable_sum, *dst_nt_curr_runnable_sum;
-	u64 *src_nt_prev_runnable_sum, *dst_nt_prev_runnable_sum;
+	u64 *src_curr_runnable_sum = NULL, *dst_curr_runnable_sum = NULL;
+	u64 *src_prev_runnable_sum = NULL, *dst_prev_runnable_sum = NULL;
+	u64 *src_nt_curr_runnable_sum = NULL, *dst_nt_curr_runnable_sum = NULL;
+	u64 *src_nt_prev_runnable_sum = NULL, *dst_nt_prev_runnable_sum = NULL;
 	struct migration_sum_data d;
-	int migrate_type;
+	int migrate_type = 0;
 
 	if (!sched_freq_aggregate)
 		return;
@@ -3799,8 +3830,6 @@ static void transfer_busy_time(struct rq *rq, struct related_thread_group *grp,
 		dst_nt_curr_runnable_sum = &rq->nt_curr_runnable_sum;
 		src_nt_prev_runnable_sum = &cpu_time->nt_prev_runnable_sum;
 		dst_nt_prev_runnable_sum = &rq->nt_prev_runnable_sum;
-	} else {
-		return;
 	}
 
 	*src_curr_runnable_sum -= p->ravg.curr_window;
@@ -3950,7 +3979,14 @@ static void remove_task_from_group(struct task_struct *p)
 
 	if (empty_group) {
 		list_del(&grp->list);
+		/*
+		 * RCU, kswapd etc tasks can get woken up from
+		 * call_rcu(). As the wakeup path also acquires
+		 * the related_thread_group_lock, drop it here.
+		 */
+		write_unlock(&related_thread_group_lock);
 		call_rcu(&grp->rcu, free_related_thread_group);
+		write_lock(&related_thread_group_lock);
 	}
 }
 
@@ -4797,17 +4833,12 @@ ttwu_do_wakeup(struct rq *rq, struct task_struct *p, int wake_flags)
 static void
 ttwu_do_activate(struct rq *rq, struct task_struct *p, int wake_flags)
 {
-	int en_flags = ENQUEUE_WAKEUP;
-
 #ifdef CONFIG_SMP
 	if (p->sched_contributes_to_load)
 		rq->nr_uninterruptible--;
-
-	if (wake_flags & WF_MIGRATED)
-		en_flags |= ENQUEUE_MIGRATED;
 #endif
 
-	ttwu_activate(rq, p, en_flags);
+	ttwu_activate(rq, p, ENQUEUE_WAKEUP | ENQUEUE_WAKING);
 	ttwu_do_wakeup(rq, p, wake_flags);
 }
 
@@ -4848,15 +4879,9 @@ void sched_ttwu_pending(void)
 	raw_spin_lock_irqsave(&rq->lock, flags);
 
 	while (llist) {
-		int wake_flags = 0;
-
 		p = llist_entry(llist, struct task_struct, wake_entry);
 		llist = llist_next(llist);
-
-		if (p->sched_remote_wakeup)
-			wake_flags = WF_MIGRATED;
-
-		ttwu_do_activate(rq, p, wake_flags);
+		ttwu_do_activate(rq, p, 0);
 	}
 
 	raw_spin_unlock_irqrestore(&rq->lock, flags);
@@ -4911,11 +4936,9 @@ void scheduler_ipi(void)
 	irq_exit();
 }
 
-static void ttwu_queue_remote(struct task_struct *p, int cpu, int wake_flags)
+static void ttwu_queue_remote(struct task_struct *p, int cpu)
 {
 	struct rq *rq = cpu_rq(cpu);
-
-	p->sched_remote_wakeup = !!(wake_flags & WF_MIGRATED);
 
 	if (llist_add(&p->wake_entry, &cpu_rq(cpu)->wake_list)) {
 		if (!set_nr_if_polling(rq->idle))
@@ -4955,20 +4978,20 @@ bool cpus_share_cache(int this_cpu, int that_cpu)
 }
 #endif /* CONFIG_SMP */
 
-static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
+static void ttwu_queue(struct task_struct *p, int cpu)
 {
 	struct rq *rq = cpu_rq(cpu);
 
 #if defined(CONFIG_SMP)
 	if (sched_feat(TTWU_QUEUE) && !cpus_share_cache(smp_processor_id(), cpu)) {
 		sched_clock_cpu(cpu); /* sync clocks x-cpu */
-		ttwu_queue_remote(p, cpu, wake_flags);
+		ttwu_queue_remote(p, cpu);
 		return;
 	}
 #endif
 
 	raw_spin_lock(&rq->lock);
-	ttwu_do_activate(rq, p, wake_flags);
+	ttwu_do_activate(rq, p, 0);
 	raw_spin_unlock(&rq->lock);
 }
 
@@ -5078,6 +5101,9 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 	p->sched_contributes_to_load = !!task_contributes_to_load(p);
 	p->state = TASK_WAKING;
 
+	if (p->sched_class->task_waking)
+		p->sched_class->task_waking(p);
+
 	cpu = select_task_rq(p, p->wake_cpu, SD_BALANCE_WAKE, wake_flags);
 
 	/* Refresh src_cpu as it could have changed since we last read it */
@@ -5089,7 +5115,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 
 	set_task_last_wake(p, wallclock);
 #endif /* CONFIG_SMP */
-	ttwu_queue(p, cpu, wake_flags);
+	ttwu_queue(p, cpu);
 stat:
 	ttwu_stat(p, cpu, wake_flags);
 
@@ -6070,7 +6096,7 @@ void scheduler_tick(void)
 u64 scheduler_tick_max_deferment(void)
 {
 	struct rq *rq = this_rq();
-	unsigned long next, now = ACCESS_ONCE(jiffies);
+	unsigned long next, now = READ_ONCE(jiffies);
 
 	next = rq->last_sched_tick + HZ;
 
@@ -6190,7 +6216,7 @@ static noinline void __schedule_bug(struct task_struct *prev)
 static inline void schedule_debug(struct task_struct *prev)
 {
 #ifdef CONFIG_SCHED_STACK_END_CHECK
-	if (unlikely(task_stack_end_corrupted(prev)))
+	if (task_stack_end_corrupted(prev))
 		panic("corrupted stack end detected inside scheduler\n");
 #endif
 	/*
@@ -6830,8 +6856,6 @@ static void __setscheduler_params(struct task_struct *p,
 
 	if (policy == SETPARAM_POLICY)
 		policy = p->policy;
-	else
-		policy &= ~SCHED_RESET_ON_FORK;
 
 	p->policy = policy;
 
@@ -8104,15 +8128,13 @@ void show_state_filter(unsigned long state_filter)
 		/*
 		 * reset the NMI-timeout, listing all files on a slow
 		 * console might take a lot of time:
-		 * Also, reset softlockup watchdogs on all CPUs, because
-		 * another CPU might be blocked waiting for us to process
-		 * an IPI.
 		 */
 		touch_nmi_watchdog();
-		touch_all_softlockup_watchdogs();
 		if (!state_filter || (p->state & state_filter))
 			sched_show_task(p);
 	}
+
+	touch_all_softlockup_watchdogs();
 
 #ifdef CONFIG_SYSRQ_SCHED_DEBUG
 	sysrq_sched_debug_show();
@@ -10307,7 +10329,7 @@ cpumask_var_t *alloc_sched_domains(unsigned int ndoms)
 	int i;
 	cpumask_var_t *doms;
 
-	doms = kmalloc(sizeof(*doms) * ndoms, GFP_KERNEL);
+	doms = kmalloc_array(ndoms, sizeof(*doms), GFP_KERNEL);
 	if (!doms)
 		return NULL;
 	for (i = 0; i < ndoms; i++) {
