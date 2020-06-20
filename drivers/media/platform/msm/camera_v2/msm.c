@@ -251,7 +251,8 @@ static void msm_pm_qos_remove_request(void)
 void msm_pm_qos_update_request(int val)
 {
 	pr_info("%s: update request %d", __func__, val);
-	pm_qos_update_request(&msm_v4l2_pm_qos_request, val);
+	if (pm_qos_request_active(&msm_v4l2_pm_qos_request))
+		pm_qos_update_request(&msm_v4l2_pm_qos_request, val);
 }
 
 struct msm_session *msm_session_find(unsigned int session_id)
