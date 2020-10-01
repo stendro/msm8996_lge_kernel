@@ -23,6 +23,11 @@ fi
 
 rm -rf net/wireguard
 mkdir -p net/wireguard
-curl -A "$USER_AGENT" -LsS --connect-timeout 30 "https://git.zx2c4.com/WireGuard/snapshot/WireGuard-$VERSION.tar.xz" | tar -C "net/wireguard" -xJf - --strip-components=2 "WireGuard-$VERSION/src"
+VERSIONWG="0.0.20191219"
+wget "https://download.wireguard.com/monolithic-historical/WireGuard-$VERSIONWG.tar.xz"
+tar -C "net/wireguard/" -xf "WireGuard-$VERSIONWG.tar.xz" --strip-components=2 "WireGuard-$VERSIONWG/src"
+rm "WireGuard-$VERSIONWG.tar.xz"
 sed -i 's/tristate/bool/;s/default m/default y/;' net/wireguard/Kconfig
 touch net/wireguard/.check
+
+
