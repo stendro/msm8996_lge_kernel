@@ -21,7 +21,7 @@ config OMAP2_DSS_DEBUG
 
 config OMAP2_DSS_DEBUGFS
 	bool "Debugfs filesystem support"
-	depends on DEBUG_FS
+	depends on DEBUG_FS2
 	default n
 	help
 	  This enables debugfs for OMAPDSS at <debugfs>/omapdss. This enables

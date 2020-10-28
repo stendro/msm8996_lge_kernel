@@ -39,11 +39,8 @@ struct blkcg_gq;
 struct blk_flush_queue;
 
 #define BLKDEV_MIN_RQ	4
-#ifdef CONFIG_MACH_LGE
-#define BLKDEV_MAX_RQ	256	/* Default maximum */
-#else
-#define BLKDEV_MAX_RQ	128	/* Default maximum */
-#endif
+#define BLKDEV_MAX_RQ	32	/* Default maximum */
+
 /*
  * Maximum number of blkcg policies allowed to be registered concurrently.
  * Defined here to simplify include dependency.
@@ -103,7 +100,7 @@ enum rq_cmd_type_bits {
 struct request {
 	struct list_head queuelist;
 	union {
-		struct call_single_data csd;
+                struct __call_single_data csd;
 		unsigned long fifo_time;
 	};
 
@@ -212,6 +209,9 @@ struct request {
 
 	/* for bidi */
 	struct request *next_rq;
+
+	ktime_t			lat_hist_io_start;
+	int			lat_hist_enabled;
 };
 
 static inline unsigned short req_get_ioprio(struct request *req)
@@ -283,8 +283,10 @@ struct blk_queue_tag {
 struct queue_limits {
 	unsigned long		bounce_pfn;
 	unsigned long		seg_boundary_mask;
+	unsigned long		virt_boundary_mask;
 
 	unsigned int		max_hw_sectors;
+	unsigned int		max_dev_sectors;
 	unsigned int		chunk_sectors;
 	unsigned int		max_sectors;
 	unsigned int		max_segment_size;
@@ -517,10 +519,13 @@ struct request_queue {
 #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
 				 (1 << QUEUE_FLAG_STACKABLE)	|	\
 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+				 (1 << QUEUE_FLAG_SAME_FORCE)	|	\
 				 (1 << QUEUE_FLAG_ADD_RANDOM))
 
 #define QUEUE_FLAG_MQ_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
-				 (1 << QUEUE_FLAG_SAME_COMP))
+				 (1 << QUEUE_FLAG_STACKABLE)	|	\
+				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+				 (1 << QUEUE_FLAG_SAME_FORCE))
 
 static inline void queue_lockdep_assert_held(struct request_queue *q)
 {
@@ -924,8 +929,8 @@ static inline unsigned int blk_max_size_offset(struct request_queue *q,
 	if (!q->limits.chunk_sectors)
 		return q->limits.max_sectors;
 
-	return q->limits.chunk_sectors -
-			(offset & (q->limits.chunk_sectors - 1));
+	return min(q->limits.max_sectors, (unsigned int)(q->limits.chunk_sectors -
+			(offset & (q->limits.chunk_sectors - 1))));
 }
 
 static inline unsigned int blk_rq_get_max_sectors(struct request *rq)
@@ -1630,6 +1635,79 @@ extern int __blkdev_driver_ioctl(struct block_device *, fmode_t, unsigned int,
 extern int bdev_read_page(struct block_device *, sector_t, struct page *);
 extern int bdev_write_page(struct block_device *, sector_t, struct page *,
 						struct writeback_control *);
+
+/*
+ * X-axis for IO latency histogram support.
+ */
+static const u_int64_t latency_x_axis_us[] = {
+	100,
+	200,
+	300,
+	400,
+	500,
+	600,
+	700,
+	800,
+	900,
+	1000,
+	1200,
+	1400,
+	1600,
+	1800,
+	2000,
+	2500,
+	3000,
+	4000,
+	5000,
+	6000,
+	7000,
+	9000,
+	10000
+};
+
+#define BLK_IO_LAT_HIST_DISABLE         0
+#define BLK_IO_LAT_HIST_ENABLE          1
+#define BLK_IO_LAT_HIST_ZERO            2
+
+struct io_latency_state {
+	u_int64_t	latency_y_axis_read[ARRAY_SIZE(latency_x_axis_us) + 1];
+	u_int64_t	latency_reads_elems;
+	u_int64_t	latency_y_axis_write[ARRAY_SIZE(latency_x_axis_us) + 1];
+	u_int64_t	latency_writes_elems;
+};
+
+static inline void
+blk_update_latency_hist(struct io_latency_state *s,
+			int read,
+			u_int64_t delta_us)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(latency_x_axis_us); i++) {
+		if (delta_us < (u_int64_t)latency_x_axis_us[i]) {
+			if (read)
+				s->latency_y_axis_read[i]++;
+			else
+				s->latency_y_axis_write[i]++;
+			break;
+		}
+	}
+	if (i == ARRAY_SIZE(latency_x_axis_us)) {
+		/* Overflowed the histogram */
+		if (read)
+			s->latency_y_axis_read[i]++;
+		else
+			s->latency_y_axis_write[i]++;
+	}
+	if (read)
+		s->latency_reads_elems++;
+	else
+		s->latency_writes_elems++;
+}
+
+void blk_zero_latency_hist(struct io_latency_state *s);
+ssize_t blk_latency_hist_show(struct io_latency_state *s, char *buf);
+
 #else /* CONFIG_BLOCK */
 
 struct block_device;
@@ -1678,3 +1756,4 @@ static inline int blkdev_issue_flush(struct block_device *bdev, gfp_t gfp_mask,
 #endif /* CONFIG_BLOCK */
 
 #endif
+

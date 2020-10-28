@@ -419,8 +419,8 @@ ieee80211_tx_h_multicast_ps_buf(struct ieee80211_tx_data *tx)
 	if (tx->local->hw.flags & IEEE80211_HW_QUEUE_CONTROL)
 		info->hw_queue = tx->sdata->vif.cab_queue;
 
-	/* no stations in PS mode */
-	if (!atomic_read(&ps->num_sta_ps))
+	/* no stations in PS mode and no buffered packets */
+	if (!atomic_read(&ps->num_sta_ps) && skb_queue_empty(&ps->bc_buf))
 		return TX_CONTINUE;
 
 	info->flags |= IEEE80211_TX_CTL_SEND_AFTER_DTIM;
@@ -782,11 +782,20 @@ ieee80211_tx_h_sequence(struct ieee80211_tx_data *tx)
 
 	/*
 	 * Packet injection may want to control the sequence
-	 * number, if we have no matching interface then we
+ 	 * number, so if an injected packet is found, skip
 	 * neither assign one ourselves nor ask the driver to.
+	 * renumbering it. Also make the packet NO_ACK to avoid
+	 * excessive retries (ACKing and retrying should be
+	 * handled by the injecting application).
+	 * FIXME This may break hostapd and some other injectors.
+	 * This should be done using a radiotap flag.
 	 */
-	if (unlikely(info->control.vif->type == NL80211_IFTYPE_MONITOR))
+	if (unlikely((info->flags & IEEE80211_TX_CTL_INJECTED) &&
+	   !(tx->sdata->u.mntr_flags & MONITOR_FLAG_COOK_FRAMES))) {
+		if (!ieee80211_has_morefrags(hdr->frame_control))
+			info->flags |= IEEE80211_TX_CTL_NO_ACK;
 		return TX_CONTINUE;
+	}
 
 	if (unlikely(ieee80211_is_ctl(hdr->frame_control)))
 		return TX_CONTINUE;

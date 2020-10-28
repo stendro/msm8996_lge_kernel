@@ -15,11 +15,9 @@
 #include <linux/seq_file.h>
 #include <linux/debugfs.h>
 #include <linux/types.h>
-#include <linux/wakeup_reason.h>
 #include <trace/events/power.h>
 
 #include "power.h"
-
 
 #ifdef CONFIG_BOEFFLA_WL_BLOCKER
 #include "boeffla_wl_blocker.h"
@@ -30,7 +28,6 @@ bool wl_blocker_debug = false;
 
 static void wakeup_source_deactivate(struct wakeup_source *ws);
 #endif
-
 
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
@@ -583,7 +580,6 @@ static inline void update_prevent_sleep_time(struct wakeup_source *ws,
 					     ktime_t now) {}
 #endif
 
-
 /**
  * wakup_source_deactivate - Mark given wakeup source as inactive.
  * @ws: Wakeup source to handle.
@@ -866,7 +862,6 @@ bool pm_wakeup_pending(void)
 {
 	unsigned long flags;
 	bool ret = false;
-	char suspend_abort[MAX_SUSPEND_ABORT_LEN];
 
 	spin_lock_irqsave(&events_lock, flags);
 	if (events_check_enabled) {
@@ -880,11 +875,7 @@ bool pm_wakeup_pending(void)
 
 	if (ret) {
 		pr_info("PM: Wakeup pending, aborting suspend\n");
-		pm_get_active_wakeup_sources(suspend_abort,
-					     MAX_SUSPEND_ABORT_LEN);
-		log_suspend_abort_reason(suspend_abort);
-		pr_info("PM: %s\n", suspend_abort);
-
+		pm_print_active_wakeup_sources();
 	}
 
 	return ret || pm_abort_suspend;
@@ -1031,7 +1022,7 @@ static int print_wakeup_source_stats(struct seq_file *m,
 	}
 
 #ifdef CONFIG_LGE_PM_DEBUG
-	ret = seq_printf(m, "%-12s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t"
+	ret = seq_printf(m, "%-32s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t"
 			"%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lu\n",
 			ws->name, active_count, ws->event_count,
 			ws->wakeup_count, ws->expire_count,
@@ -1039,7 +1030,7 @@ static int print_wakeup_source_stats(struct seq_file *m,
 			ktime_to_ms(max_time), ktime_to_ms(ws->last_time),
 			ktime_to_ms(prevent_sleep_time), ws->pending_count);
 #else
-	ret = seq_printf(m, "%-12s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t"
+	ret = seq_printf(m, "%-32s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t"
 			"%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lld\n",
 			ws->name, active_count, ws->event_count,
 			ws->wakeup_count, ws->expire_count,
@@ -1110,11 +1101,11 @@ static int wakeup_sources_stats_show(struct seq_file *m, void *unused)
 	struct wakeup_source *ws;
 
 #ifdef CONFIG_LGE_PM_DEBUG
-	seq_puts(m, "name\t\tactive_count\tevent_count\twakeup_count\t"
+	seq_puts(m, "name\t\t\t\t\tactive_count\tevent_count\twakeup_count\t"
 		"expire_count\tactive_since\ttotal_time\t"
 		"max_time\tlast_change\tprevent_suspend_time\tpending_count\n");
 #else
-	seq_puts(m, "name\t\tactive_count\tevent_count\twakeup_count\t"
+	seq_puts(m, "name\t\t\t\t\tactive_count\tevent_count\twakeup_count\t"
 		"expire_count\tactive_since\ttotal_time\tmax_time\t"
 		"last_change\tprevent_suspend_time\n");
 #endif
@@ -1176,21 +1167,8 @@ static const struct file_operations wakeup_sources_active_stats_fops = {
 };
 #endif
 
-static const struct kernfs_ops wakeup_sources_kern_fops = {
-	.seq_show = wakeup_sources_stats_show,
-};
-
-#ifdef CONFIG_LGE_PM_DEBUG
-static const struct kernfs_ops wakeup_sources_active_kern_fops = {
-	.seq_show = wakeup_sources_active_stats_show,
-};
-#endif
-
 static int __init wakeup_sources_debugfs_init(void)
 {
-	struct kobject *kobj;
-	struct kernfs_node *node;
-
 	wakeup_sources_stats_dentry = debugfs_create_file("wakeup_sources",
 			S_IRUGO, NULL, NULL, &wakeup_sources_stats_fops);
 
@@ -1199,25 +1177,6 @@ static int __init wakeup_sources_debugfs_init(void)
 		"wakeup_sources_active", S_IRUGO, NULL,
 		NULL, &wakeup_sources_active_stats_fops);
 #endif
-	if (wakeup_sources_stats_dentry != ERR_PTR(-ENODEV))
-		return 0;
-
-	/* Create debugfs from scratch just for wakeup_sources */
-	kobj = kobject_create_and_add("debug", kernel_kobj);
-	if (!kobj)
-		return -ENOMEM;
-
-	node = kernfs_create_file(kobj->sd, "wakeup_sources",
-			S_IRUGO, 0, &wakeup_sources_kern_fops, NULL);
-#ifdef CONFIG_LGE_PM_DEBUG
-	node = kernfs_create_file(kobj->sd, "wakeup_sources_active",
-			S_IRUGO, 0, &wakeup_sources_active_kern_fops, NULL);
-#endif
-	if (IS_ERR(node)) {
-		kobject_put(kobj);
-		return PTR_ERR(node);
-	}
-
 	return 0;
 }
 

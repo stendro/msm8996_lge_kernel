@@ -44,6 +44,20 @@ static struct ion_device *idev;
 static int num_heaps;
 static struct ion_heap **heaps;
 
+struct ion_client {
+	struct rb_node node;
+	struct ion_device *dev;
+	struct rb_root handles;
+	struct idr idr;
+	struct mutex lock;
+	char *name;
+	char *display_name;
+	int display_serial;
+	struct task_struct *task;
+	pid_t pid;
+	struct dentry *debug_root;
+};
+
 struct ion_heap_desc {
 	unsigned int id;
 	enum ion_heap_type type;
@@ -695,9 +709,8 @@ long msm_ion_custom_ioctl(struct ion_client *client,
 		struct mm_struct *mm = current->active_mm;
 
 		if (data.flush_data.handle > 0) {
-			handle = ion_handle_get_by_id(client,
-						(int)data.flush_data.handle);
-			if (IS_ERR(handle)) {
+		handle = ion_handle_get_by_id(client, (int)data.flush_data.handle);
+		if (IS_ERR(handle)) {
 				pr_info("%s: Could not find handle: %d\n",
 					__func__, (int)data.flush_data.handle);
 				return PTR_ERR(handle);

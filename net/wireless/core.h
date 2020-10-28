@@ -224,6 +224,29 @@ struct cfg80211_event {
 	};
 };
 
+struct cfg80211_event2 {
+	struct list_head list;
+	enum cfg80211_event_type type;
+
+	union {
+		struct cfg80211_connect_resp_params cr;
+		struct cfg80211_roam_info rm;
+		struct {
+			const u8 *ie;
+			size_t ie_len;
+			u16 reason;
+			bool locally_generated;
+		} dc;
+		struct {
+			u8 bssid[ETH_ALEN];
+			struct ieee80211_channel *channel;
+		} ij;
+		struct {
+			u8 bssid[ETH_ALEN];
+		} pa;
+	};
+};
+
 struct cfg80211_cached_keys {
 	struct key_params params[6];
 	u8 data[6][WLAN_MAX_KEY_LEN];

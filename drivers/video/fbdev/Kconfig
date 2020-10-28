@@ -1957,7 +1957,7 @@ config FB_MBX
 
 config FB_MBX_DEBUG
        bool "Enable debugging info via debugfs"
-       depends on FB_MBX && DEBUG_FS
+       depends on FB_MBX && DEBUG_FS2
        default n
        ---help---
          Enable this if you want debugging information using the debug

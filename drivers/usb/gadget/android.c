@@ -85,6 +85,9 @@
 #include "u_qc_ether.c"
 #include "f_gsi.c"
 #include "f_mass_storage.h"
+#include "f_hid.h"
+#include "f_hid_android_keyboard.c"
+#include "f_hid_android_mouse.c"
 
 USB_ETHERNET_MODULE_PARAMETERS();
 #include "debug.h"
@@ -3673,6 +3676,41 @@ static struct android_usb_function midi_function = {
 };
 #endif
 
+static int hid_function_init(struct android_usb_function *f, struct usb_composite_dev *cdev)
+{
+	return ghid_setup(cdev->gadget, 2);
+}
+
+static void hid_function_cleanup(struct android_usb_function *f)
+{
+	ghid_cleanup();
+}
+
+static int hid_function_bind_config(struct android_usb_function *f, struct usb_configuration *c)
+{
+	int ret;
+	printk(KERN_INFO "hid keyboard\n");
+	ret = hidg_bind_config(c, &ghid_device_android_keyboard, 0);
+	if (ret) {
+		pr_info("%s: hid_function_bind_config keyboard failed: %d\n", __func__, ret);
+		return ret;
+	}
+	printk(KERN_INFO "hid mouse\n");
+	ret = hidg_bind_config(c, &ghid_device_android_mouse, 1);
+	if (ret) {
+		pr_info("%s: hid_function_bind_config mouse failed: %d\n", __func__, ret);
+		return ret;
+	}
+	return 0;
+}
+
+static struct android_usb_function hid_function = {
+	.name		= "hid",
+	.init		= hid_function_init,
+	.cleanup	= hid_function_cleanup,
+	.bind_config	= hid_function_bind_config,
+};
+
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
 static int evp_function_init(struct android_usb_function *f,
 					struct usb_composite_dev *cdev)
@@ -3911,6 +3949,7 @@ static struct android_usb_function *supported_functions[] = {
 #ifdef CONFIG_SND_RAWMIDI
 	[ANDROID_MIDI] = &midi_function,
 #endif
+	[ANDROID_HID] = &hid_function,
 	[ANDROID_RNDIS_GSI] = &rndis_gsi_function,
 	[ANDROID_ECM_GSI] = &ecm_gsi_function,
 	[ANDROID_RMNET_GSI] = &rmnet_gsi_function,
@@ -3956,6 +3995,7 @@ static struct android_usb_function *default_functions[] = {
 #if defined(CONFIG_SND_RAWMIDI) || defined(CONFIG_LGE_USB_G_ANDROID)
 	&midi_function,
 #endif
+ 	&hid_function, 
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
 	&evp_function,
 #endif
@@ -4338,7 +4378,12 @@ functions_store(struct device *pdev, struct device_attribute *attr,
 							name, err);
 		}
 	}
-
+	
+	/* Always enable HID gadget function. */
+	err = android_enable_function(dev, conf, "hid");
+	if (err)
+		pr_err("android_usb: Cannot enable hid (%d)", err);
+		
 	/* Free uneeded configurations if exists */
 	while (curr_conf->next != &dev->configs) {
 		conf = list_entry(curr_conf->next,

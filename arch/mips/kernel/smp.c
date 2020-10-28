@@ -422,7 +422,7 @@ EXPORT_SYMBOL(dump_send_ipi);
 #ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
 
 static DEFINE_PER_CPU(atomic_t, tick_broadcast_count);
-static DEFINE_PER_CPU(struct call_single_data, tick_broadcast_csd);
+static DEFINE_PER_CPU(call_single_data_t, tick_broadcast_csd);
 
 void tick_broadcast(const struct cpumask *mask)
 {

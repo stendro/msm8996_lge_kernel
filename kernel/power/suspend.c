@@ -39,7 +39,9 @@ const char *pm_states[PM_SUSPEND_MAX];
 static const struct platform_suspend_ops *suspend_ops;
 static const struct platform_freeze_ops *freeze_ops;
 static DECLARE_WAIT_QUEUE_HEAD(suspend_freeze_wait_head);
-static bool suspend_freeze_wake;
+
+enum freeze_state __read_mostly suspend_freeze_state;
+static DEFINE_SPINLOCK(suspend_freeze_lock);
 
 void freeze_set_ops(const struct platform_freeze_ops *ops)
 {
@@ -50,22 +52,49 @@ void freeze_set_ops(const struct platform_freeze_ops *ops)
 
 static void freeze_begin(void)
 {
-	suspend_freeze_wake = false;
+	suspend_freeze_state = FREEZE_STATE_NONE;
 }
 
 static void freeze_enter(void)
 {
-	cpuidle_use_deepest_state(true);
+	spin_lock_irq(&suspend_freeze_lock);
+	if (pm_wakeup_pending())
+		goto out;
+
+	suspend_freeze_state = FREEZE_STATE_ENTER;
+	spin_unlock_irq(&suspend_freeze_lock);
+
+	get_online_cpus();
 	cpuidle_resume();
-	wait_event(suspend_freeze_wait_head, suspend_freeze_wake);
+
+	/* Push all the CPUs into the idle loop. */
+	wake_up_all_idle_cpus();
+	pr_debug("PM: suspend-to-idle\n");
+	/* Make the current CPU wait so it can enter the idle loop too. */
+	wait_event(suspend_freeze_wait_head,
+		   suspend_freeze_state == FREEZE_STATE_WAKE);
+	pr_debug("PM: resume from suspend-to-idle\n");
+
 	cpuidle_pause();
-	cpuidle_use_deepest_state(false);
+	put_online_cpus();
+
+	spin_lock_irq(&suspend_freeze_lock);
+
+ out:
+	suspend_freeze_state = FREEZE_STATE_NONE;
+	spin_unlock_irq(&suspend_freeze_lock);
 }
 
 void freeze_wake(void)
 {
-	suspend_freeze_wake = true;
-	wake_up(&suspend_freeze_wait_head);
+	unsigned long flags;
+
+	spin_lock_irqsave(&suspend_freeze_lock, flags);
+	if (suspend_freeze_state > FREEZE_STATE_NONE) {
+		suspend_freeze_state = FREEZE_STATE_WAKE;
+		wake_up(&suspend_freeze_wait_head);
+	}
+	spin_unlock_irqrestore(&suspend_freeze_lock, flags);
 }
 EXPORT_SYMBOL_GPL(freeze_wake);
 
@@ -227,16 +256,18 @@ static int suspend_test(int level)
  */
 static int suspend_prepare(suspend_state_t state)
 {
-	int error;
+	int error, nr_calls = 0;
 
 	if (!sleep_state_supported(state))
 		return -EPERM;
 
 	pm_prepare_console();
 
-	error = pm_notifier_call_chain(PM_SUSPEND_PREPARE);
-	if (error)
+	error = __pm_notifier_call_chain(PM_SUSPEND_PREPARE, -1, &nr_calls);
+	if (error) {
+		nr_calls--;
 		goto Finish;
+	}
 
 	trace_suspend_resume(TPS("freeze_processes"), 0, true);
 	error = suspend_freeze_processes();
@@ -244,11 +275,10 @@ static int suspend_prepare(suspend_state_t state)
 	if (!error)
 		return 0;
 
-	log_suspend_abort_reason("One or more tasks refusing to freeze");
 	suspend_stats.failed_freeze++;
 	dpm_save_failed_step(SUSPEND_FREEZE);
  Finish:
-	pm_notifier_call_chain(PM_POST_SUSPEND);
+	__pm_notifier_call_chain(PM_POST_SUSPEND, nr_calls, NULL);
 	pm_restore_console();
 	return error;
 }
@@ -274,6 +304,7 @@ void __weak arch_suspend_enable_irqs(void)
  */
 static int suspend_enter(suspend_state_t state, bool *wakeup)
 {
+	char suspend_abort[MAX_SUSPEND_ABORT_LEN];
 	int error, last_dev;
 
 	error = platform_suspend_prepare(state);
@@ -342,8 +373,13 @@ static int suspend_enter(suspend_state_t state, bool *wakeup)
 				state, false);
 			events_check_enabled = false;
 		} else if (*wakeup) {
+			pm_get_active_wakeup_sources(suspend_abort,
+				MAX_SUSPEND_ABORT_LEN);
+			log_suspend_abort_reason(suspend_abort);
 			error = -EBUSY;
 		}
+
+		start_logging_wakeup_reasons();
 		syscore_resume();
 	}
 
@@ -430,6 +466,61 @@ static void suspend_finish(void)
 	pm_restore_console();
 }
 
+#ifdef CONFIG_PM_SUSPEND_BG_SYNC
+static struct workqueue_struct *suspend_sync_wq;
+static void work_sync_fn(struct work_struct *work);
+static DECLARE_WORK(work_sync, work_sync_fn);
+static int suspend_sync_done;
+
+static void suspend_sync_wq_init(void)
+{
+	if (suspend_sync_wq)
+		return;
+
+	suspend_sync_wq = create_singlethread_workqueue("suspend_sync");
+}
+
+#define BG_SYNC_TIMEOUT 10	// 10*10ms
+static int bg_sync(void)
+{
+	int timeout_in_ms = BG_SYNC_TIMEOUT;
+	bool ret = false;
+
+	suspend_sync_wq_init();
+
+	if (work_busy(&work_sync)) {
+		printk(KERN_DEBUG "[bg_sync] work_sync already run\n");
+		return -EBUSY;
+	}
+
+	printk(KERN_DEBUG "[bg_sync] queue start\n");
+	suspend_sync_done = 0;
+	ret = queue_work(suspend_sync_wq, &work_sync);
+	printk(KERN_DEBUG "[bg_sync] queue end, ret = %s\n", ret?"true":"false");
+
+	while (timeout_in_ms--) {
+		if (suspend_sync_done)
+			break;
+		msleep(10);
+	}
+
+	if (suspend_sync_done) {
+		printk(KERN_INFO "[bg_sync] (%d * 10ms) ...\n", BG_SYNC_TIMEOUT - timeout_in_ms);
+		return 0;
+	}
+
+	return -EBUSY;
+}
+
+static void work_sync_fn(struct work_struct *work)
+{
+	printk(KERN_DEBUG "[bg_sync] sys_sync start\n");
+	sys_sync();
+	printk(KERN_DEBUG "[bg_sync] sys_sync done\n");
+	suspend_sync_done = 1;
+}
+#endif
+
 /**
  * enter_state - Do common work needed to enter system sleep state.
  * @state: System sleep state to enter.
@@ -460,11 +551,11 @@ static int enter_state(suspend_state_t state)
 	if (state == PM_SUSPEND_FREEZE)
 		freeze_begin();
 
-#ifndef CONFIG_SUSPEND_SKIP_SYNC
 	trace_suspend_resume(TPS("sync_filesystems"), 0, true);
-#ifdef CONFIG_MACH_LGE
-	printk(KERN_INFO "PM: Check and Syncing filesystems ... \n");
-	if (check_and_sync() != 0) {
+#ifdef CONFIG_PM_SUSPEND_BG_SYNC
+	printk(KERN_INFO "PM: Background Syncing filesystems ...\n");
+	if (bg_sync()) {
+		printk(KERN_INFO "[bg_sync] Syncing busy ...\n");
 		error = -EBUSY;
 		goto Unlock;
 	}
@@ -475,7 +566,6 @@ static int enter_state(suspend_state_t state)
 	printk("done.\n");
 #endif
 	trace_suspend_resume(TPS("sync_filesystems"), 0, false);
-#endif
 
 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
 	error = suspend_prepare(state);
@@ -502,20 +592,14 @@ static int enter_state(suspend_state_t state)
 static void pm_suspend_marker(char *annotation)
 {
 	struct timespec ts;
-	struct rtc_time tm;
+	struct tm tm;
 
 	getnstimeofday(&ts);
-	rtc_time_to_tm(ts.tv_sec, &tm);
-	pr_info("PM: suspend %s %d-%02d-%02d %02d:%02d:%02d.%09lu UTC\n",
+	time_to_tm(ts.tv_sec, 0, &tm);
+	pr_info("PM: suspend %s %ld-%02d-%02d %02d:%02d:%02d.%09lu UTC\n",
 		annotation, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 		tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
 }
-
-#ifdef CONFIG_LGE_PM
-static bool debug_irq_pin = false;
-bool suspend_debug_irq_pin(void) { return debug_irq_pin; }
-EXPORT_SYMBOL(suspend_debug_irq_pin);
-#endif
 
 /**
  * pm_suspend - Externally visible function for suspending the system.
@@ -531,11 +615,7 @@ int pm_suspend(suspend_state_t state)
 	if (state <= PM_SUSPEND_ON || state >= PM_SUSPEND_MAX)
 		return -EINVAL;
 
-#ifdef CONFIG_LGE_PM
-	debug_irq_pin = true;
-#endif
 	pm_suspend_marker("entry");
-
 	error = enter_state(state);
 	if (error) {
 		suspend_stats.fail++;
@@ -544,9 +624,6 @@ int pm_suspend(suspend_state_t state)
 		suspend_stats.success++;
 	}
 	pm_suspend_marker("exit");
-#ifdef CONFIG_LGE_PM
-	debug_irq_pin = false;
-#endif
 	return error;
 }
 EXPORT_SYMBOL(pm_suspend);

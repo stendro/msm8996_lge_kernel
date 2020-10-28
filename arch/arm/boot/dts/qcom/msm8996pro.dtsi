@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2018, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -22,7 +22,7 @@
 	qcom,msm-id = <305 0x10000>;
 
 	chosen {
-		bootargs = "sched_enable_hmp=1 sched_enable_power_aware=1 app_setting.use_32bit_app_setting_pro=1";
+		bootargs = "sched_enable_hmp=1 sched_enable_power_aware=1 app_setting.use_32bit_app_setting_pro=1 kpti=1";
 	};
 };
 
@@ -738,39 +738,39 @@
 
 	qcom,cpr-corner-fmax-map =
 		/* Speed bin 0 */
-		<2 4 6 9>,
+		<1 3 5 9>,
 
 		/* Speed bin 1 */
-		<2 4 6 9>,
+		<1 3 5 9>,
 
 		/* Speed bin 2 */
-		<2 4 6 9>;
+		<1 3 5 9>;
 
 	qcom,cpr-voltage-ceiling =
 		/* Speed bin 0 */
-		<400000  670000  670000  745000  825000  905000  960000 1015000
-		1065000>,
+		<400000  600000  620000  680000  760000  840000  900000 960000
+		1000000>,
 
 		/* Speed bin 1 */
-		<400000  670000  670000  745000  825000  905000  960000 1015000
-		1065000>,
+		<400000  600000  620000  680000  760000  840000  900000 960000
+		1000000>,
 
 		/* Speed bin 2 */
-		<400000  670000  670000  745000  825000  905000  960000 1015000
-		1065000>;
+		<400000  600000  620000  680000  760000  840000  900000 960000
+		1000000>,
 
 	qcom,cpr-voltage-floor =
 		/* Speed bin 0 */
-		<400000  520000  520000  520000  520000  520000  520000  520000
-		 520000>,
+		<400000  500000  500000  500000  500000  500000  500000  500000
+		 500000>,
 
 		/* Speed bin 1 */
-		<400000  520000  520000  520000  520000  520000  520000  520000
-		 520000>,
+		<400000  500000  500000  500000  500000  500000  500000  500000
+		 500000>,
 
 		/* Speed bin 2 */
-		<400000  520000  520000  520000  520000  520000  520000  520000
-		 520000>;
+		<400000  500000  500000  500000  500000  500000  500000  500000
+		 500000>,
 
 	qcom,mem-acc-voltage =
 		/* Speed bin 0 */
@@ -1334,11 +1334,16 @@
 		qcom,poll-ms = <50>;
 		qcom,limit-temp = <80>;
 		qcom,core-limit-temp = <90>;
+		msm_thermal_freq: qcom,vdd-apps-rstr {
+			qcom,max-freq-level = <1209600>;
+			qcom,levels = <1056000 1516800 1516800>;
+		};
 		qcom,vdd-gfx-rstr{
 			qcom,levels = <6 8 9>; /* Nominal, Turbo, Turbo_L1 */
 		};
 		msm_thermal_freq: qcom,vdd-apps-rstr{
-			qcom,levels = <1056000 1555200 1555200>;
+			qcom,max-freq-level = <1209600>;
+			qcom,levels = <1056000 1516800 1516800>;
 		};
 	};
 };
@@ -1424,14 +1429,6 @@
 
 			qcom,gpu-pwrlevel@7 {
 				reg = <7>;
-				qcom,gpu-freq = <133000000>;
-				qcom,bus-freq = <3>;
-				qcom,bus-min = <2>;
-				qcom,bus-max = <4>;
-			};
-
-			qcom,gpu-pwrlevel@8 {
-				reg = <8>;
 				qcom,gpu-freq = <27000000>;
 				qcom,bus-freq = <0>;
 				qcom,bus-min = <0>;
@@ -1497,14 +1494,6 @@
 
 			qcom,gpu-pwrlevel@6 {
 				reg = <6>;
-				qcom,gpu-freq = <133000000>;
-				qcom,bus-freq = <3>;
-				qcom,bus-min = <2>;
-				qcom,bus-max = <4>;
-			};
-
-			qcom,gpu-pwrlevel@7 {
-				reg = <7>;
 				qcom,gpu-freq = <27000000>;
 				qcom,bus-freq = <0>;
 				qcom,bus-min = <0>;
@@ -1554,14 +1543,6 @@
 
 			qcom,gpu-pwrlevel@4 {
 				reg = <4>;
-				qcom,gpu-freq = <133000000>;
-				qcom,bus-freq = <3>;
-				qcom,bus-min = <2>;
-				qcom,bus-max = <4>;
-			};
-
-			qcom,gpu-pwrlevel@5 {
-				reg = <5>;
 				qcom,gpu-freq = <27000000>;
 				qcom,bus-freq = <0>;
 				qcom,bus-min = <0>;

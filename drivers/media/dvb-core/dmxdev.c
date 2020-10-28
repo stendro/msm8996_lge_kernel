@@ -4155,7 +4155,7 @@ static int dvb_demux_do_ioctl(struct file *file,
 			return -ERESTARTSYS;
 		}
 		if (dmxdevfilter->state < DMXDEV_STATE_SET)
-			ret = -EINVAL;
+			ret = -ENOTTY;
 		else
 			ret = dvb_dmxdev_filter_start(dmxdevfilter);
 		mutex_unlock(&dmxdevfilter->mutex);
