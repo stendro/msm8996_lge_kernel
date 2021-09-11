@@ -87,9 +87,9 @@ MK_LINKER=ld
 THREADS=$(grep -c "processor" /proc/cpuinfo)
 
 # directory containing cross-compiler
-GCC_COMP=$HOME/Android/toolchain/gcc9/bin/aarch64-elf-
+GCC_COMP=$HOME/mk2000/toolchain/kdrag0n/aarch64-elf-gcc/bin/aarch64-elf-
 # directory containing 32bit cross-compiler (COMPAT_VDSO)
-GCC_COMP_32=$HOME/Android/toolchain/gcc9-32/bin/arm-eabi-
+GCC_COMP_32=$HOME/mk2000/toolchain/kdrag0n/arm-eabi-gcc/bin/arm-eabi-
 
 # compiler version
 # gnu gcc (non-linaro)

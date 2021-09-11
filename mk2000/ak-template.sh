@@ -62,7 +62,7 @@ dump_boot;
 
 ## Ramdisk modifications
 # add mktweaks
-append_file init.rc mktweaks "init_rc-mod";
+# append_file init.rc mktweaks "init_rc-mod";
 
 write_boot;
 ## end install
