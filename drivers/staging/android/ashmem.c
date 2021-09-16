@@ -57,8 +57,6 @@ struct ashmem_area {
 	struct list_head unpinned_list;	 /* list of all ashmem areas */
 	struct file *file;		 /* the shmem-based backing file */
 	size_t size;			 /* size of the mapping, in bytes */
-	unsigned long vm_start;		 /* Start address of vm_area
-					  * which maps this ashmem */
 	unsigned long prot_mask;	 /* allowed prot bits, as vm_flags */
 };
 
@@ -435,7 +433,6 @@ static int ashmem_mmap(struct file *file, struct vm_area_struct *vma)
 			fput(vma->vm_file);
 		vma->vm_file = asma->file;
 	}
-	asma->vm_start = vma->vm_start;
 
 out:
 	mutex_unlock(&ashmem_mutex);
