@@ -1,0 +1,15 @@
+# Apply MK2000 Tweaks
+
+on property:sys.boot_completed=1
+
+    # Set I/O Scheduler
+    write /sys/block/sda/queue/read_ahead_kb 128
+
+    # Tweak Virtual Memory
+    write /proc/sys/vm/vfs_cache_pressure 80
+    write /proc/sys/vm/oom_dump_tasks 0
+
+    # Various Tweaks
+    write /sys/module/spurious/parameters/noirqdebug Y
+
+    write /dev/kmsg "MK2K Boot Complete"

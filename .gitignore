@@ -100,3 +100,7 @@ all.config
 
 # fetched Android config fragments
 android/configs/android-*.cfg
+
+# Mk2k build
+out/
+build/
