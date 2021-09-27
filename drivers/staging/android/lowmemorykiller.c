@@ -60,8 +60,6 @@
 #define CREATE_TRACE_POINTS
 #include "trace/lowmemorykiller.h"
 
-extern int extra_free_kbytes;
-
 /* to enable lowmemorykiller */
 static int enable_lmk = 1;
 module_param_named(enable_lmk, enable_lmk, int,
@@ -161,13 +159,12 @@ static int lmk_vmpressure_notifier(struct notifier_block *nb,
 	if (!enable_adaptive_lmk)
 		return 0;
 
-	other_file = global_page_state(NR_FILE_PAGES) + zcache_pages() -
+	if (pressure >= 95) {
+		other_file = global_page_state(NR_FILE_PAGES) + zcache_pages() -
 			global_page_state(NR_SHMEM) -
 			total_swapcache_pages();
+		other_free = global_page_state(NR_FREE_PAGES);
 
-	other_free = global_page_state(NR_FREE_PAGES);
-
-	if (pressure >= 95) {
 		atomic_set(&shift_adj, 1);
 		trace_almk_vmpressure(pressure, other_free, other_file);
 	} else if (pressure >= 90) {
@@ -175,6 +172,12 @@ static int lmk_vmpressure_notifier(struct notifier_block *nb,
 			array_size = lowmem_adj_size;
 		if (lowmem_minfree_size < array_size)
 			array_size = lowmem_minfree_size;
+
+		other_file = global_page_state(NR_FILE_PAGES) + zcache_pages() -
+			global_page_state(NR_SHMEM) -
+			total_swapcache_pages();
+
+		other_free = global_page_state(NR_FREE_PAGES);
 
 		if ((other_free < lowmem_minfree[array_size - 1]) &&
 			(other_file < vmpressure_file_min)) {
@@ -408,8 +411,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 
 	other_free = global_page_state(NR_FREE_PAGES);
 
-	if (global_page_state(NR_SHMEM) + total_swapcache_pages() +
-		global_page_state(NR_UNEVICTABLE) <
+	if (global_page_state(NR_SHMEM) + total_swapcache_pages() <
 		global_page_state(NR_FILE_PAGES) + zcache_pages())
 		other_file = global_page_state(NR_FILE_PAGES) + zcache_pages() -
 						global_page_state(NR_SHMEM) -
@@ -425,8 +427,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 	if (lowmem_minfree_size < array_size)
 		array_size = lowmem_minfree_size;
 	for (i = 0; i < array_size; i++) {
-		minfree = lowmem_minfree[i] +
-			  ((extra_free_kbytes * 1024) / PAGE_SIZE);
+		minfree = lowmem_minfree[i];
 		if (other_free < minfree && other_file < minfree) {
 			min_score_adj = lowmem_adj[i];
 			break;
