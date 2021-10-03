@@ -14,6 +14,9 @@ COLOR_N="\033[0m"
 COLOR_R="\033[0;31m"
 COLOR_G="\033[1;32m"
 
+# intended android version
+ADROID="Android 11"
+
 ABORT() {
 	echo -e $COLOR_R"Error: $*"
 	exit 1
@@ -70,11 +73,11 @@ COPY_AK() {
 	if grep -q 'BETA' $RDIR/VERSION; then
 	  cp $BANNER_BETA $DDIR/banner \
 		|| ABORT "Failed to copy banner"
-	  echo "  ${BVER} Oreo" > $DDIR/version
+	  echo "  ${BVER} ${ADROID}" > $DDIR/version
 	else
 	  cp $BANNER $DDIR \
 		|| ABORT "Failed to copy banner"
-	  echo "  ${VER} Oreo" > $DDIR/version
+	  echo "  ${VER} ${ADROID}" > $DDIR/version
 	fi
 	source $MK2DIR/ak-template.sh > $DDIR/anykernel.sh \
 		|| ABORT "Failed to generate *anykernel.sh*"
