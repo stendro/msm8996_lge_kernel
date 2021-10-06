@@ -4540,9 +4540,4 @@
 
 //[B]fix build error at Pre_ES4 migration
 /delete-node/ &spi_12;
-&soc {
-/delete-node/ pps;
-};
-
-
 //[E]fix build error
