@@ -1,5 +1,5 @@
 include msm-perf_defconfig
-include mk2000_defconfig
+
 # LG Platform
 CONFIG_MACH_LGE=y
 
@@ -125,3 +125,6 @@ CONFIG_MSM_BT_POWER=n
 CONFIG_NFC_NQ=n
 CONFIG_CNSS=n
 CONFIG_USELIB=n
+
+# mk2000 has override priority
+include mk2000_defconfig
