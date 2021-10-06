@@ -170,6 +170,10 @@ ifeq ($(CONFIG_MACH_MSM8996_LUCYE_TRF_US_VZW),y)
 DTS_TARGET := msm8996-lucye_trf_us_vzw
 endif
 
+ifeq ($(DTS_TARGET),msm8996-h1_us)
+export CONFIG_MACH_MSM8996_H1_US = y
+endif
+
 ALL_DTS := $(notdir $(wildcard echo $(srctree)/$(src)/$(DTS_TARGET)/*.dts))
 dtb-y += $(patsubst %.dts,%.dtb,$(ALL_DTS))
 
