@@ -73,6 +73,7 @@ config MACH_MSM8996_H1_SPR_US
     bool "MSM8996 H1_SPR_US"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_SPR_US device.
 
@@ -80,6 +81,7 @@ config MACH_MSM8996_H1_USC_US
     bool "MSM8996 H1_USC_US"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_USC_US device.
 
@@ -87,6 +89,7 @@ config MACH_MSM8996_H1_LRA_US
     bool "MSM8996 H1_LRA_US"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_LRA_US device.
 
@@ -94,6 +97,7 @@ config MACH_MSM8996_H1_ACG_US
     bool "MSM8996 H1_ACG_US"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_ACG_US device.
 
@@ -108,6 +112,7 @@ config MACH_MSM8996_H1_TMO_US
     bool "MSM8996 H1_TMO_US"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_TMO_US device.
 
@@ -115,6 +120,7 @@ config MACH_MSM8996_H1_CA
     bool "MSM8996 H1_CA"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_CA device.
 
@@ -157,6 +163,7 @@ config MACH_MSM8996_H1_CLR_PR
     bool "MSM8996 H1_CLR_PR"
     depends on MACH_MSM8996_H1
     select MACH_LGE
+    select MACH_MSM8996_H1_US
     help
       Support for the Qualcomm MSM8996 H1_CLR_PR device.
 
@@ -454,6 +461,14 @@ config MACH_MSM8996_LUCYE_TRF_US_VZW
 	select MACH_LGE
 	help
 	  Support for the Qualcomm MSM8996 LUCYE_TRF_US_VZW device.
+
+config MACH_MSM8996_H1_US
+        bool "MSM8996 US"
+        depends on ARCH_MSM8996
+        default n
+        help
+          Selected if any American model selected (except ATT).
+          Used for device tree conditionals in common device tree.
 
 endmenu
 
