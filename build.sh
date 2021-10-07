@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 # Stock kernel for LG Electronics msm8996 devices build script by jcadduono
-# -modified by stendro
+# -(heavily)modified by stendro
 #
-################### BEFORE STARTING ################
+############################# BEFORE STARTING #############################
 #
 # download a working toolchain and extract it somewhere and configure this
 # file to point to the toolchain's root directory.
@@ -11,7 +11,7 @@
 # once you've set up the config section how you like it, you can simply run
 # ./build.sh [VARIANT]
 #
-##################### VARIANTS #####################
+################################ VARIANTS ################################
 #
 # H850		= International (Global)
 #		LGH850   (LG G5)
@@ -65,7 +65,7 @@
 # H872		= T-Mobile (US)
 #		LGH872   (LG G6)
 #
-###################### CONFIG ######################
+################################# CONFIG #################################
 
 # root directory of this kernel (this script's location)
 RDIR=$(pwd)
@@ -73,30 +73,54 @@ RDIR=$(pwd)
 # build dir
 BDIR=build
 
-# enable ccache ?
+# version file
+VFIL=VERSION
+
+# expand version
+VER=$(cat $RDIR/$VFIL)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ------------------------- BUILD CONFIG OPTIONS -------------------------
+#
+# "user"@"host"
+KBUSER=stendro
+KBHOST=github
+
+# ccache: yes or no
 USE_CCACHE=no
 
-# version number
-VER=$(cat "$RDIR/VERSION")
+# link time optimization: yes or no
+# this kernel only supports gcc LTO
+USE_LTO=no
 
-# select linker. ld or ld.gold
-# gold requires specific compiler support
-MK_LINKER=ld
+# dead code data elimination: yes or no
+# this will inject CONFIG_THIN_ARCHIVES=y
+# into the .config - which will also then
+# select CONFIG_DEAD_CODE_DATA_ELIMINATION=y
+# this results in a smaller kernel.
+# if USE_LTO is selected this option is redundant
+USE_DCDE=no
 
 # select cpu threads
 THREADS=$(grep -c "processor" /proc/cpuinfo)
 
 # directory containing cross-compiler
+# a newer toolchain (gcc8+) is recommended due to changes made
+# to the kernel. If not then you probably must disable USE_DCDE
+# and USE_LTO at least
 GCC_COMP=$HOME/mk2000/toolchain/stendro/aarch64-elf/bin/aarch64-elf-
-# directory containing 32bit cross-compiler (COMPAT_VDSO)
+# directory containing 32bit cross-compiler for CONFIG_COMPAT_VDSO
 GCC_COMP_32=$HOME/mk2000/toolchain/stendro/arm-eabi/bin/arm-eabi-
 
+# -------------------------------- END -----------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 # compiler version
-# gnu gcc (non-linaro)
+# gnu gcc or newer arm (linaro) gcc
 if $(${GCC_COMP}gcc --version | grep -q '(GCC)'); then
 GCC_STRING=$(${GCC_COMP}gcc --version | head -n1 | cut -f2 -d')')
 GCC_VER="GCC$GCC_STRING"
-else # linaro gcc
+else # old linaro gcc
 GCC_VER="$(${GCC_COMP}gcc --version | head -n1 | cut -f1 -d')' | \
 	cut -f2 -d'(')"
 if $(echo $GCC_VER | grep -q '~dev'); then
@@ -104,8 +128,9 @@ if $(echo $GCC_VER | grep -q '~dev'); then
 fi
 fi
 
-############## SCARY NO-TOUCHY STUFF ###############
-
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# --------------------------- RIGID PORTION ------------------------------
+#
 # color codes
 COLOR_N="\033[0m"
 COLOR_R="\033[0;31m"
@@ -117,10 +142,9 @@ ABORT() {
 	exit 1
 }
 
-export MK_LINKER
 export ARCH=arm64
-export KBUILD_BUILD_USER=stendro
-export KBUILD_BUILD_HOST=github
+export KBUILD_BUILD_USER=$KBUSER
+export KBUILD_BUILD_HOST=$KBHOST
 export LOCALVERSION="mk2k-${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
@@ -191,7 +215,9 @@ SETUP_BUILD() {
 	mkdir -p $BDIR
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build."
-	if [ "$MK_LINKER" = "ld.gold" ]; then
+	if [ "$USE_LTO" = "yes" ]; then
+	  echo "CONFIG_LTO=y" >> $BDIR/.config
+	elif [ "$USE_DCDE" = "yes" ]; then
 	  echo "CONFIG_THIN_ARCHIVES=y" >> $BDIR/.config
 	fi
 	if [ "$MK_VDSO" = "yes" ]; then
@@ -243,6 +269,9 @@ echo -e $COLOR_G"Building ${DEVICE} ${VER}..."
 echo -e $COLOR_P"Using $GCC_VER..."
 if [ "$USE_CCACHE" = "yes" ]; then
   echo -e $COLOR_P"Using CCACHE..."
+fi
+if [ "$USE_LTO" = "yes" ]; then
+  echo -e $COLOR_P"Using Link Time Optimization..."
 fi
 
 CLEAN_BUILD &&
