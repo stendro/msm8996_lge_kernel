@@ -13,7 +13,6 @@
 #include "dsi-panel-lgd-r69007-dualmipi-qhd-cmd.dtsi"
 #include "dsi-panel-lgd-lg4945-dualmipi-qhd-cmd.dtsi"
 #include "dsi-panel-lgd-lg4946-dualmipi-qhd-cmd.dtsi"
-#include "dsi-panel-lgd-td4302-dualmipi-qhd-cmd.dtsi"
 
 &mdss_mdp {
 	qcom,mdss-pref-prim-intf = "dsi";
@@ -85,20 +84,6 @@
 	qcom,mdss-dsi-bl-max-level = <4095>;
 	qcom,cont-splash-enabled;
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-};
-
-&dsi_dual_lgd_td4302_cmd {
-	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
-	qcom,mdss-dsi-bl-min-level = <1>;
-	qcom,mdss-dsi-bl-max-level = <4095>;
-	qcom,cont-splash-enabled;
-	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-	qcom,mdss-dsi-panel-timings-phy-v2 = [24 1f 08 09 05 03 04 a0
-			24 1f 08 09 05 03 04 a0
-			24 1f 08 09 05 03 04 a0
-			24 1f 08 09 05 03 04 a0
-			24 1b 08 09 05 03 04 a0
-	];
 };
 
 &spmi_bus {
