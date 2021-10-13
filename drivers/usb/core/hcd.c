@@ -2614,6 +2614,9 @@ static void hcd_release(struct kref *kref)
 	}
 	mutex_unlock(&usb_port_peer_mutex);
 	kfree(hcd);
+#ifdef CONFIG_LGE_USB_G_ANDROID
+	hcd = NULL;
+#endif
 }
 
 struct usb_hcd *usb_get_hcd (struct usb_hcd *hcd)
