@@ -522,20 +522,6 @@ config LGE_BOOTLOADER_LOG
 	help
 	  LGE bootloader log
 
-config LGE_EARJACK_DEBUGGER
-	bool "Earjack UART debugger support"
-	depends on MACH_LGE
-	default n
-	help
-	  Support earjack type UART debugger cable
-
-config LGE_USB_DEBUGGER
-	bool "USB UART debugger support"
-	depends on LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-	default n
-	help
-	  Support USB type UART debugger cable
-
 config LGE_PM_CABLE_DETECTION
 	tristate "Support LGE PM Cable Detection"
 	depends on MACH_LGE
