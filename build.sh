@@ -36,7 +36,7 @@
 # US996		= US Cellular & Unlocked (US)
 #		LGUS996  (LG V20)
 #
-# US996Santa	= US Cellular & Unlocked (US)
+# US996Dirty	= US Cellular & Unlocked (US)
 #		LGUS996  (LG V20) (Unlocked with Engineering Bootloader)
 #
 # VS995		= Verizon (US)
@@ -179,7 +179,7 @@ elif [ "$DEVICE" = "H990" ]; then
   DEVICE_DEFCONFIG=lineageos_h990_defconfig
 elif [ "$DEVICE" = "US996" ]; then
   DEVICE_DEFCONFIG=lineageos_us996_defconfig
-elif [ "$DEVICE" = "US996Santa" ]; then
+elif [ "$DEVICE" = "US996Dirty" ]; then
   DEVICE_DEFCONFIG=lineageos_us996-dirty_defconfig
 elif [ "$DEVICE" = "VS995" ]; then
   DEVICE_DEFCONFIG=lineageos_vs995_defconfig

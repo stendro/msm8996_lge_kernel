@@ -2,9 +2,6 @@ include lineageos_elsa_common
 # LG Platform
 CONFIG_MACH_MSM8996_ELSA_NAO_US=y
 
-# Disable for official unlocked (no dirty aboot)
-CONFIG_LGE_DIRTY_ABOOT_FIXUP=n
-
 # Broadcom - Wifi
 CONFIG_BCMDHD=y
 CONFIG_BCMDHD_LEGACY=y
