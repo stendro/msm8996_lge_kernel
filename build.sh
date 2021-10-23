@@ -89,25 +89,12 @@ KBHOST=github
 # ccache: yes or no
 USE_CCACHE=no
 
-# link time optimization: yes or no
-# this kernel only supports gcc LTO
-USE_LTO=no
-
-# dead code data elimination: yes or no
-# this will inject CONFIG_THIN_ARCHIVES=y
-# into the .config - which will also then
-# select CONFIG_DEAD_CODE_DATA_ELIMINATION=y
-# this results in a smaller kernel.
-# if USE_LTO is selected this option is redundant
-USE_DCDE=no
-
 # select cpu threads
 THREADS=$(grep -c "processor" /proc/cpuinfo)
 
 # directory containing cross-compiler
 # a newer toolchain (gcc8+) is recommended due to changes made
-# to the kernel. If not then you probably must disable USE_DCDE
-# and USE_LTO at least
+# to the kernel.
 GCC_COMP=$HOME/mk2000/toolchain/stendro/aarch64-elf/bin/aarch64-elf-
 # directory containing 32bit cross-compiler for CONFIG_COMPAT_VDSO
 GCC_COMP_32=$HOME/mk2000/toolchain/stendro/arm-eabi/bin/arm-eabi-
@@ -196,8 +183,8 @@ fi
 [ -x "${GCC_COMP}gcc" ] \
 	|| ABORT "Cross-compiler not found at: ${GCC_COMP}gcc"
 
-[ -x "${GCC_COMP_32}gcc" ] && MK_VDSO=yes \
-	|| echo -e $COLOR_R"32-bit compiler not found, COMPAT_VDSO disabled."
+[ -x "${GCC_COMP_32}gcc" ] \
+	|| echo -e $COLOR_R"32-bit compiler not found, required for COMPAT_VDSO."
 
 if [ "$USE_CCACHE" = "yes" ]; then
 	command -v ccache >/dev/null 2>&1 \
@@ -215,14 +202,6 @@ SETUP_BUILD() {
 	mkdir -p $BDIR
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build."
-	if [ "$USE_LTO" = "yes" ]; then
-	  echo "CONFIG_LTO=y" >> $BDIR/.config
-	elif [ "$USE_DCDE" = "yes" ]; then
-	  echo "CONFIG_THIN_ARCHIVES=y" >> $BDIR/.config
-	fi
-	if [ "$MK_VDSO" = "yes" ]; then
-	  echo "CONFIG_COMPAT_VDSO=y" >> $BDIR/.config
-	fi
 }
 
 BUILD_KERNEL() {
@@ -269,9 +248,6 @@ echo -e $COLOR_G"Building ${DEVICE} ${VER}..."
 echo -e $COLOR_P"Using $GCC_VER..."
 if [ "$USE_CCACHE" = "yes" ]; then
   echo -e $COLOR_P"Using CCACHE..."
-fi
-if [ "$USE_LTO" = "yes" ]; then
-  echo -e $COLOR_P"Using Link Time Optimization..."
 fi
 
 CLEAN_BUILD &&
