@@ -132,7 +132,7 @@ ABORT() {
 export ARCH=arm64
 export KBUILD_BUILD_USER=$KBUSER
 export KBUILD_BUILD_HOST=$KBHOST
-export LOCALVERSION="mk2k-${VER}"
+export LOCALVERSION="-${VER}"
 if [ "$USE_CCACHE" = "yes" ]; then
   export CROSS_COMPILE="ccache $GCC_COMP"
   export CROSS_COMPILE_ARM32="ccache $GCC_COMP_32"
