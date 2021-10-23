@@ -151,3 +151,11 @@ CONFIG_CMDLINE_SEARCHREPLACE=y
 CONFIG_CMDLINE_SAR_ENABLE0=y
 CONFIG_CMDLINE_SAR_SEARCH0=" androidboot.mode=chargerlogo "
 CONFIG_CMDLINE_SAR_REPLACE0=" androidboot.mode=charger "
+
+# VDSO32 - CROSS_COMPILE_ARM32 variable
+# must be set with separate arm32 compiler
+CONFIG_COMPAT_VDSO=y
+
+# LTO (Link Time Optimization)
+# should use modern GCC version
+CONFIG_LTO=y
