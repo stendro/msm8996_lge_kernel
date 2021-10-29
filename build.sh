@@ -122,6 +122,7 @@ fi
 COLOR_N="\033[0m"
 COLOR_R="\033[0;31m"
 COLOR_G="\033[1;32m"
+COLOR_Y="\033[1;33m"
 COLOR_P="\033[1;35m"
 
 ABORT() {
@@ -191,6 +192,10 @@ if [ "$USE_CCACHE" = "yes" ]; then
 	|| ABORT "Do you have ccache installed?"
 fi
 
+if [ "$(cat $BDIR/DEVICE)" = "$DEVICE" ]; then
+	ASK_CLEAN=yes
+fi
+
 # build commands
 CLEAN_BUILD() {
 	echo -e $COLOR_G"Cleaning build folder..."$COLOR_N
@@ -250,10 +255,25 @@ if [ "$USE_CCACHE" = "yes" ]; then
   echo -e $COLOR_P"Using CCACHE..."
 fi
 
-CLEAN_BUILD &&
-SETUP_BUILD &&
-BUILD_KERNEL &&
-INSTALL_MODULES &&
-PREPARE_NEXT &&
+# ask before cleaning if device
+# is the same as previous build
+if [ "$ASK_CLEAN" = "yes" ]; then
+  while true; do
+    echo -e $COLOR_Y
+    read -p "Same device as last build. Do you wish clean the build directory?" yn
+    echo -e $COLOR_N
+    case $yn in
+      [Yy]* ) CLEAN_BUILD && break ;;
+      [Nn]* ) break ;;
+      * ) echo -e $COLOR_R"Please answer y or n"$COLOR_N ;;
+    esac
+  done
+else
+CLEAN_BUILD
+fi
+SETUP_BUILD
+BUILD_KERNEL
+INSTALL_MODULES
+PREPARE_NEXT
 echo -e $COLOR_G"Finished building ${DEVICE} ${VER} -- Kernel compilation took"$COLOR_R $BTIME
 echo -e $COLOR_P"Run ./copy_finished.sh to create AnyKernel zip."
