@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1486,19 +1486,13 @@ int mdss_dsi_clk_refresh(struct mdss_panel_data *pdata, bool update_phy)
 				__func__, pinfo->mipi.frame_rate);
 	}
 
-	pinfo->clk_rate = mdss_dsi_calc_bitclk(pinfo, pinfo->mipi.frame_rate);
-	if (!pinfo->clk_rate) {
-		pr_err("%s: unable to calculate the DSI bit clock\n", __func__);
-		return -EINVAL;
+	rc = mdss_dsi_clk_div_config(&pdata->panel_info,
+			pdata->panel_info.mipi.frame_rate);
+	if (rc) {
+		pr_err("%s: unable to initialize the clk dividers\n",
+								__func__);
+		return rc;
 	}
-
-	pinfo->mipi.dsi_pclk_rate = mdss_dsi_get_pclk_rate(pinfo,
-		pinfo->clk_rate);
-	if (!pinfo->mipi.dsi_pclk_rate) {
-		pr_err("%s: unable to calculate the DSI pclk\n", __func__);
-		return -EINVAL;
-	}
-
 	ctrl_pdata->refresh_clk_rate = false;
 	ctrl_pdata->pclk_rate = pdata->panel_info.mipi.dsi_pclk_rate;
 	ctrl_pdata->byte_clk_rate = pdata->panel_info.clk_rate / 8;
@@ -1527,7 +1521,7 @@ int mdss_dsi_clk_refresh(struct mdss_panel_data *pdata, bool update_phy)
 		/* phy panel timing calaculation */
 		rc = mdss_dsi_phy_calc_timing_param(pinfo,
 				ctrl_pdata->shared_data->phy_rev,
-				pdata->panel_info.clk_rate);
+				pinfo->mipi.frame_rate);
 		if (rc) {
 			pr_err("Error in calculating phy timings\n");
 			return rc;
@@ -1814,9 +1808,16 @@ bool is_diff_frame_rate(struct mdss_panel_info *panel_info,
 		return (frame_rate != panel_info->mipi.frame_rate);
 }
 
-static u8 mdss_dsi_get_lane_cnt(struct mdss_panel_info *panel_info)
+int mdss_dsi_clk_div_config(struct mdss_panel_info *panel_info,
+			    int frame_rate)
 {
-	u8 lanes = 0;
+	struct mdss_panel_data *pdata  = container_of(panel_info,
+			struct mdss_panel_data, panel_info);
+	struct  mdss_dsi_ctrl_pdata *ctrl_pdata = container_of(pdata,
+			struct mdss_dsi_ctrl_pdata, panel_data);
+	u64 h_period, v_period, clk_rate;
+	u32 dsi_pclk_rate;
+	u8 lanes = 0, bpp;
 
 	if (!panel_info)
 		return -EINVAL;
@@ -1830,17 +1831,7 @@ static u8 mdss_dsi_get_lane_cnt(struct mdss_panel_info *panel_info)
 	if (panel_info->mipi.data_lane0)
 		lanes += 1;
 
-	if (!lanes)
-		lanes = 1;
-
-	return lanes;
-}
-
-static u8 mdss_dsi_get_bpp(char dst_format)
-{
-	u8 bpp = 0;
-
-	switch (dst_format) {
+	switch (panel_info->mipi.dst_format) {
 	case DSI_CMD_DST_FORMAT_RGB888:
 	case DSI_VIDEO_DST_FORMAT_RGB888:
 	case DSI_VIDEO_DST_FORMAT_RGB666_LOOSE:
@@ -1854,21 +1845,6 @@ static u8 mdss_dsi_get_bpp(char dst_format)
 		bpp = 3;	/* Default format set to RGB888 */
 		break;
 	}
-	return bpp;
-}
-
-u64 mdss_dsi_calc_bitclk(struct mdss_panel_info *panel_info, int frame_rate)
-{
-	struct mdss_panel_data *pdata  = container_of(panel_info,
-		struct mdss_panel_data, panel_info);
-	struct  mdss_dsi_ctrl_pdata *ctrl_pdata = container_of(pdata,
-		struct mdss_dsi_ctrl_pdata, panel_data);
-	u64 h_period, v_period, clk_rate = 0;
-	u8 lanes = 0, bpp;
-
-	lanes = mdss_dsi_get_lane_cnt(panel_info);
-
-	bpp = mdss_dsi_get_bpp(panel_info->mipi.dst_format);
 
 	h_period = mdss_panel_get_htotal(panel_info, true);
 	if (panel_info->split_link_enabled)
@@ -1876,40 +1852,35 @@ u64 mdss_dsi_calc_bitclk(struct mdss_panel_info *panel_info, int frame_rate)
 	v_period = mdss_panel_get_vtotal(panel_info);
 
 	if (ctrl_pdata->refresh_clk_rate || is_diff_frame_rate(panel_info,
-		frame_rate) || (!panel_info->clk_rate)) {
-		clk_rate = h_period * v_period * frame_rate * bpp * 8;
-		do_div(clk_rate, lanes);
-	} else if (panel_info->clk_rate) {
-		clk_rate = panel_info->clk_rate;
+			frame_rate) || (!panel_info->clk_rate)) {
+		if (lanes > 0) {
+			panel_info->clk_rate = h_period * v_period * frame_rate
+				* bpp * 8;
+			do_div(panel_info->clk_rate, lanes);
+		} else {
+			pr_err("%s: forcing mdss_dsi lanes to 1\n", __func__);
+			panel_info->clk_rate =
+				h_period * v_period * frame_rate * bpp * 8;
+		}
 	}
 
-	if (clk_rate == 0)
-		clk_rate = 454000000;
+	if (panel_info->clk_rate == 0)
+		panel_info->clk_rate = 454000000;
 
-	return clk_rate;
-}
-
-u32 mdss_dsi_get_pclk_rate(struct mdss_panel_info *panel_info, u64 clk_rate)
-{
-	u8 lanes = 0, bpp;
-	u32 pclk_rate = 0;
-
-	lanes = mdss_dsi_get_lane_cnt(panel_info);
-
-	bpp = mdss_dsi_get_bpp(panel_info->mipi.dst_format);
-
+	clk_rate = panel_info->clk_rate;
 	do_div(clk_rate, 8 * bpp);
 
 	if (panel_info->split_link_enabled)
-		pclk_rate = (u32) clk_rate *
+		dsi_pclk_rate = (u32) clk_rate *
 			panel_info->mipi.lanes_per_sublink;
 	else
-		pclk_rate = (u32) clk_rate * lanes;
+		dsi_pclk_rate = (u32) clk_rate * lanes;
 
-	if ((pclk_rate < 3300000) || (pclk_rate > 250000000))
-		pclk_rate = 35000000;
+	if ((dsi_pclk_rate < 3300000) || (dsi_pclk_rate > 250000000))
+		dsi_pclk_rate = 35000000;
+	panel_info->mipi.dsi_pclk_rate = dsi_pclk_rate;
 
-	return pclk_rate;
+	return 0;
 }
 
 static bool mdss_dsi_is_ulps_req_valid(struct mdss_dsi_ctrl_pdata *ctrl,
