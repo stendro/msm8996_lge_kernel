@@ -1229,11 +1229,10 @@ static void mdss_dsi_8996_phy_config(struct mdss_dsi_ctrl_pdata *ctrl)
 	off = DSIPHY_LANE_CFG_BASE;
 	ln_off = cnt * MDSS_DSI_NUM_DATA_LANES;
 	ip = &pd->lanecfg[ln_off];
-	for (j = 0; j < cnt; j++) {
+	for (j = 0; j < cnt; j++, *ip++) {
 		MIPI_OUTP(base + off, *ip);
 		if (panel_info->split_link_enabled)
 			MIPI_OUTP(base + CLKLANE_SIZE_8996 + off, *ip);
-		ip++;
 		off += DSIPHY_LANE_CFG_OFFSET;
 	}
 
@@ -1246,11 +1245,10 @@ static void mdss_dsi_8996_phy_config(struct mdss_dsi_ctrl_pdata *ctrl)
 	off = DSIPHY_LANE_TIMING_CTRL_BASE;
 	ln_off = cnt * MDSS_DSI_NUM_DATA_LANES;
 	ip = &pd->timing_8996[ln_off];
-	for (j = 0; j < cnt; j++) {
+	for (j = 0; j < cnt; j++, *ip++) {
 		MIPI_OUTP(base + off, *ip);
 		if (panel_info->split_link_enabled)
 			MIPI_OUTP(base + CLKLANE_SIZE_8996 + off, *ip);
-		ip++;
 		off += DSIPHY_LANE_TIMING_CTRL_OFFSET;
 	}
 
@@ -1263,11 +1261,10 @@ static void mdss_dsi_8996_phy_config(struct mdss_dsi_ctrl_pdata *ctrl)
 	off = DSIPHY_LANE_STRENGTH_CTRL_BASE;
 	ln_off = cnt * MDSS_DSI_NUM_DATA_LANES;
 	ip = &pd->strength[ln_off];
-	for (j = 0; j < cnt; j++) {
+	for (j = 0; j < cnt; j++, *ip++) {
 		MIPI_OUTP(base + off, *ip);
 		if (panel_info->split_link_enabled)
 			MIPI_OUTP(base + CLKLANE_SIZE_8996 + off, *ip);
-		ip++;
 		off += DSIPHY_LANE_STRENGTH_CTRL_OFFSET;
 	}
 
