@@ -358,6 +358,9 @@ static void keep_alive_response(void *info)
 	struct msm_watchdog_data *wdog_dd = (struct msm_watchdog_data *)info;
 	cpumask_set_cpu(cpu, &wdog_dd->alive_mask);
 	smp_mb();
+#ifdef CONFIG_LGE_HANDLE_PANIC
+	wdog_dd->alive_time[cpu] = sched_clock();
+#endif
 }
 
 /*
@@ -416,6 +419,9 @@ static __ref int watchdog_kthread(void *arg)
 		/* Check again before scheduling *
 		 * Could have been changed on other cpu */
 		mod_timer(&wdog_dd->pet_timer, jiffies + delay_time);
+#ifdef CONFIG_LGE_HANDLE_PANIC
+		pr_info("pet_watchdog [enable : %d, jiffies : %lu, delay_time : %lu]\n", enable, jiffies, delay_time);
+#endif
 	}
 	return 0;
 }
@@ -472,10 +478,17 @@ void msm_trigger_wdog_bite(void)
 	if (!wdog_data)
 		return;
 	pr_info("Causing a watchdog bite!");
+
+#ifdef CONFIG_LGE_HANDLE_PANIC
+	if (lge_get_restart_reason() == (LGE_RB_MAGIC | LGE_ERR_TZ))
+		lge_set_restart_reason(LGE_RB_MAGIC | LGE_ERR_TZ | LGE_ERR_TZ_NON_SEC_WDT);
+#endif
+
 	__raw_writel(1, wdog_data->base + WDT0_BITE_TIME);
 	mb();
 	__raw_writel(1, wdog_data->base + WDT0_RST);
 	mb();
+
 	/* Delay to make sure bite occurs */
 	mdelay(10000);
 	pr_err("Wdog - STS: 0x%x, CTL: 0x%x, BARK TIME: 0x%x, BITE TIME: 0x%x",
@@ -483,6 +496,9 @@ void msm_trigger_wdog_bite(void)
 		__raw_readl(wdog_data->base + WDT0_EN),
 		__raw_readl(wdog_data->base + WDT0_BARK_TIME),
 		__raw_readl(wdog_data->base + WDT0_BITE_TIME));
+#ifdef CONFIG_LGE_HANDLE_PANIC
+	while(1);
+#endif
 }
 
 static irqreturn_t wdog_bark_handler(int irq, void *dev_id)
@@ -500,6 +516,11 @@ static irqreturn_t wdog_bark_handler(int irq, void *dev_id)
 		wdog_dd->last_pet, nanosec_rem / 1000);
 	if (wdog_dd->do_ipi_ping)
 		dump_cpu_alive_mask(wdog_dd);
+
+#ifdef CONFIG_LGE_HANDLE_PANIC
+	lge_set_restart_reason(LGE_RB_MAGIC | LGE_ERR_TZ | LGE_ERR_TZ_WDT_BARK);
+#endif
+
 	msm_trigger_wdog_bite();
 	panic("Failed to cause a watchdog bite! - Falling back to kernel panic!");
 	return IRQ_HANDLED;

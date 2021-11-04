@@ -250,6 +250,15 @@ config BATTERY_MAX17042
 	  with MAX17042. This driver also supports max17047/50 chips which are
 	  improved version of max17042.
 
+config BATTERY_MAX17050
+    tristate "Maxim MAX17050 fuel gauge external driver"
+    depends on I2C
+    default n
+    help
+      MAX17050 is fuel-gauge systems for lithium-ion (Li+) batteries
+      in handheld and portable equipment. The MAX17048 is configured
+      to operate with a single lithium cell.
+
 config BATTERY_Z2
 	tristate "Z2 battery driver"
 	depends on I2C && MACH_ZIPIT2
@@ -520,6 +529,13 @@ config AXP20X_POWER
 	help
 	  This driver provides support for the power supply features of
 	  AXP20x PMIC.
+
+config IDTP9223_CHARGER
+	tristate "IDT P9223 charger diver"
+	default n
+	depends on I2C && GPIOLIB
+	help
+	  Say Y to enable support for the IDT P9223 wireless charger.
 
 source "drivers/power/reset/Kconfig"
 source "drivers/power/supply/Kconfig"

@@ -179,6 +179,9 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_TIME_TO_FULL_NOW,
 	POWER_SUPPLY_PROP_TIME_TO_FULL_AVG,
 	POWER_SUPPLY_PROP_TYPE, /* use power_supply.type instead */
+#ifdef CONFIG_LGE_PM
+	POWER_SUPPLY_PROP_REAL_TYPE,
+#endif
 	POWER_SUPPLY_PROP_SCOPE,
 	POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT,
 	POWER_SUPPLY_PROP_CALIBRATE,
@@ -208,8 +211,31 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_RESISTANCE,
 	POWER_SUPPLY_PROP_RESISTANCE_CAPACITIVE,
 	POWER_SUPPLY_PROP_RESISTANCE_ID, /* in Ohms */
+#ifdef CONFIG_LGE_PM_PSEUDO_BATTERY
+	POWER_SUPPLY_PROP_PSEUDO_BATT,
+#endif
+#ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
+	POWER_SUPPLY_PROP_USB_CURRENT_MAX_MODE,
+#endif
+#ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
+	POWER_SUPPLY_PROP_TDMB_MODE_ON,
+#endif
+#ifdef CONFIG_LGE_PM_VZW_REQ
+	POWER_SUPPLY_PROP_VZW_CHG,
+#endif
+#ifdef CONFIG_LGE_PM_LLK_MODE
+	POWER_SUPPLY_PROP_STORE_DEMO_ENABLED,
+#endif
 	POWER_SUPPLY_PROP_RESISTANCE_NOW,
 	POWER_SUPPLY_PROP_FLASH_CURRENT_MAX,
+#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
+	POWER_SUPPLY_PROP_ENABLE_EVP_CHG,
+#endif
+#ifdef CONFIG_LGE_USB_MAXIM_EVP
+	POWER_SUPPLY_PROP_EVP_VOL,
+	POWER_SUPPLY_PROP_HVDCP_TYPE,
+	POWER_SUPPLY_PROP_EVP_DETECT_START,
+#endif
 	POWER_SUPPLY_PROP_UPDATE_NOW,
 	POWER_SUPPLY_PROP_ESR_COUNT,
 	POWER_SUPPLY_PROP_BUCK_FREQ,
@@ -297,6 +323,14 @@ enum power_supply_type {
 	POWER_SUPPLY_TYPE_TYPEC,	/* Type-C */
 	POWER_SUPPLY_TYPE_UFP,		/* Type-C UFP */
 	POWER_SUPPLY_TYPE_DFP,		/* TYpe-C DFP */
+#ifdef CONFIG_LGE_USB_TYPE_C
+	POWER_SUPPLY_TYPE_CTYPE,	/* 18  USB Type-C Charger based on CC controller */
+	POWER_SUPPLY_TYPE_CTYPE_PD,	/* 19  USB Type-C Charger based on PD Message */
+	POWER_SUPPLY_TYPE_CTYPE_DEBUG_ACCESSORY, /* Type-C DebugAccessoryMode */
+#endif
+#ifdef CONFIG_BATTERY_MAX17050
+	POWER_SUPPLY_TYPE_EXT_FG,
+#endif
 };
 
 /* Indicates USB Type-C CC connection status */
@@ -428,6 +462,22 @@ struct power_supply {
 	char *online_trig_name;
 	struct led_trigger *charging_blink_full_solid_trig;
 	char *charging_blink_full_solid_trig_name;
+#endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CORE
+	char **lge_power_supplied_to;
+	size_t num_lge_power_supplicants;
+	char **lge_power_supplied_from;
+	size_t num_lge_power_supplies;
+	void (*external_lge_power_changed)(struct power_supply *psy);
+	char **lge_psy_power_supplied_from;
+	size_t num_lge_psy_power_supplies;
+#endif
+#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_UEVENT
+	int *property_data;
+	int update_uevent;
+#endif
+#ifdef CONFIG_LGE_USB_FLOATED_CHARGER_DETECT
+	int is_floated_charger;
 #endif
 };
 
