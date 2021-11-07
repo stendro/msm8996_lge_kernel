@@ -192,7 +192,8 @@ if [ "$USE_CCACHE" = "yes" ]; then
 	|| ABORT "Do you have ccache installed?"
 fi
 
-if [ "$(cat $BDIR/DEVICE)" = "$DEVICE" ]; then
+if [ -f "$BDIR/DEVICE" ] && \
+	[ "$(cat $BDIR/DEVICE)" = "$DEVICE" ]; then
 	ASK_CLEAN=yes
 fi
 

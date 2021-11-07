@@ -1,6 +1,8 @@
 #!/bin/bash
 # simple script for executing menuconfig
 # -modified by stendro (source: jcadduono)
+#
+# It currently puts the output in "../"
 
 # root directory of this kernel (this script's location)
 RDIR=$(pwd)
@@ -22,7 +24,7 @@ OUTDIR=$(dirname "$RDIR")
 OUTFILE=${DEVICE}_config_regen
 
 # directory containing cross-compiler
-TOOLCHAIN=$HOME/Android/toolchain/gcc9/bin/aarch64-elf-
+TOOLCHAIN=$HOME/mk2000/toolchain/stendro/aarch64-elf/bin/aarch64-elf-
 
 export ARCH=arm64
 export CROSS_COMPILE=$TOOLCHAIN
