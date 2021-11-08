@@ -89,11 +89,6 @@ static ssize_t lge_power_show_property(struct device *dev,
 		return sprintf(buf, "%s\n", cable_text[value.intval]);
 	} else if (off == LGE_POWER_PROP_CABLE_TYPE_BOOT) {
 		return sprintf(buf, "%s\n", cable_boot_text[value.intval-6]);
-#ifdef CONFIG_LGE_PM_FACTORY_TESTMODE
-	} else if (off == LGE_POWER_PROP_HW_REV) {
-
-		return sprintf(buf, "%s\n", value.strval);
-#endif
 	} else if (off == LGE_POWER_PROP_BATT_PACK_NAME) {
 		return sprintf(buf, "%s\n", value.strval);
 	} else if (off == LGE_POWER_PROP_BATT_CAPACITY) {

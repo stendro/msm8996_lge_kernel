@@ -87,10 +87,6 @@ static void set_lge_batt_cell_no(struct lge_battery_id *battery_id) {
 
 static bool is_lge_batt_valid(struct lge_battery_id *battery_id)
 {
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-	if (battery_id->is_factory_cable == 1)
-		return true;
-#endif
 #ifdef CONFIG_LGE_PM_EMBEDDED_BATTERY
 	return true;
 #endif

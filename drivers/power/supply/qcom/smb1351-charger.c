@@ -639,13 +639,8 @@ static int smb1351_usb_suspend(struct smb1351_charger *chip, int reason,
 
 	suspended = chip->usb_suspended_status;
 
-#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
-	pr_err("reason = %d requested_suspend = %d suspended_status = %d\n",
-						reason, suspend, suspended);
-#else
 	pr_debug("reason = %d requested_suspend = %d suspended_status = %d\n",
 						reason, suspend, suspended);
-#endif
 
 	if (suspend == false)
 		suspended &= ~reason;

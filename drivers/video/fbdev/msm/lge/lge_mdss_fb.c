@@ -18,11 +18,6 @@
 #include <soc/qcom/lge/power/lge_power_class.h>
 #include <soc/qcom/smem.h>
 #endif
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-#include <soc/qcom/lge/power/lge_cable_detect.h>
-#else
-#include <soc/qcom/lge/lge_cable_detection.h>
-#endif
 #include <linux/module.h>
 #include <linux/power/lge_battery_id.h>
 #include "lge_mdss_display.h"
@@ -93,43 +88,8 @@ static inline bool is_blank_called(void)
 static inline bool is_factory_cable(void)
 {
 	unsigned int cable_info;
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-	cable_info = get_factory_cable();
-#if !defined(CONFIG_LGE_PM_EMBEDDED_BATTERY)
-		if (cable_info == LGEUSB_FACTORY_56K ||
-			cable_info == LGEUSB_FACTORY_130K ||
-			cable_info == LGEUSB_FACTORY_910K) {
-			pr_info("%s : cable_type = factory(%d) \n",__func__, cable_info);
-			return true;
-		} else {
-			return false;
-		}
-#else
-		if (cable_info == LGEUSB_FACTORY_130K ||
-			cable_info == LGEUSB_FACTORY_910K) {
-			pr_info("%s : cable_type = factory(%d) \n",__func__, cable_info);
-			return true;
-		} else {
-			return false;
-		}
-#endif
-#elif defined (CONFIG_LGE_PM_CABLE_DETECTION)
-	cable_info = lge_pm_get_cable_type();
-
-#if !defined(CONFIG_LGE_PM_EMBEDDED_BATTERY)
-	if (cable_info == CABLE_56K ||
-		cable_info == CABLE_130K ||
-		cable_info == CABLE_910K)
-#else
-	if (cable_info == CABLE_130K ||
-		cable_info == CABLE_910K)
-#endif
-		return true;
-	else
-#else
 	cable_info = NO_INIT_CABLE;
-#endif
-		return false;
+	return false;
 }
 
 void lge_set_blank_called(void)

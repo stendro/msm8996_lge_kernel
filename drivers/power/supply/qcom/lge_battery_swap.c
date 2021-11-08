@@ -113,12 +113,6 @@ static enum power_supply_property batt_swap_properties[] = {
 	POWER_SUPPLY_PROP_SWAP_STATUS,
 };
 
-#ifdef CONFIG_BATTERY_MAX17050
-extern void gauge_handle_batt_removal(void);
-extern void gauge_detect_vbat_in_no_load(void);
-extern void gauge_start_calculation (void);
-#endif
-
 static irqreturn_t batt_missing_handler(int irq, void *_chip)
 {
 	struct batt_swap *bs = _chip;
@@ -334,9 +328,6 @@ static void batt_swap_battery_remove_work(struct work_struct *work)
 
 	wake_unlock(&bs->swap_lock);
 	bs->main_bat_present = MAIN_BAT_REMOVED; //Main battery out
-#ifdef CONFIG_BATTERY_MAX17050
-	gauge_handle_batt_removal();
-#endif
 }
 
 #define SWAP_CTRL_DELAY	20
@@ -351,16 +342,10 @@ static void batt_swap_battery_insert_work(struct work_struct *work)
 	if(bs->main_bat_present == MAIN_BAT_INSERTED){
 		pr_bs(PR_INFO,"Debounced Missing Interrupt signal.\n");
 	}else{
-#ifdef CONFIG_BATTERY_MAX17050
-		gauge_detect_vbat_in_no_load();
-#endif
 		gpio_set_value(bs->swap_ctrl_en2, SIGNAL_LOW);
 		msleep(SWAP_CTRL_DELAY);
 		gpio_direction_input(bs->swap_ctrl_en1);
 		bs->main_bat_present = MAIN_BAT_INSERTED; //Main battery out
-#ifdef CONFIG_BATTERY_MAX17050
-		gauge_start_calculation();
-#endif
 	}
 
 	wake_unlock(&bs->swap_lock);

@@ -126,9 +126,6 @@ struct lge_charging_controller{
 #ifdef CONFIG_LGE_PM_USE_BMS
 	struct power_supply		*bms_psy;
 #endif
-#ifdef CONFIG_LGE_USB_TYPE_C
-	struct power_supply		*ctype_psy;
-#endif
 
 	struct delayed_work battemp_work;
 	struct delayed_work step_charging_work;
@@ -204,10 +201,8 @@ enum enable_voters {
 enum battchg_enable_voters {
 	/* userspace has disabled battery charging */
 	BATTCHG_USER_EN_VOTER,
-#ifndef CONFIG_BATTERY_MAX17050
 	/* battery charging disabled while loading battery profiles */
 	BATTCHG_UNKNOWN_BATTERY_EN_VOTER,
-#endif
 #ifdef CONFIG_LGE_PM_LLK_MODE
 	BATTCHG_LLK_MODE_EN_VOTER,
 #endif
@@ -229,18 +224,6 @@ static int is_hvdcp_present(void)
 		ret.intval == POWER_SUPPLY_TYPE_USB_HVDCP_3)
 		return true;
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-#ifdef CONFIG_LGE_PM_VZW_REQ
-	the_controller->usb_psy->get_property(the_controller->usb_psy,
-			POWER_SUPPLY_PROP_FASTCHG, &ret);
-
-	pr_err("%s - fastchg_type[%d]\n", __func__, ret.intval);
-
-	if (ret.intval == 1)
-		return true;
-#endif
-#endif
-
 	return false;
 }
 
@@ -255,40 +238,12 @@ static void step_charging_check_work(struct work_struct *work)
 {
 	union power_supply_propval pval = {0, };
 	int vbat_mv, prev_fcc_ma;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	int c_type, c_mA, rc;
-
-	if (!the_controller->ctype_psy)
-		the_controller->ctype_psy = power_supply_get_by_name("usb_pd");
-
-	if (the_controller->ctype_psy) {
-		rc = the_controller->ctype_psy->get_property(the_controller->ctype_psy,
-				POWER_SUPPLY_PROP_TYPE, &pval);
-		c_type = pval.intval;
-
-		if (c_type == POWER_SUPPLY_TYPE_CTYPE) {
-			rc = the_controller->ctype_psy->get_property(the_controller->ctype_psy,
-					POWER_SUPPLY_PROP_CURRENT_MAX, &pval);
-			c_mA = pval.intval / 1000;
-			pr_err("%s - POWER_SUPPLY_TYPE_CTYPE - c_mA[%d]\n",
-					__func__, c_mA);
-		}
-	}
-
-	if (!lgcc_is_probed) {
-		pr_err("lgcc is not probed yet.\n");
-		return;
-	}
-
-	if (is_hvdcp_present() || c_mA == USB_C_INPUT_CURRENT_MAX) {
-#else
 	if (!lgcc_is_probed) {
 		pr_err("lgcc is not probed yet..\n");
 		return;
 	}
 
 	if (is_hvdcp_present()) {
-#endif
 		the_controller->batt_psy->get_property(the_controller->batt_psy,
 				POWER_SUPPLY_PROP_VOLTAGE_NOW, &pval);
 		vbat_mv = pval.intval / 1000;

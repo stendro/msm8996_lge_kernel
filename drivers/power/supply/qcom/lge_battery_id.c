@@ -34,10 +34,6 @@
 #include <soc/qcom/lge/board_lge.h>
 #endif
 
-#ifdef CONFIG_LGE_PM_CABLE_DETECTION
-#include <soc/qcom/lge/lge_cable_detection.h>
-#endif
-
 struct lge_battery_id_info {
 	struct device          *dev;
 	uint                    batt_info_from_smem;

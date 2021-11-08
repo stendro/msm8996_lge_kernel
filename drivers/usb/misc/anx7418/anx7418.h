@@ -4,9 +4,6 @@
 #include <linux/module.h>
 #include <linux/i2c.h>
 #include <linux/workqueue.h>
-#ifdef CONFIG_LGE_USB_TYPE_C
-#include <linux/power_supply.h>
-#endif
 #include <linux/wakelock.h>
 #include <linux/rwsem.h>
 #include <linux/usb/class-dual-role.h>
@@ -14,9 +11,6 @@
 #ifdef CONFIG_LGE_ALICE_FRIENDS
 #include <soc/qcom/lge/board_lge.h>
 #include <../alice_friends/hm.h>
-#endif
-#ifdef CONFIG_LGE_PM_CABLE_DETECTION
-#include <soc/qcom/lge/lge_cable_detection.h>
 #endif
 
 #include "anx7418_i2c.h"
@@ -32,11 +26,6 @@ struct anx7418 {
 
 	/* regulator */
 	struct regulator *avdd33;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	struct regulator *vbus_reg;
-	struct power_supply *usb_psy;
-	struct power_supply *batt_psy;
-#endif
 
 	/* gpio */
 	int pwr_en_gpio;

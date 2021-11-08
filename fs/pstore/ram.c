@@ -694,10 +694,6 @@ static int ramoops_probe(struct platform_device *pdev)
 		cxt->size, (unsigned long long)cxt->phys_addr,
 		cxt->ecc_info.ecc_size, cxt->ecc_info.block_size);
 
-#ifdef CONFIG_LGE_HANDLE_PANIC
-	lge_set_ram_console_addr(cxt->phys_addr, cxt->size);
-#endif
-
 	return 0;
 
 fail_buf:

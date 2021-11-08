@@ -26,9 +26,6 @@
 #include <linux/mutex.h>
 
 #include <soc/qcom/lge/power/lge_power_class.h>
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-#include <soc/qcom/lge/power/lge_cable_detect.h>
-#endif
 
 enum {
 	EXTRA_DOCK_STATE_UNDOCKED = 0,
@@ -55,12 +52,6 @@ struct lge_dock{
 static int check_dock_cable_type(struct lge_dock *chip)
 {
 	pr_debug("entered check_dock_cable_type");
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-	if (chip->cable_type == CABLE_ADC_330K) {
-		pr_debug("dock_state true");
-		chip->dock_state = true;
-	} else
-#endif
 	{
 		pr_debug("dock_state false");
 		chip->dock_state = false;

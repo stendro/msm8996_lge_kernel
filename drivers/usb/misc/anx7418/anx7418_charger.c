@@ -86,13 +86,6 @@ static int chg_get_property(struct power_supply *psy,
 			POWER_SUPPLY_TYPE_UNKNOWN;
 		break;
 
-#if defined(CONFIG_LGE_USB_TYPE_C) && defined(CONFIG_LGE_PM_CHARGING_CONTROLLER)
-	case POWER_SUPPLY_PROP_CTYPE_CHARGER:
-		dev_dbg(cdev, "%s: Rp %dK\n", __func__, chg->rp.intval);
-		val->intval = chg->rp.intval;
-		break;
-#endif
-
 	default:
 		return -EINVAL;
 	}
@@ -221,19 +214,6 @@ static int chg_set_property(struct power_supply *psy,
 		dev_dbg(cdev, "%s: type(%s)\n", __func__, chg_to_string(psy->type));
 
 		break;
-
-#if defined(CONFIG_LGE_USB_TYPE_C) && defined(CONFIG_LGE_PM_CHARGING_CONTROLLER)
-	case POWER_SUPPLY_PROP_CTYPE_CHARGER:
-		chg->rp.intval = val->intval;
-		dev_dbg(cdev, "%s: Rp %dK\n", __func__, chg->rp.intval);
-
-		rc = anx->batt_psy->set_property(anx->batt_psy,
-				POWER_SUPPLY_PROP_CTYPE_CHARGER, &chg->rp);
-		if (rc < 0)
-			dev_err(cdev, "set_property(CTYPE_CHARGER) error %d\n", rc);
-
-		break;
-#endif
 
 	default:
 		return -EINVAL;
@@ -365,22 +345,13 @@ static void chg_work(struct work_struct *w)
 
 	/* Update ctype(ctype-pd) charger */
 	switch (chg->ctype_charger) {
-#if defined(CONFIG_LGE_USB_FLOATED_CHARGER_DETECT) && defined(CONFIG_LGE_USB_TYPE_C)
-	union power_supply_propval prop;
-#endif
 	case ANX7418_CTYPE_CHARGER:
 		power_supply_set_supply_type(&chg->psy,
 					POWER_SUPPLY_TYPE_CTYPE);
-#if defined(CONFIG_LGE_USB_FLOATED_CHARGER_DETECT) && defined(CONFIG_LGE_USB_TYPE_C)
-		anx->usb_psy->set_property(anx->usb_psy, POWER_SUPPLY_PROP_CTYPE_CHARGER, &prop);
-#endif
 		break;
 	case ANX7418_CTYPE_PD_CHARGER:
 		power_supply_set_supply_type(&chg->psy,
 					POWER_SUPPLY_TYPE_CTYPE_PD);
-#if defined(CONFIG_LGE_USB_FLOATED_CHARGER_DETECT) && defined(CONFIG_LGE_USB_TYPE_C)
-		anx->usb_psy->set_property(anx->usb_psy, POWER_SUPPLY_PROP_CTYPE_CHARGER, &prop);
-#endif
 		break;
 	default: // unknown charger
 		goto out;

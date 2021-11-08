@@ -34,9 +34,6 @@ int tusb422_write(int reg, const void *data, int len);
 int tusb422_modify_reg(int reg, int clr_mask, int set_mask);
 int tusb422_set_vbus(int vbus_sel);
 int tusb422_clr_vbus(int vbus_sel);
-#ifdef CONFIG_LGE_USB_TYPE_C
-int tusb422_set_vconn_enable(int enable);
-#endif
 void tusb422_msleep(int msecs);
 
 void tusb422_set_timer_func(void (*function)(unsigned int));

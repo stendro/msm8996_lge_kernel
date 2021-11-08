@@ -25,9 +25,6 @@
 #include <linux/slab.h>
 #include <linux/mutex.h>
 #include <soc/qcom/lge/power/lge_power_class.h>
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CABLE_DETECT
-#include <soc/qcom/lge/power/lge_cable_detect.h>
-#endif
 #include <linux/of.h>
 #include <linux/of_device.h>
 

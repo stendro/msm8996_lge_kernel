@@ -25,10 +25,6 @@ struct anx7418_charger {
 
 	struct delayed_work chg_work;
 	struct delayed_work vconn_work;
-
-#if defined(CONFIG_LGE_USB_TYPE_C) && defined(CONFIG_LGE_PM_CHARGING_CONTROLLER)
-	union power_supply_propval rp;
-#endif
 };
 
 int anx7418_charger_init(struct anx7418 *anx);
