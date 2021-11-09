@@ -4,15 +4,11 @@ dts-dirs += apm
 dts-dirs += arm
 dts-dirs += broadcom
 dts-dirs += cavium
-dts-dirs += exynos
-dts-dirs += freescale
-dts-dirs += hisilicon
-dts-dirs += marvell
-dts-dirs += mediatek
+ifneq ($(CONFIG_MACH_LGE), y)
 dts-dirs += qcom
-dts-dirs += rockchip
-dts-dirs += sprd
-dts-dirs += xilinx
+else
+dts-dirs += lge
+endif
 
 subdir-y	:= $(dts-dirs)
 
