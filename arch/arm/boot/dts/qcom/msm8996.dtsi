@@ -276,7 +276,7 @@
 	};
 };
 
-
+#include "msm8996-pinctrl.dtsi"
 #include "msm8996-ion.dtsi"
 #include "msm8996-mdss.dtsi"
 #include "msm8996-mdss-pll.dtsi"
@@ -987,8 +987,8 @@
 		pinctrl-1 = <&spkr_i2s_clk_active>;
 	};
 
-	wcd_rst_gpio: wcd_gpio_ctrl {
-		compatible = "qcom,wcd-gpio-ctrl";
+	wcd_rst_gpio: msm_cdc_pinctrl@64 {
+		compatible = "qcom,msm-cdc-pinctrl";
 		qcom,cdc-rst-n-gpio = <&tlmm 64 0>;
 		pinctrl-names = "aud_active", "aud_sleep";
 		pinctrl-0 = <&cdc_reset_active>;

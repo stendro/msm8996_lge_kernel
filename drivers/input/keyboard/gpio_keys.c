@@ -35,10 +35,6 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/syscore_ops.h>
 
-#if defined(CONFIG_LGE_HANDLE_PANIC)
-#include <soc/qcom/lge/lge_handle_panic.h>
-#endif
-
 #ifdef CONFIG_LGE_HALL_IC
 #include <linux/switch.h>
 struct switch_dev hallic_sdev = {
@@ -407,9 +403,6 @@ static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
 	} else {
 		input_event(input, type, button->code, !!state);
 		pr_err("%s: code(%d) state(%d)\n", __func__, button->code, !!state);
-#if defined(CONFIG_LGE_HANDLE_PANIC)
-		lge_gen_key_panic(button->code, state);
-#endif
 #ifdef CONFIG_LGE_HALL_IC
 		if (!strncmp(bdata->button->desc, "hall_ic", 7)) {
 			if (hallic_sdev.state != state) {
@@ -559,13 +552,18 @@ static int gpio_keys_setup_key(struct platform_device *pdev,
 		}
 #endif
 
-		irq = gpio_to_irq(button->gpio);
-		if (irq < 0) {
-			error = irq;
-			dev_err(dev,
-				"Unable to get irq number for GPIO %d, error %d\n",
-				button->gpio, error);
-			return error;
+		if (button->irq) {
+			bdata->irq = button->irq;
+		} else {
+			irq = gpio_to_irq(button->gpio);
+			if (irq < 0) {
+				error = irq;
+				dev_err(dev,
+					"Unable to get irq number for GPIO %d, error %d\n",
+					button->gpio, error);
+				return error;
+			}
+			bdata->irq = irq;
 		}
 
 		INIT_DELAYED_WORK(&bdata->work, gpio_keys_gpio_work_func);
