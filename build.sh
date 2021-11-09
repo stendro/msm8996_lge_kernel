@@ -238,7 +238,7 @@ INSTALL_MODULES() {
 PREPARE_NEXT() {
 	echo "$DEVICE" > $BDIR/DEVICE \
 		|| echo -e $COLOR_R"Failed to reflect device!"
-	if grep -q 'KERNEL_COMPRESSION_LZ4=y' $BDIR/.config; then
+	if grep -q 'CONFIG_KERNEL_LZ4=y' $BDIR/.config; then
 	  echo lz4 > $BDIR/COMPRESSION \
 		|| echo -e $COLOR_R"Failed to reflect compression method!"
 	else
