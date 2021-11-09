@@ -491,7 +491,7 @@ static int qpnp_pon_reset_config(struct qpnp_pon *pon,
 	int rc;
 	u16 rst_en_reg;
 #ifdef CONFIG_LGE_PM
-	u8 reg;
+	int reg;
 #endif
 
 	if (pon->pon_ver == QPNP_PON_GEN1_V1)
@@ -538,16 +538,15 @@ static int qpnp_pon_reset_config(struct qpnp_pon *pon,
 	 * PS_HOLD_RESET_CTL based on the dt property.
 	 */
 	if ((type == PON_POWER_OFF_HARD_RESET) &&
-			of_find_property(pon->spmi->dev.of_node,
+			of_find_property(pon->pdev->dev.of_node,
 				"qcom,cfg-shutdown-for-hard-reset", NULL))
 		type = PON_POWER_OFF_SHUTDOWN;
 
 #ifdef CONFIG_LGE_PM
 	/* Change PS_HOLD hard reset and shutdown to xVdd hard reset and shutdown */
-	if (pon->spmi->sid == 2) {
+	if (to_spmi_device(pon->pdev->dev.parent)->usid == 2) {
 		/* PMI8996 register : 0x102, PMI8996 v1.0 : 0x00, PMI8996 v1.1 : 0x01 */
-		rc = spmi_ext_register_readl(pon->spmi->ctrl, pon->spmi->sid,
-			0x102, &reg, 1);
+		rc = regmap_read(pon->regmap, 0x102, &reg);
 		/* for PMI8996 v1.0 only */
 		if (reg == 0x00) {
 			if (type == PON_POWER_OFF_HARD_RESET)
@@ -1137,7 +1136,7 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 	u8 i;
 	u16 s1_timer_addr, s2_timer_addr;
 #ifdef CONFIG_LGE_PM
-	u8 reg = 0x00;
+	int reg = 0x00;
 #endif
 
 	switch (cfg->pon_type) {
@@ -1193,10 +1192,9 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 
 #ifdef CONFIG_LGE_PM
 	/* Change PS_HOLD hard reset and shutdown to xVdd hard reset and shutdown */
-	if (pon->spmi->sid == 2) {
+	if (to_spmi_device(pon->pdev->dev.parent)->usid == 2) {
 		/* PMI8996 register : 0x102, PMI8996 v1.0 : 0x00, PMI8996 v1.1 : 0x01 */
-		rc = spmi_ext_register_readl(pon->spmi->ctrl, pon->spmi->sid,
-			0x102, &reg, 1);
+		rc = regmap_read(pon->regmap, 0x102, &reg);
 		/* for PMI8996 v1.0 only */
 		if (reg == 0x00) {
 			if (cfg->s2_type == PON_POWER_OFF_HARD_RESET)
