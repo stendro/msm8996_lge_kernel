@@ -3592,7 +3592,7 @@ static int estimate_battery_age(struct fg_chip *chip, int *actual_capacity)
 {
 	int64_t ocv_cutoff_new, ocv_cutoff_aged, temp_rs_to_rslow;
 	int64_t esr_actual, battery_esr, val;
-	int soc_cutoff_aged, soc_cutoff_new, rc;
+	int soc_cutoff_aged, soc_cutoff_new, rc = 0;
 	int battery_soc, unusable_soc, batt_temp;
 	u8 buffer[3];
 
@@ -4254,11 +4254,11 @@ static void fg_cap_learning_post_process(struct fg_chip *chip)
 		return;
 	}
 
-	max_inc_val = chip->learning_data.learned_cc_uah
+	max_inc_val = (int64_t)chip->learning_data.learned_cc_uah
 			* (1000 + chip->learning_data.max_increment);
 	do_div(max_inc_val, 1000);
 
-	min_dec_val = chip->learning_data.learned_cc_uah
+	min_dec_val = (int64_t)chip->learning_data.learned_cc_uah
 			* (1000 - chip->learning_data.max_decrement);
 	do_div(min_dec_val, 1000);
 
@@ -7059,7 +7059,8 @@ wait:
 
 	if (!chip->batt_profile)
 		chip->batt_profile = devm_kzalloc(chip->dev,
-						  sizeof(char) * len, GFP_KERNEL);
+						  len,
+						  GFP_KERNEL);
 
 	if (!chip->batt_profile) {
 		pr_err("out of memory\n");
@@ -7602,7 +7603,7 @@ static int fg_dischg_gain_dt_init(struct fg_chip *chip)
 {
 	struct device_node *node = chip->spmi->dev.of_node;
 	struct property *prop;
-	int rc, i;
+	int i, rc = 0;
 	size_t size;
 
 	prop = of_find_property(node, "qcom,fg-dischg-voltage-gain-soc",
@@ -9368,7 +9369,14 @@ out:
 static int fg_memif_init(struct fg_chip *chip)
 {
 	int rc;
+#ifndef CONFIG_LGE_PM
 	u8 dig_major;
+#endif
+#ifdef CONFIG_LGE_PM
+	static u8 count = 0;
+
+retry:
+#endif
 
 	rc = fg_read(chip, chip->revision, chip->mem_base + DIG_MINOR, 4);
 	if (rc) {
@@ -9386,7 +9394,11 @@ static int fg_memif_init(struct fg_chip *chip)
 		chip->ima_supported = true;
 		break;
 	default:
+#ifdef CONFIG_LGE_PM
+		pr_err("Digital Major rev=%d not supported\n", chip->revision[DIG_MAJOR]);
+#else
 		pr_err("Digital Major rev=%d not supported\n", dig_major);
+#endif
 		return -EINVAL;
 	}
 
@@ -9407,8 +9419,17 @@ static int fg_memif_init(struct fg_chip *chip)
 		/* check for error condition */
 		rc = fg_check_ima_exception(chip, true);
 		if (rc) {
+#ifdef CONFIG_LGE_PM
+			pr_err("Error in clearing IMA exception rc=%d, count %d\n", rc, count);
+			if (count < 3) {
+				count++;
+				goto retry;
+			} else
+				return -EPROBE_DEFER;
+#else
 			pr_err("Error in clearing IMA exception rc=%d", rc);
 			return rc;
+#endif
 		}
 	}
 
