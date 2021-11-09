@@ -196,10 +196,12 @@ obj-$(CONFIG_WCD9XXX_CODEC_UTIL) += wcd9xxx-utils.o
 obj-$(CONFIG_WCD9330_CODEC)	+= wcd9xxx-core.o wcd9xxx-irq.o wcd9xxx-slimslave.o\
 						wcd9330-regmap.o
 obj-$(CONFIG_WCD9335_CODEC)	+= wcd9xxx-core.o wcd9xxx-irq.o wcd9xxx-slimslave.o\
-					wcd9335-regmap.o wcd9335-tables.o
+					wcd9xxx-core-resource.o wcd9335-regmap.o\
+					wcd-gpio-ctrl.o wcd9335-tables.o
 obj-$(CONFIG_WCD934X_CODEC)	+= wcd9xxx-core.o wcd9xxx-irq.o wcd9xxx-slimslave.o\
 					wcd934x-regmap.o wcd934x-tables.o
 intel-soc-pmic-objs		:= intel_soc_pmic_core.o intel_soc_pmic_crc.o
 intel-soc-pmic-$(CONFIG_INTEL_PMC_IPC)	+= intel_soc_pmic_bxtwc.o
 obj-$(CONFIG_INTEL_SOC_PMIC)	+= intel-soc-pmic.o
-obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o
+obj-$(CONFIG_MFD_MT6397)	+= mt6397-core.o			
+obj-$(CONFIG_MFD_H1_DSV)	+= dw8768_dsv.o
