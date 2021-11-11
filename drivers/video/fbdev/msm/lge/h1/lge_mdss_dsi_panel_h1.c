@@ -156,9 +156,9 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 		if (gpio_is_valid(ctrl_pdata->lcd_mode_sel_gpio)) {
 			bool out = false;
 
-			if (pinfo->mode_gpio_state == MODE_GPIO_HIGH)
+			if (pinfo->mode_sel_state == MODE_GPIO_HIGH)
 				out = true;
-			else if (pinfo->mode_gpio_state == MODE_GPIO_LOW)
+			else if (pinfo->mode_sel_state == MODE_GPIO_LOW)
 				out = false;
 
 			rc = gpio_direction_output(ctrl_pdata->lcd_mode_sel_gpio, out);

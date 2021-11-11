@@ -4464,6 +4464,7 @@ static int mdss_dsi_parse_gpio_params(struct platform_device *ctrl_pdev,
 	}
 
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
+	struct mdss_panel_info *pinfo = &(ctrl_pdata->panel_data.panel_info);
 	/* Only HDK uses LGD RSP panel & needs DSV en gpio. */
 	if (pinfo->panel_type == LGD_R69007_INCELL_CMD_PANEL) {
 		ctrl_pdata->dsv_ena_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,

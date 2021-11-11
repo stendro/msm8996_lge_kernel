@@ -87,8 +87,8 @@ static inline bool is_blank_called(void)
 
 static inline bool is_factory_cable(void)
 {
-	unsigned int cable_info;
-	cable_info = NO_INIT_CABLE;
+	//unsigned int cable_info;
+	//cable_info = NO_INIT_CABLE;
 	return false;
 }
 
