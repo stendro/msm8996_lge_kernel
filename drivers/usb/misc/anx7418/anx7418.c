@@ -80,14 +80,14 @@ static irqreturn_t ext_acc_en_irq_thread(int irq, void *_anx)
 
 		power_supply_set_present(anx->usb_psy, false);
 
-		power_supply_set_usb_otg(anx->usb_psy, 1);
+		// power_supply_set_usb_otg(anx->usb_psy, 1);
 		anx->dr = DUAL_ROLE_PROP_DR_HOST;
 
 		hm_earjack_changed(anx->hm, true);
 	} else {
 		dev_info(cdev, "HM: Device\n");
 
-		power_supply_set_usb_otg(anx->usb_psy, 0);
+		// power_supply_set_usb_otg(anx->usb_psy, 0);
 		anx->dr = DUAL_ROLE_PROP_DR_DEVICE;
 
 		hm_earjack_changed(anx->hm, false);
@@ -597,7 +597,7 @@ static void i2c_work(struct work_struct *w)
 #ifdef CONFIG_LGE_ALICE_FRIENDS
 				if (anx->friends == LGE_ALICE_FRIENDS_NONE)
 #endif
-				if (!anx->is_tried_snk && !lge_get_factory_boot()) {
+				if (!anx->is_tried_snk) {
 					dev_dbg(cdev, "%s: try_snk\n", __func__);
 
 					anx7418_i2c_unlock(client);
@@ -617,7 +617,7 @@ set_dfp:
 				anx_dbg_event("DFP", 0);
 
 				anx7418_set_mode(anx, DUAL_ROLE_PROP_MODE_DFP);
-				power_supply_set_usb_otg(&anx->chg.psy, 1);
+				// power_supply_set_usb_otg(&anx->chg.psy, 1);
 				anx->pr = DUAL_ROLE_PROP_PR_SRC;
 
 				anx7418_set_dr(anx, DUAL_ROLE_PROP_DR_HOST);
@@ -647,11 +647,11 @@ set_dfp:
 	if (!(intf_irq_mask & VBUS_CHG) && (irq & VBUS_CHG)) {
 		if (status & VBUS_STATUS) {
 			dev_dbg(cdev, "%s: VBUS ON\n", __func__);
-			power_supply_set_usb_otg(&anx->chg.psy, 1);
+			// power_supply_set_usb_otg(&anx->chg.psy, 1);
 			anx->pr = DUAL_ROLE_PROP_PR_SRC;
 		} else {
 			dev_dbg(cdev, "%s: VBUS OFF\n", __func__);
-			power_supply_set_usb_otg(&anx->chg.psy, 0);
+			// power_supply_set_usb_otg(&anx->chg.psy, 0);
 			anx->pr = DUAL_ROLE_PROP_PR_SNK;
 		}
 #ifdef CONFIG_DUAL_ROLE_USB_INTF
@@ -681,8 +681,7 @@ set_dfp:
 
 		} else if (status & DATA_ROLE) {
 			rc = __anx7418_read_reg(client, ANALOG_CTRL_7);
-			if ( (rc & 0x0F) == 0x05 &&
-			     (anx->friends == LGE_ALICE_FRIENDS_NONE)) { // CC1_Rd and CC2_Rd
+			if ( (rc & 0x0F) == 0x05) { // CC1_Rd and CC2_Rd
 
 				dev_info(cdev, "%s: Debug Accessory Mode\n", __func__);
 				anx_dbg_event("Debug Accessory", 0);
