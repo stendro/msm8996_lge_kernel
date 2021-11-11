@@ -208,31 +208,8 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_RESISTANCE,
 	POWER_SUPPLY_PROP_RESISTANCE_CAPACITIVE,
 	POWER_SUPPLY_PROP_RESISTANCE_ID, /* in Ohms */
-#ifdef CONFIG_LGE_PM_PSEUDO_BATTERY
-	POWER_SUPPLY_PROP_PSEUDO_BATT,
-#endif
-#ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
-	POWER_SUPPLY_PROP_USB_CURRENT_MAX_MODE,
-#endif
-#ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
-	POWER_SUPPLY_PROP_TDMB_MODE_ON,
-#endif
-#ifdef CONFIG_LGE_PM_VZW_REQ
-	POWER_SUPPLY_PROP_VZW_CHG,
-#endif
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	POWER_SUPPLY_PROP_STORE_DEMO_ENABLED,
-#endif
 	POWER_SUPPLY_PROP_RESISTANCE_NOW,
 	POWER_SUPPLY_PROP_FLASH_CURRENT_MAX,
-#ifdef CONFIG_LGE_PM_MAXIM_EVP_CONTROL
-	POWER_SUPPLY_PROP_ENABLE_EVP_CHG,
-#endif
-#ifdef CONFIG_LGE_USB_MAXIM_EVP
-	POWER_SUPPLY_PROP_EVP_VOL,
-	POWER_SUPPLY_PROP_HVDCP_TYPE,
-	POWER_SUPPLY_PROP_EVP_DETECT_START,
-#endif
 	POWER_SUPPLY_PROP_UPDATE_NOW,
 	POWER_SUPPLY_PROP_ESR_COUNT,
 	POWER_SUPPLY_PROP_BUCK_FREQ,
@@ -252,51 +229,8 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_CYCLE_COUNT_ID,
 	POWER_SUPPLY_PROP_SAFETY_TIMER_EXPIRED,
 	POWER_SUPPLY_PROP_RESTRICTED_CHARGING,
-#if (defined (CONFIG_LGE_PM_BATTERY_ID_CHECKER) || \
-	defined (CONFIG_LGE_PM_LGE_POWER_CLASS_BATTERY_ID_CHECKER))
-	POWER_SUPPLY_PROP_BATTERY_ID,
-	POWER_SUPPLY_PROP_BATTERY_ID_CHECKER,
-#endif
-#ifdef CONFIG_LGE_PM_CHARGERLOGO_WAIT_FOR_FG_INIT
-	POWER_SUPPLY_PROP_FIRST_SOC_EST_DONE,
-#endif
-#ifdef CONFIG_LGE_PM_BATTERY_SWAP
-	POWER_SUPPLY_PROP_MANUAL_SWAP,
-	POWER_SUPPLY_PROP_SWAP_ENABLE,
-	POWER_SUPPLY_PROP_SWAP_STATUS,
-#endif
-#ifdef CONFIG_LGE_USB_FLOATED_CHARGER_DETECT
-	POWER_SUPPLY_PROP_APSD_RERUN_NEED,
-	POWER_SUPPLY_PROP_INCOMPATIBLE_CHG,
-#endif
-#ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
-	POWER_SUPPLY_PROP_USB_NON_DRIVE,
-#endif
-#ifdef CONFIG_LGE_PM
-	POWER_SUPPLY_PROP_FASTCHG,
-#endif
-#if defined(CONFIG_LGE_PM_FG_AGE)
-	POWER_SUPPLY_PROP_BATTERY_CONDITION,
-	POWER_SUPPLY_PROP_BATTERY_AGE,
-	POWER_SUPPLY_PROP_BATTERY_AGE_LEVEL,
-#endif
-#if defined(CONFIG_IDTP9223_CHARGER) || defined(CONFIG_MACH_MSM8996_LUCYE)
-	POWER_SUPPLY_PROP_CONNECTION_TYPE,
-#endif
 	POWER_SUPPLY_PROP_CURRENT_CAPABILITY,
 	POWER_SUPPLY_PROP_TYPEC_MODE,
-#ifdef CONFIG_LGE_APPS_PORT_FRIENDS
-	POWER_SUPPLY_PROP_FRIENDS_DETECT,
-	POWER_SUPPLY_PROP_FRIENDS_VPWR_SW,
-	POWER_SUPPLY_PROP_FRIENDS_TYPE,
-#ifdef CONFIG_LGE_APPS_PORT_FRIENDS_ONE_WIRE
-	POWER_SUPPLY_PROP_FRIENDS_COMMAND,
-#endif
-	POWER_SUPPLY_PROP_FRIENDS_USB_ENABLE,
-#endif
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	POWER_SUPPLY_PROP_CTYPE_RP,
-#endif
 	POWER_SUPPLY_PROP_TYPEC_CC_ORIENTATION, /* 0: N/C, 1: CC1, 2: CC2 */
 	POWER_SUPPLY_PROP_TYPEC_POWER_ROLE,
 	POWER_SUPPLY_PROP_PD_ALLOWED,
@@ -328,17 +262,8 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_SDP_CURRENT_MAX,
 	POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE,
 	POWER_SUPPLY_PROP_IGNORE_FALSE_NEGATIVE_ISENSE,
-#ifdef CONFIG_LGE_PM_CHARGING_SCENARIO
-	POWER_SUPPLY_PROP_JEITA_CHARGING_ENABLED,
-#endif
-#ifdef CONFIG_LGE_PM_RESTORE_BATT_INFO
 	POWER_SUPPLY_PROP_BATTERY_INFO,
 	POWER_SUPPLY_PROP_BATTERY_INFO_ID,
-#endif
-#ifdef CONFIG_LGE_PM_CYCLE_BASED_CHG_VOLTAGE
-	POWER_SUPPLY_PROP_BATTERY_CYCLE,
-#endif
-	POWER_SUPPLY_PROP_CAPACITY_QCT, /* in percents! */
 	POWER_SUPPLY_PROP_ENABLE_JEITA_DETECTION,
 	POWER_SUPPLY_PROP_ALLOW_HVDCP3,
 	POWER_SUPPLY_PROP_MAX_PULSE_ALLOWED,
@@ -447,11 +372,6 @@ struct power_supply_desc {
 	int (*set_property)(struct power_supply *psy,
 			    enum power_supply_property psp,
 			    const union power_supply_propval *val);
-#ifdef CONFIG_LGE_PM_LGE_POWER_CORE
-	int (*get_internal_property)(struct power_supply *psy,
-			    enum power_supply_property psp,
-			    union power_supply_propval *val);
-#endif
 	/*
 	 * property_is_writeable() will be called during registration
 	 * of power supply. If this happens during device probe then it must
@@ -509,22 +429,6 @@ struct power_supply {
 	struct led_trigger *charging_blink_full_solid_trig;
 	char *charging_blink_full_solid_trig_name;
 #endif
-#ifdef CONFIG_LGE_PM_LGE_POWER_CORE
-	char **lge_power_supplied_to;
-	size_t num_lge_power_supplicants;
-	char **lge_power_supplied_from;
-	size_t num_lge_power_supplies;
-	void (*external_lge_power_changed)(struct power_supply *psy);
-	char **lge_psy_power_supplied_from;
-	size_t num_lge_psy_power_supplies;
-#endif
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_UEVENT
-	int *property_data;
-	int update_uevent;
-#endif
-#ifdef CONFIG_LGE_USB_FLOATED_CHARGER_DETECT
-	int is_floated_charger;
-#endif
 };
 
 /*
@@ -572,10 +476,6 @@ extern int power_supply_set_battery_charged(struct power_supply *psy);
 extern int power_supply_is_system_supplied(void);
 #else
 static inline int power_supply_is_system_supplied(void) { return -ENOSYS; }
-#endif
-#ifdef CONFIG_LGE_PM_LGE_POWER_CORE
-extern int power_supply_do_i_have_property(struct power_supply *psy,
-				enum power_supply_property psp);
 #endif
 
 extern int power_supply_get_property(struct power_supply *psy,
