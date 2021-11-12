@@ -390,13 +390,13 @@
 	};
 
 	uartblsp1dm1: serial@7570000 {
-		compatible = "qcom,msm-lsuart-v14";
+		compatible = "qcom,msm-hsuart-v14";
 		reg = <0x7570000 0x1000>;
 		interrupts = <0 108 0>;
 		status = "disabled";
 		clocks = <&clock_gcc clk_gcc_blsp1_uart2_apps_clk>,
 			 <&clock_gcc clk_gcc_blsp1_ahb_clk>;
-		clock-names = "core_clk", "iface_clk";
+		clock-names = "core", "iface";
 	};
 
 	i2c_12: i2c@75ba000 {
