@@ -27,7 +27,7 @@
 	};
 
 	/* PIN CONTROL for FPC */
-	tlmm: pinctrl@1010000 {
+	tlmm: pinctrl@01010000 {
 		fpc_spi_active {
 			fpc_spi_active: active {
 				mux {

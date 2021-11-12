@@ -11,7 +11,7 @@
  */
 
 &soc {
-	tlmm: pinctrl@1010000 {
+	tlmm: pinctrl@01010000 {
 
 		wlc_alive: wlc_alive {
 			mux {
@@ -914,7 +914,7 @@
 
 	lge,gpio-debug@fd510000 {
 		compatible = "lge,gpio-debug";
-		reg = <0x1010000 0x400000>;
+		reg = <0x01010000 0x400000>;
 		reg-names = "tlmm-base";
 		lge,n-msm-gpio = <0x96>;  /* MSM8996 GPIO 0 to 149 */
 		lge,n-pm-gpio = <0x16>;

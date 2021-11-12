@@ -90,7 +90,7 @@
                 &tsif1_sync_active>;		// dual-tsif-mode2
         };
         
-        tlmm: pinctrl@1010000 {
+        tlmm: pinctrl@01010000 {
             pmx_i2c_11 {
                 i2c_11_default: i2c_11_default {
                     mux {

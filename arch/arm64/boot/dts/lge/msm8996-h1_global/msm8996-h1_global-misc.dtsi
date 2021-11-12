@@ -115,7 +115,7 @@
 		};
 	};
 
-	pcie1: qcom,pcie@608000 {
+	pcie1: qcom,pcie@00608000 {
 		/delete-property/ perst-gpio;
 		/delete-property/ wake-gpio;
 	};

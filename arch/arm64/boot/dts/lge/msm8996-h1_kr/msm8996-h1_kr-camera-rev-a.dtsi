@@ -44,7 +44,7 @@
 	};
 
 	//Pin-Control
-	tlmm: pinctrl@1010000 {
+	tlmm: pinctrl@01010000 {
 		i2c_5 {
 			i2c_5_active: i2c_5_active {
 				mux {

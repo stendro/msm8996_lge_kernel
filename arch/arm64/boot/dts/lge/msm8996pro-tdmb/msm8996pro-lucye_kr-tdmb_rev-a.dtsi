@@ -160,7 +160,7 @@
 };
 
 &soc {
-	tlmm: pinctrl@1010000 {
+	tlmm: pinctrl@01010000 {
 		pmx_spi_tdmb {
 			spi_tdmb_active: spi_tdmb_active {
 				mux {
