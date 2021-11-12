@@ -119,9 +119,9 @@
  * GPIO59 : LCD_VCL_EN
  */
 &soc {
-	tlmm: pinctrl@01010000 {
+	tlmm: pinctrl@1010000 {
 		compatible = "qcom,msm8996-pinctrl";
-		reg = <0x01010000 0x300000>;
+		reg = <0x1010000 0x300000>;
 		interrupts = <0 208 0>;
 		gpio-controller;
 		#gpio-cells = <2>;
@@ -504,9 +504,9 @@
 	cd-gpios = <&tlmm 60 0x0>;
 };
 &soc {
-	tlmm: pinctrl@01010000 {
+	tlmm: pinctrl@1010000 {
 		compatible = "qcom,msm8996-pinctrl";
-		reg = <0x01010000 0x300000>;
+		reg = <0x1010000 0x300000>;
 		interrupts = <0 208 0>;
 		gpio-controller;
 		#gpio-cells = <2>;

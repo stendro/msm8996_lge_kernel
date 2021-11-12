@@ -89,7 +89,7 @@
 		};
 	};
 
-	tlmm: pinctrl@01010000 {
+	tlmm: pinctrl@1010000 {
 			quat_mi2s {
 				quat_mi2s_sleep: quat_mi2s_sleep {
 					mux {

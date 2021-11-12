@@ -33,7 +33,7 @@
 };
 
 &soc {
-	tlmm: pinctrl@01010000 {
+	tlmm: pinctrl@1010000 {
 
 		ufs_reset_on: ufs_reset_on {
 			mux {

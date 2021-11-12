@@ -415,7 +415,7 @@
 		pinctrl-1 = <&i2c_3_sleep>;
 	};
 
-	tlmm: pinctrl@01010000 {
+	tlmm: pinctrl@1010000 {
 		i2c_3 {
 			i2c_3_active: i2c_3_active {
 				mux {
