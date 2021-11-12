@@ -2453,8 +2453,8 @@ static int anx7688_resume(struct device *dev)
 }
 
 static const struct dev_pm_ops anx7688_dev_pm_ops = {
-	.suspend = anx7688_suspend,
-	.resume  = anx7688_resume,
+	//.suspend = anx7688_suspend,
+	//.resume  = anx7688_resume,
 };
 #endif
 
