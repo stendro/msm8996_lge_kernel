@@ -1476,7 +1476,7 @@
 					 <0>, <0>, <0>, <0>, <0>, <0>, <0>;
 	};
 
-	pcie1: qcom,pcie@608000 {
+	pcie1: qcom,pcie@00608000 {
 		compatible = "qcom,pci-msm";
 		cell-index = <1>;
 

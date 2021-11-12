@@ -826,7 +826,7 @@
 		};
 	};
 
-	pinctrl@1010000 {
+	pinctrl@01010000 {
 		pcie2 {
 			pcie2_perst_default: pcie2_perst_default {
 				mux {
