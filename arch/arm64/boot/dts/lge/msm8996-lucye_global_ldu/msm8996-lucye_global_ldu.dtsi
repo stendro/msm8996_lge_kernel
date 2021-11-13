@@ -24,6 +24,7 @@
 #include "../msm8996-lineage.dtsi"
 
 / {
+	reserved-memory {
 		crash_fb_mem: crash_fb_mem@c0100000 {
 			linux,contiguous-region;
 			reg = <0 0xc0100000 0 0xc00000>;

@@ -103,7 +103,7 @@
 		reg = <0x7574000 0x100>;
 		interrupts = <0 112 0>;
 		status = "ok";
-		clock-names = "core_clk", "iface_clk";
+		clock-names = "core", "iface";
 		clocks = <&clock_gcc clk_gcc_blsp1_uart6_apps_clk>,
 				<&clock_gcc clk_gcc_blsp1_ahb_clk>;
 	};
