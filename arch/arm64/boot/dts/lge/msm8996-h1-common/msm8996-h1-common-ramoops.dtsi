@@ -3,6 +3,7 @@
 		ramoops_mem: ramoops_mem@c0000000 {
 			compatible = "removed-dma-pool";
 			reg = <0 0xc0000000 0 0x100000>;
+			no-map;
 		};
 	};
 };
@@ -16,6 +17,5 @@
 		pmsg-size    = <0x0 0x00040000>;
 		record-size  = <0x0 0x00008000>;
 		ftrace-size  = <0x0 0x00020000>;
-		dump-oops = <1>;
 	};
 };
