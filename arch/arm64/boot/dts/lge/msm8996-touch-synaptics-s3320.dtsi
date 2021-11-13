@@ -66,7 +66,7 @@
 		maker_id-gpio = <&tlmm 121 0x00>;
 		synaptics,disable-gpios;
 		/* Underlying clocks used by secure touch */
-		clock-names = "iface_clk", "core_clk";
+		clock-names = "iface", "core";
 		clocks = <&clock_gcc clk_gcc_blsp2_ahb_clk>,
 				 <&clock_gcc clk_gcc_blsp2_qup6_i2c_apps_clk>;
 

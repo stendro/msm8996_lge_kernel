@@ -57,7 +57,7 @@
 			qcom,master-id = <84>;
 
 			// [Fixed] Set up the clocks, Keep the same names.
-			clock-names = "iface_clk", "core_clk";
+			clock-names = "iface", "core";
 			/* [Modified]
 				Add node to BLSP# AHB clock,
 				Add node to QUP Core clock (BLSP# QUP#)
