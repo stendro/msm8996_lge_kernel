@@ -1555,7 +1555,7 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy,
 #else
 	char *name,
 #endif /* WL_CFG80211_P2P_DEV_IF */
-	enum nl80211_iftype type, u32 *flags,
+	unsigned char uctype, enum nl80211_iftype type, u32 *flags,
 	struct vif_params *params)
 {
 	s32 err = -ENODEV;
