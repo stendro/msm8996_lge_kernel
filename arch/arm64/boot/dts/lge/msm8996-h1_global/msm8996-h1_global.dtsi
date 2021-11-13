@@ -23,7 +23,6 @@
 #include "msm8996-h1_global-fingerprint.dtsi"
 #include "msm8996-h1_global-usb.dtsi"
 #include "../msm8996-lineage.dtsi"
-#include "../msm8996-h1-common/msm8996-h1-common-ramoops.dtsi"
 
 / {
 	reserved-memory {
