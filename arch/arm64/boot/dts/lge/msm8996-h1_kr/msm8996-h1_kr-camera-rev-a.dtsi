@@ -34,7 +34,7 @@
 		qcom,master-id = <86>;          //To enable Bus scaling
 		qcom,clk-freq-out = <400000>;   //Output clock frequency upto 400Khz
 		qcom,clk-freq-in  = <19200000>; //Source frequency must be 19.2MHz
-		clock-names = "iface_clk", "core_clk";
+		clock-names = "iface", "core";
 		clocks = <&clock_gcc clk_gcc_blsp1_ahb_clk>,
 		<&clock_gcc clk_gcc_blsp1_qup5_i2c_apps_clk>;
 		pinctrl-names = "i2c_active", "i2c_sleep";
