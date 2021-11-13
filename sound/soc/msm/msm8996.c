@@ -8900,8 +8900,8 @@ static struct snd_soc_dai_link msm8996_sec_mi2s_dai_link[] = {
 static struct snd_soc_dai_link msm8996_tasha_dai_links[
 #ifndef CONFIG_SND_DISABLE_DUMMY_DAI
 			 LGE_DAI_LINK_ID_BASE +
-			 ARRAY_SIZE(msm8996_lge_dai_links)];
-#else
+			 ARRAY_SIZE(msm8996_lge_dai_links) +
+#endif	/* CONFIG_SND_DISABLE_DUMMY_DAI */
 			 ARRAY_SIZE(msm8996_common_dai_links) +
 			 ARRAY_SIZE(msm8996_tasha_fe_dai_links) +
 			 ARRAY_SIZE(msm8996_tdm_fe_dai_links) +
@@ -8909,7 +8909,7 @@ static struct snd_soc_dai_link msm8996_tasha_dai_links[
 			 ARRAY_SIZE(msm8996_tasha_be_dai_links) +
 			 ARRAY_SIZE(msm8996_tdm_be_dai_links) +
 			 ARRAY_SIZE(msm8996_hdmi_dai_link)];
-#endif	/* CONFIG_SND_DISABLE_DUMMY_DAI */
+
 
 static int msm8996_wsa881x_init(struct snd_soc_component *component)
 {
