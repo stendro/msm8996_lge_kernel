@@ -206,6 +206,8 @@ CLEAN_BUILD() {
 SETUP_BUILD() {
 	echo -e $COLOR_G"Creating kernel config..."$COLOR_N
 	mkdir -p $BDIR
+	echo "$DEVICE" > $BDIR/DEVICE \
+		|| echo -e $COLOR_R"Failed to reflect device!"
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build."
 }
@@ -236,8 +238,6 @@ INSTALL_MODULES() {
 }
 
 PREPARE_NEXT() {
-	echo "$DEVICE" > $BDIR/DEVICE \
-		|| echo -e $COLOR_R"Failed to reflect device!"
 	if grep -q 'KERNEL_COMPRESSION_LZ4=y' $BDIR/.config; then
 	  echo lz4 > $BDIR/COMPRESSION \
 		|| echo -e $COLOR_R"Failed to reflect compression method!"
