@@ -83,7 +83,7 @@
 		qcom,master-id = <86>;
 		qcom,clk-freq-out = <400000>;
 		qcom,clk-freq-in  = <19200000>;
-		clock-names = "iface", "core";
+		clock-names = "iface_clk", "core_clk";
 		clocks = <&clock_gcc clk_gcc_blsp1_ahb_clk>,
 			 <&clock_gcc clk_gcc_blsp1_qup6_i2c_apps_clk>;
 		pinctrl-names = "i2c_active", "i2c_sleep";
@@ -125,7 +125,7 @@
 		reg = <0x7574000 0x100>;
 		interrupts = <0 112 0>;
 		status = "ok";
-		clock-names = "core", "iface";
+		clock-names = "core_clk", "iface_clk";
 		clocks = <&clock_gcc clk_gcc_blsp1_uart6_apps_clk>,
 				<&clock_gcc clk_gcc_blsp1_ahb_clk>;
 	};

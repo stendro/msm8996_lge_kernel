@@ -171,7 +171,7 @@
 		pinctrl-0 = <&spi_0_active &spi_0_cs_active>;
 		pinctrl-1 = <&spi_0_sleep &spi_0_cs_sleep>;
 		*/
-		clock-names = "iface", "core";
+		clock-names = "iface_clk", "core_clk";
 
 		clocks = <&clock_gcc clk_gcc_blsp2_ahb_clk>,
 			 <&clock_gcc clk_gcc_blsp2_qup3_spi_apps_clk>;
@@ -204,7 +204,7 @@
 		fpc,event-code = <4>;
 		spi-max-frequency = <4800000>;
 		spi-qup-id = <8>;
-		clock-names = "iface", "core";
+		clock-names = "iface_clk", "core_clk";
 		clocks = <&clock_gcc clk_gcc_blsp2_ahb_clk>,
 			<&clock_gcc clk_gcc_blsp2_qup3_spi_apps_clk>;
 

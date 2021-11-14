@@ -28,7 +28,7 @@
             
 	    qcom,clk-freq-out = <100000>; // Output clock frequency (can be up to 3400000)
             qcom,clk-freq-in = <50000000>;
-            clock-names = "iface", "core"; // Setup Fabric and core clocks
+            clock-names = "iface_clk", "core_clk"; // Setup Fabric and core clocks
             clocks = <&clock_gcc clk_gcc_blsp2_ahb_clk>, <&clock_gcc clk_gcc_blsp2_qup5_i2c_apps_clk>;
             
 	    pinctrl-names = "i2c_active", "i2c_sleep"; // pin functions
@@ -60,7 +60,7 @@
                 "TSIF0_IRQ",
                 "TSIF1_IRQ",
                 "TSIF_BAM_IRQ";
-            clock-names = "iface", "ref_clk";
+            clock-names = "iface_clk", "ref_clk";
             clocks = <&clock_gcc clk_gcc_tsif_ahb_clk>,
                 <&clock_gcc clk_gcc_tsif_ref_clk>;
 
