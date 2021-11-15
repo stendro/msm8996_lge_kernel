@@ -396,7 +396,7 @@
 		status = "disabled";
 		clocks = <&clock_gcc clk_gcc_blsp1_uart2_apps_clk>,
 			 <&clock_gcc clk_gcc_blsp1_ahb_clk>;
-		clock-names = "core", "iface";
+		clock-names = "core_clk", "iface_clk";
 	};
 
 	i2c_12: i2c@75ba000 {
