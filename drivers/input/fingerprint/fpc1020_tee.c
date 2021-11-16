@@ -821,7 +821,7 @@ static int fpc1020_remove(struct spi_device *spi)
 	return 0;
 }
 
-static int fpc1020_suspend(struct spi_device *spi, pm_message_t mesg)
+/*static int fpc1020_suspend(struct spi_device *spi, pm_message_t mesg)
 {
 	struct fpc1020_data *fpc1020 = dev_get_drvdata(&spi->dev);
 	struct device *dev = &spi->dev;
@@ -838,9 +838,9 @@ static int fpc1020_suspend(struct spi_device *spi, pm_message_t mesg)
 	}
 //	set_clks(fpc1020, false);
 	return 0;
-}
+} */
 
-static int fpc1020_resume(struct spi_device *spi)
+/*static int fpc1020_resume(struct spi_device *spi)
 {
 	struct fpc1020_data *fpc1020 = dev_get_drvdata(&spi->dev);
 
@@ -871,7 +871,7 @@ static int fpc1020_resume(struct spi_device *spi)
 //	if (fpc1020->clocks_suspended)
 //		set_clks(fpc1020, true);
 	return 0;
-}
+} */
 
 static struct of_device_id fpc1020_of_match[] = {
 	{ .compatible = "fpc,fpc1020", },
