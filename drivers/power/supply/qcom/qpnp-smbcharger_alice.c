@@ -39,9 +39,6 @@
 #include <linux/msm_bcl.h>
 #include <linux/ktime.h>
 #include "pmic-voter.h"
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-#include <soc/qcom/lge/lge_acc_nt_type.h>
-#endif
 
 #ifdef CONFIG_LGE_PM_BATT_MANAGER
 #include "lge_battery_manager.h"
@@ -76,10 +73,6 @@
 #include <linux/wakelock.h>
 #define CONFIG_LGE_PM_DIS_AICL_IRQ_WAKE
 #define CONFIG_LGE_PM_VFLOAT_TRIM_RESTORE
-#endif
-
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-#define CHARGING_REDUCE_FOR_CM 400
 #endif
 
 #ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
@@ -228,10 +221,6 @@ struct smbchg_chip {
 #ifdef CONFIG_LGE_PM
 	int                 batt_pack_verify_cnt;
 	struct delayed_work batt_pack_check_work;
-#endif
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	int ext_acc_en_gpio;
-	int acc_nt_type;
 #endif
 
 	/* wipower params */
@@ -4507,9 +4496,6 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 	int rc, current_limit = 0, soc;
 	enum power_supply_type usb_supply_type;
 	char *usb_type_name = "null";
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	nt_type_t acc_nt_type;
-#endif
 
 	if (chip->bms_psy_name)
 		chip->bms_psy =
@@ -4581,14 +4567,6 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 				if (rc < 0)
 					dev_err(chip->dev, "Couldn't write cfg 5 rc = %d\n", rc);
 			}
-		}
-	}
-#endif
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	acc_nt_type = get_acc_nt_type();
-	if (acc_nt_type == NT_TYPE_CM || acc_nt_type == NT_TYPE_HM) {
-		if(usb_supply_type == POWER_SUPPLY_TYPE_USB) {
-			current_limit = CURRENT_500_MA;
 		}
 	}
 #endif
@@ -5321,9 +5299,6 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 						enum power_supply_type type)
 {
 	int rc, current_limit_ma;
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	nt_type_t acc_nt_type;
-#endif
 
 	/*
 	 * if the type is not unknown, set the type before changing ICL vote
@@ -5353,20 +5328,6 @@ static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
 		current_limit_ma = smbchg_default_hvdcp3_icl_ma;
 	else
 		current_limit_ma = smbchg_default_dcp_icl_ma;
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	acc_nt_type = get_acc_nt_type();
-	if (acc_nt_type == NT_TYPE_CM) {
-		if(type == POWER_SUPPLY_TYPE_USB_HVDCP ||
-			type == POWER_SUPPLY_TYPE_USB_HVDCP_3) {
-			current_limit_ma -= CHARGING_REDUCE_FOR_CM;
-			gpio_direction_output(chip->ext_acc_en_gpio, 0);
-			pr_err("[CM_DEBUG] connect CM device & HVDCP charger connect");
-		}else if(type ==  POWER_SUPPLY_TYPE_USB_DCP) {
-			gpio_direction_output(chip->ext_acc_en_gpio, 0);
-			pr_err("[CM_DEBUG] connect CM device & DCP charger connect");
-		}
-	}
-#endif
 
 	pr_smb(PR_STATUS, "Type %d: setting mA = %d\n",
 		type, current_limit_ma);
@@ -5980,12 +5941,6 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 			HVDCP_DEFAULT_FCC_MA);
 	rc |= vote(chip->fcc_votable, OTP_FCC_VOTER, true,
 			HVDCP_DEFAULT_FCC_MA);
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	if(get_acc_nt_type()==NT_TYPE_CM){
-		gpio_direction_output(chip->ext_acc_en_gpio, 1);
-		pr_err("[CM_DEBUG] chrging disconnected");
-	}
-#endif
 	if (rc < 0) {
 		dev_err(chip->dev, "Couldn't vote fastchg ma rc = %d\n", rc);
 	}
@@ -8529,22 +8484,6 @@ static int smbchg_hw_init(struct smbchg_chip *chip)
 		pr_err("Couldn't enable APSD rc=%d\n", rc);
 #endif
 
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	chip->acc_nt_type = get_acc_nt_type();
-
-	if (chip->acc_nt_type == NT_TYPE_CM ||
-		chip->acc_nt_type == NT_TYPE_HM) {
-		if (lge_get_boot_mode() == LGE_BOOT_MODE_CHARGERLOGO) {
-			rc = smbchg_sec_masked_write(chip,
-					chip->usb_chgpth_base + CHGPTH_CFG,
-					HVDCP_EN_BIT, 0);
-		} else {
-			rc = smbchg_sec_masked_write(chip,
-					chip->usb_chgpth_base + CHGPTH_CFG,
-					HVDCP_EN_BIT, HVDCP_EN_BIT);
-		}
-	}
-#endif
 #ifdef CONFIG_LGE_PM_CHARGING_CONTROLLER
 	chip->is_qc30_det_progress = false;
 #endif
@@ -9150,10 +9089,6 @@ static int smb_parse_dt(struct smbchg_chip *chip)
 			chip->parallel.min_9v_current_thr_ma);
 	OF_PROP_READ(chip, chip->jeita_temp_hard_limit,
 			"jeita-temp-hard-limit", rc, 1);
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	chip->ext_acc_en_gpio = of_get_named_gpio(chip->spmi->dev.of_node,
-			"qcom,ext_en_acc", 0);
-#endif
 #ifdef CONFIG_LGE_PM
 	OF_PROP_READ(chip, chip->afvc_comp_voltage,
 			"afvc-comp-voltage", rc, 1);
@@ -9685,19 +9620,6 @@ static void rerun_hvdcp_det_if_necessary(struct smbchg_chip *chip)
 
 	if (!(chip->wa_flags & SMBCHG_RESTART_WA))
 		return;
-
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-	chip->acc_nt_type = get_acc_nt_type();
-
-	if (chip->acc_nt_type != NT_TYPE_CM &&
-		chip->acc_nt_type != NT_TYPE_HM) {
-		/* We don't need to to this here because HVDCP is disabled in this time.
-		 * We will do this job later in smbchg_rerun_hvdcp_work() */
-		return;
-	} else if (lge_get_boot_mode() == LGE_BOOT_MODE_CHARGERLOGO) {
-		return;
-	}
-#endif
 
 	read_usb_type(chip, &usb_type_name, &usb_supply_type);
 	if (usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP

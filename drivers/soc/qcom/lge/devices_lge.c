@@ -13,9 +13,6 @@
 #ifdef CONFIG_LGE_USB_FACTORY
 #include <linux/platform_data/lge_android_usb.h>
 #endif
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-#include <soc/qcom/lge/lge_acc_nt_type.h>
-#endif
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
 #else
@@ -452,36 +449,6 @@ int lge_get_android_dlcomplete(void)
 {
 	return android_dlcomplete;
 }
-
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-static enum lge_alice_friends lge_alice_friends = LGE_ALICE_FRIENDS_NONE;
-int __init lge_get_cable_type_init(char *s)
-{
-	if (!strcmp(s, "LT_270K"))
-		lge_alice_friends = LGE_ALICE_FRIENDS_CM;
-	else if (!strcmp(s, "LT_330K"))
-		lge_alice_friends = LGE_ALICE_FRIENDS_HM;
-	else
-		lge_alice_friends = LGE_ALICE_FRIENDS_NONE;
-
-	return 1;
-}
-__setup("bootcable.type=", lge_get_cable_type_init);
-
-enum lge_alice_friends lge_get_alice_friends(void)
-{
-	nt_type_t nt_type = get_acc_nt_type();
-
-	pr_info_once("[BSP-USB] nt_type(%d)\n", nt_type);
-
-	if (nt_type == NT_TYPE_CM)
-		lge_alice_friends = LGE_ALICE_FRIENDS_CM;
-	else if (nt_type == NT_TYPE_HM)
-		lge_alice_friends = LGE_ALICE_FRIENDS_HM_B;
-
-	return lge_alice_friends;
-}
-#endif
 
 static int android_fota = 0;
 

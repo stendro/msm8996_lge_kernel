@@ -34,11 +34,6 @@
 #include <linux/power/lge_battery_id.h>
 #endif
 
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-#include <linux/usb.h>
-atomic_t in_call_status;
-#endif
-
 #define MODULE_NAME "lge_charging_controller"
 #define MONITOR_BATTEMP_POLLING_PERIOD  (60 * HZ)
 #ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
@@ -895,15 +890,9 @@ static int restricted_charging_set_current(int reason, int status)
 			if (status == RESTRICTED_CHG_STATUS_ON) {
 				chg_curr = RESTRICTED_CHG_CURRENT;
 				lgcc_set_ibat_current(RESTRICTED_CHG_FCC_VOTER,true,chg_curr);
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-				atomic_set(&in_call_status, 1);
-#endif
 			} else {
 				chg_curr = NORMAL_CHG_CURRENT_MAX;
 				lgcc_set_ibat_current(RESTRICTED_CHG_FCC_VOTER,true,chg_curr);
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-				atomic_set(&in_call_status, 0);
-#endif
 			}
 			break;
 		case LGCC_REASON_TDMB:

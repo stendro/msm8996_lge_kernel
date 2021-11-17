@@ -148,16 +148,5 @@ int (*get_values) (int *tun_lcd_t);
 void __init lge_add_lcd_misc_devices(void);
 #endif
 
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-enum lge_alice_friends {
-	LGE_ALICE_FRIENDS_NONE = 0,
-	LGE_ALICE_FRIENDS_CM,
-	LGE_ALICE_FRIENDS_HM,
-	LGE_ALICE_FRIENDS_HM_B,
-};
-
-enum lge_alice_friends lge_get_alice_friends(void);
-#endif
-
 extern int on_hidden_reset;
 #endif

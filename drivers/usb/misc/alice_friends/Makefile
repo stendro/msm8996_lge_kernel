@@ -1,1 +1,0 @@
-obj-$(CONFIG_LGE_ALICE_FRIENDS) := hm.o
