@@ -7309,6 +7309,57 @@ struct asm_stream_cmd_open_transcode_loopback_t {
 #define ASM_STREAM_CMD_SET_PP_PARAMS_V2 0x00010DA1
 #define ASM_STREAM_CMD_SET_PP_PARAMS_V3 0x0001320D
 
+struct asm_stream_cmd_set_pp_params_v2 {
+	u32                  data_payload_addr_lsw;
+/* LSW of parameter data payload address. Supported values: any. */
+	u32                  data_payload_addr_msw;
+/* MSW of Parameter data payload address. Supported values: any.
+ * - Must be set to zero for in-band data.
+ * - In the case of 32 bit Shared memory address, msw  field must be
+ * - set to zero.
+ * - In the case of 36 bit shared memory address, bit 31 to bit 4 of
+ * msw
+ *
+ * - must be set to zero.
+ */
+	u32                  mem_map_handle;
+/* Supported Values: Any.
+* memory map handle returned by DSP through
+* ASM_CMD_SHARED_MEM_MAP_REGIONS
+* command.
+* if mmhandle is NULL, the ParamData payloads are within the
+* message payload (in-band).
+* If mmhandle is non-NULL, the ParamData payloads begin at the
+* address specified in the address msw and lsw (out-of-band).
+*/
+
+	u32                  data_payload_size;
+/* Size in bytes of the variable payload accompanying the
+message, or in shared memory. This field is used for parsing the
+parameter payload. */
+
+} __packed;
+
+
+struct asm_stream_param_data_v2 {
+	u32                  module_id;
+	/* Unique module ID. */
+
+	u32                  param_id;
+	/* Unique parameter ID. */
+
+	u16                  param_size;
+/* Data size of the param_id/module_id combination. This is
+ * a multiple of 4 bytes.
+ */
+
+	u16                  reserved;
+/* Reserved for future enhancements. This field must be set to
+ * zero.
+ */
+
+} __packed;
+
 /*
  * Structure for the ASM Stream Set PP Params command. Parameter data must be
  * pre-packed with the correct header for either V2 or V3 when sent in-band.
