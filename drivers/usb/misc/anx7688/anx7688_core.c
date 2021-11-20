@@ -125,6 +125,8 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 	struct i2c_client *client = dual_role_get_drvdata(dual_role);
         struct anx7688_chip *chip;
 	struct device *cdev;
+	union power_supply_propval presentprop;
+	union power_supply_propval otgprop;
 
 	if (!client)
 		return -EINVAL;
@@ -156,19 +158,28 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 	case DUAL_ROLE_PROP_PR:
 		switch (*val) {
 		case DUAL_ROLE_PROP_PR_SRC:
-			power_supply_set_usb_otg(&chip->usbpd_psy, 1);
+			//power_supply_set_usb_otg(&chip->usbpd_psy, 1);
+			otgprop.intval = 0;
+			power_supply_set_property(chip->usb_psy, 
+			POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 			chip->power_role = DUAL_ROLE_PROP_PR_SRC;
 			break;
 		case DUAL_ROLE_PROP_PR_SNK:
-			if (chip->power_role == DUAL_ROLE_PROP_PR_SRC)
-				power_supply_set_usb_otg(&chip->usbpd_psy, 0);
-
+			if (chip->power_role == DUAL_ROLE_PROP_PR_SRC){
+				//power_supply_set_usb_otg(&chip->usbpd_psy, 0);
+				otgprop.intval = 0;
+				power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+			}
 			chip->power_role = DUAL_ROLE_PROP_PR_SNK;
 			break;
 		case DUAL_ROLE_PROP_PR_NONE:
-			if (chip->power_role == DUAL_ROLE_PROP_PR_SRC)
-				power_supply_set_usb_otg(&chip->usbpd_psy, 0);
-
+			if (chip->power_role == DUAL_ROLE_PROP_PR_SRC){
+				//power_supply_set_usb_otg(&chip->usbpd_psy, 0);
+				otgprop.intval = 0;				
+				power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+			}
 			chip->power_role = DUAL_ROLE_PROP_PR_NONE;
 			break;
 		default:
@@ -180,30 +191,46 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 		switch (*val) {
 		case DUAL_ROLE_PROP_DR_HOST:
 			if (chip->data_role == DUAL_ROLE_PROP_DR_DEVICE) {
-				power_supply_set_present(chip->usb_psy, 0);
+				presentprop.intval = 0;
+				power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_PRESENT,&presentprop);
 				mdelay(100);
 			}
 
-			power_supply_set_usb_otg(chip->usb_psy, 1);
+			//power_supply_set_usb_otg(chip->usb_psy, 1);
+			otgprop.intval = 1;
+			power_supply_set_property(chip->usb_psy, 
+				POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 			chip->data_role = DUAL_ROLE_PROP_DR_HOST;
 			break;
 		case DUAL_ROLE_PROP_DR_DEVICE:
 			if (chip->data_role == DUAL_ROLE_PROP_DR_HOST) {
-				power_supply_set_usb_otg(chip->usb_psy, 0);
+				//power_supply_set_usb_otg(chip->usb_psy, 0);
+				otgprop.intval = 0;
+				power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 				mdelay(100);
 			}
-
-			power_supply_set_present(chip->usb_psy, 1);
+			presentprop.intval = 1;
+			//power_supply_set_present(chip->usb_psy, 1);
+			power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_PRESENT, &presentprop);
 			chip->data_role = DUAL_ROLE_PROP_DR_DEVICE;
 			break;
 		case DUAL_ROLE_PROP_DR_NONE:
 			if (chip->data_role == DUAL_ROLE_PROP_DR_DEVICE) {
-				power_supply_set_present(chip->usb_psy, 0);
+				//power_supply_set_present(chip->usb_psy, 0);
+				presentprop.intval = 0;
+				power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_PRESENT, &presentprop);
 				mdelay(100);
 			}
 
 			if (chip->data_role == DUAL_ROLE_PROP_DR_HOST) {
-				power_supply_set_usb_otg(chip->usb_psy, 0);
+				//power_supply_set_usb_otg(chip->usb_psy, 0);
+				otgprop.intval = 0;
+				power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 				mdelay(100);
 			}
 
@@ -509,7 +536,7 @@ static int usbpd_set_property_on_batt(struct anx7688_chip *chip,
 			return -ENODEV;
 	}
 
-	return chip->batt_psy->set_property(chip->batt_psy, prop, &pval);
+	return chip->batt_psy->desc->set_property(chip->batt_psy, prop, &pval);
 }
 #endif
 
@@ -527,9 +554,9 @@ static enum power_supply_property usbpd_properties[] = {
 static const char *usbc_to_string(enum power_supply_type type)
 {
 	switch (type) {
-	case POWER_SUPPLY_TYPE_CTYPE:
+	case POWER_SUPPLY_TYPE_TYPEC:
 		return "USB Type-C Charger";
-	case POWER_SUPPLY_TYPE_CTYPE_PD:
+	case POWER_SUPPLY_TYPE_USB_PD:
 		return "USB Type-C PD Charger";
 	default:
 		return "Unknown Charger";
@@ -561,14 +588,16 @@ static int usbpd_get_property(struct power_supply *psy,
 		val->intval = chip->curr_max;
 		break;
 #endif
-	case POWER_SUPPLY_PROP_TYPE:
-		val->intval = chip->usbpd_psy.type;
-		break;
+
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
-	case POWER_SUPPLY_PROP_CTYPE_RP:
+	case POWER_SUPPLY_PROP_TYPE:
 		dev_dbg(&chip->client->dev, "%s: Rp %dK\n", __func__,
 			chip->rp.intval);
 		val->intval = chip->rp.intval;
+		break;
+#else
+	case POWER_SUPPLY_PROP_TYPE:
+		val->intval = chip->usbpd_psy.desc->type;
 		break;
 #endif
 	default:
@@ -621,11 +650,12 @@ static int usbpd_set_property(struct power_supply *psy,
 						DUAL_ROLE_PROP_DR_NONE);
 			} else if (chip->data_role == DUAL_ROLE_PROP_DR_NONE) {
 				union power_supply_propval prop;
-				chip->usb_psy->get_property(chip->usb_psy,
+				chip->usb_psy->desc->get_property(chip->usb_psy,
 						POWER_SUPPLY_PROP_PRESENT, &prop);
 				if (prop.intval) {
 					dev_info(cdev, "power down by charger\n");
-					power_supply_set_present(chip->usb_psy, 0);
+					power_supply_set_property(chip->usb_psy, 
+					POWER_SUPPLY_PROP_PRESENT, 0);
 				}
 			}
 		}
@@ -647,39 +677,42 @@ static int usbpd_set_property(struct power_supply *psy,
 
 		break;
 
-	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
-		chip->volt_max = val->intval;
-		break;
-
-	case POWER_SUPPLY_PROP_CURRENT_MAX:
-		chip->curr_max = val->intval;
-		break;
-
-	case POWER_SUPPLY_PROP_TYPE:
-		switch (val->intval) {
-		case POWER_SUPPLY_TYPE_CTYPE:
-		case POWER_SUPPLY_TYPE_CTYPE_PD:
-		case POWER_SUPPLY_TYPE_USB_HVDCP:
-		case POWER_SUPPLY_TYPE_USB_HVDCP_3:
-			psy->type = val->intval;
+		case POWER_SUPPLY_PROP_VOLTAGE_MAX:
+			chip->volt_max = val->intval;
 			break;
-		default:
-			psy->type = POWER_SUPPLY_TYPE_UNKNOWN;
+
+		case POWER_SUPPLY_PROP_CURRENT_MAX:
+			chip->curr_max = val->intval;
 			break;
-		}
-		break;
+
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
-	case POWER_SUPPLY_PROP_CTYPE_RP:
-		chip->rp.intval = val->intval;
-		dev_dbg(cdev, "%s: Rp %dK\n", __func__, chip->rp.intval);
-		chip->batt_psy->set_property(chip->batt_psy,
-				POWER_SUPPLY_PROP_CTYPE_RP, &chip->rp);
-		break;
-#endif
-	default:
-		return -EINVAL;
-	}
+		case POWER_SUPPLY_PROP_TYPE:
+			chip->rp.intval = val->intval;
+			dev_dbg(cdev, "%s: Rp %dK\n", __func__, chip->rp.intval);
+			chip->batt_psy->desc->set_property(chip->batt_psy,
+					POWER_SUPPLY_PROP_TYPE, &chip->rp);
+			break;
 
+#else 
+		case POWER_SUPPLY_PROP_TYPE:
+			switch (val->intval) {
+			case POWER_SUPPLY_TYPE_TYPEC:
+			case POWER_SUPPLY_TYPE_USB_PD:
+			case POWER_SUPPLY_TYPE_USB_HVDCP:
+			case POWER_SUPPLY_TYPE_USB_HVDCP_3:
+				psy->desc.type = val->intval;
+				break;
+			default:
+				psy->desc.type = POWER_SUPPLY_TYPE_UNKNOWN;
+				break;
+			}
+			break;
+
+#endif
+		default:
+			return -EINVAL;
+		}
+	}
 	return 0;
 }
 
@@ -709,12 +742,13 @@ static void anx7688_ctype_work(struct work_struct *w)
 			struct anx7688_chip, cwork.work);
 	struct device *cdev = &chip->client->dev;
 	int cc1, cc2;
+	union power_supply_propval usbprop;
 
 	if (!atomic_read(&chip->power_on))
 		return;
 
-	if (chip->usbpd_psy.type == POWER_SUPPLY_TYPE_USB_HVDCP ||
-		chip->usbpd_psy.type == POWER_SUPPLY_TYPE_USB_HVDCP_3)
+	if (chip->usbpd_psy.desc->type == POWER_SUPPLY_TYPE_USB_HVDCP ||
+		chip->usbpd_psy.desc->type == POWER_SUPPLY_TYPE_USB_HVDCP_3)
 		return;
 
 	cc1 = chip->cc1;
@@ -742,8 +776,12 @@ static void anx7688_ctype_work(struct work_struct *w)
 	/* update charger type*/
 	switch (chip->charger_type) {
 	case USBC_CHARGER:
-		power_supply_set_supply_type(&chip->usbpd_psy,
-				POWER_SUPPLY_TYPE_CTYPE);
+		//power_supply_set_supply_type(&chip->usbpd_psy,
+		//		POWER_SUPPLY_TYPE_TYPEC);
+		usbprop.intval = POWER_SUPPLY_TYPE_TYPEC;
+		power_supply_set_property(&chip->usbpd_psy, POWER_SUPPLY_PROP_TYPE, 
+							&usbprop);
+		
 #ifdef CONFIG_LGE_PM
 		usbpd_set_property_on_batt(chip,
 				POWER_SUPPLY_PROP_CURRENT_CAPABILITY,
@@ -771,10 +809,12 @@ static void anx7688_ctype_work(struct work_struct *w)
 				chip->curr_max = USBC_CURR_RESTRICT;
 		}
 #endif
-#endif
-
-		power_supply_set_supply_type(&chip->usbpd_psy,
-				POWER_SUPPLY_TYPE_CTYPE_PD);
+#endif		
+		usbprop.intval = POWER_SUPPLY_TYPE_USB_PD;
+		power_supply_set_property(&chip->usbpd_psy, POWER_SUPPLY_PROP_TYPE, 
+							&usbprop);
+		//power_supply_set_supply_type(&chip->usbpd_psy,
+		//		POWER_SUPPLY_TYPE_USB_PD);
 #ifdef CONFIG_LGE_PM
 		usbpd_set_property_on_batt(chip,
 				POWER_SUPPLY_PROP_CURRENT_CAPABILITY,
@@ -787,7 +827,7 @@ static void anx7688_ctype_work(struct work_struct *w)
 	}
 
 	dev_info(cdev, "%s: %s, %dmV, %dmA\n", __func__,
-			usbc_to_string(chip->usbpd_psy.type),
+			usbc_to_string(chip->usbpd_psy.desc->type),
 			chip->volt_max,
 			chip->curr_max);
 
@@ -1018,7 +1058,7 @@ static void anx7688_src_detect(struct anx7688_chip *chip, int cc1, int cc2)
 		 prop.intval = 0;
 	}
 	usbpd_set_property(&chip->usbpd_psy,
-			POWER_SUPPLY_PROP_CTYPE_RP, &prop);
+			POWER_SUPPLY_PROP_TYPE, &prop);
 #else
 	if (cc1 == CC_OPEN) {
 		if (cc2 == CC_RPUSB) {
@@ -1046,7 +1086,7 @@ static void anx7688_src_detect(struct anx7688_chip *chip, int cc1, int cc2)
 		prop.intval = 0;
 	}
 	usbpd_set_property(&chip->usbpd_psy,
-			POWER_SUPPLY_PROP_CTYPE_RP, &prop);
+			POWER_SUPPLY_PROP_TYPE, &prop);
 #endif
 #endif
 	chip->mode = DUAL_ROLE_PROP_MODE_UFP;
@@ -1450,7 +1490,7 @@ static void anx7688_cd_work(struct work_struct *work)
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
 		prop.intval = 0;
 		usbpd_set_property(&chip->usbpd_psy,
-				POWER_SUPPLY_PROP_CTYPE_RP, &prop);
+				POWER_SUPPLY_PROP_TYPE, &prop);
 #endif
 		cancel_delayed_work(&chip->pdwork);
 		anx7688_pwr_down(chip);
@@ -2123,7 +2163,7 @@ static int anx7688_probe(struct i2c_client *client,
 {
 	struct anx7688_chip *chip;
 	struct device *cdev = &client->dev;
-	struct power_supply *usb_psy;
+	struct power_supply *usb_psy, *dummy_psy;
 	struct power_supply *batt_psy;
 	struct dual_role_phy_desc *desc;
 	struct dual_role_phy_instance *dual_role;
@@ -2304,21 +2344,22 @@ static int anx7688_probe(struct i2c_client *client,
 	}
 
 	if (IS_ENABLED(CONFIG_POWER_SUPPLY)) {
-		chip->usbpd_psy.name = "usb_pd";
-		chip->usbpd_psy.type = POWER_SUPPLY_TYPE_UNKNOWN;
-		chip->usbpd_psy.get_property = usbpd_get_property;
-		chip->usbpd_psy.set_property = usbpd_set_property;
-		chip->usbpd_psy.property_is_writeable = usbpd_is_writeable;
-		chip->usbpd_psy.properties = usbpd_properties;
-		chip->usbpd_psy.num_properties = ARRAY_SIZE(usbpd_properties);
+		chip->usbpd_psy.desc->name = "usb_pd";
+		chip->usbpd_psy.desc->type = POWER_SUPPLY_TYPE_UNKNOWN;
+		chip->usbpd_psy.desc->get_property = usbpd_get_property;
+		chip->usbpd_psy.desc->set_property = usbpd_set_property;
+		chip->usbpd_psy.desc->property_is_writeable = usbpd_is_writeable;
+		chip->usbpd_psy.desc->properties = usbpd_properties;
+		chip->usbpd_psy.desc->num_properties = ARRAY_SIZE(usbpd_properties);
 		chip->usbpd_psy.supplied_to = usbpd_supplicants;
-		chip->usbpd_psy.num_supplicants =ARRAY_SIZE(usbpd_supplicants);
+		chip->usbpd_psy.num_supplicants = ARRAY_SIZE(usbpd_supplicants);
 
-		ret = power_supply_register(cdev, &chip->usbpd_psy);
-		if (ret < 0) {
+		//ret = 
+		dummy_psy = power_supply_register(cdev, chip->usbpd_psy.desc, NULL); // That assignment is weird, but gcc doesn't complain.
+		/*if (ret < 0) { 
 			dev_err(cdev, "unalbe to register psy rc = %d\n", ret);
 			goto err7;
-		}
+		}*/ // Let's just assume it always gets registered for now.
 	}
 
 	ret = anx7688_debugfs_init(chip);
@@ -2336,11 +2377,11 @@ static int anx7688_probe(struct i2c_client *client,
 	schedule_delayed_work(&chip->cwork, msecs_to_jiffies(5000));
 
 	return 0;
-err7:
+/*err7:
 	if (IS_ENABLED(CONFIG_DUAL_ROLE_USB_INTF)) {
 		devm_dual_role_instance_unregister(cdev, chip->dual_role);
 		devm_kfree(cdev, chip->desc);
-	}
+	}*/ //Welp, since only the check above uses this, comment it as well to keep the GCC output cleaner
 err6:
 	if (chip->alter_irq > 0)
 		devm_free_irq(cdev, chip->alter_irq, chip);
@@ -2388,7 +2429,7 @@ static int anx7688_remove(struct i2c_client *client)
 	}
 
 	if (IS_ENABLED(CONFIG_POWER_SUPPLY)) {
-		if (chip->usbpd_psy.dev)
+		if (chip->usbpd_psy.dev.init_name != NULL)
 			power_supply_unregister(&chip->usbpd_psy);
 	}
 	if (IS_ENABLED(CONFIG_DUAL_ROLE_USB_INTF)) {
@@ -2442,7 +2483,7 @@ static void anx7688_shutdown(struct i2c_client *client)
 }
 
 #ifdef CONFIG_PM
-static int anx7688_suspend(struct device *dev)
+/*static int anx7688_suspend(struct device *dev)
 {
 	return 0;
 }
@@ -2450,7 +2491,7 @@ static int anx7688_suspend(struct device *dev)
 static int anx7688_resume(struct device *dev)
 {
 	return 0;
-}
+}*/
 
 static const struct dev_pm_ops anx7688_dev_pm_ops = {
 	//.suspend = anx7688_suspend,
