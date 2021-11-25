@@ -188,7 +188,7 @@ int adm_programable_channel_mixer(int port_id, int copp_idx, int session_id,
 			int session_type,
 			struct msm_pcm_channel_mixer *ch_mixer,
 			int channel_index);
-#ifdef CONFIG_MACH_MSM8996_ELSA
+#if defined(CONFIG_MACH_MSM8996_ELSA_TMO_US) || defined(CONFIG_MACH_MSM8996_ELSA_NAO_US)
 int lge_programable_channel_mixer(int port_id, int copp_idx, int session_id,
 			int session_type,
 			struct msm_pcm_channel_mux *ch_mux,
