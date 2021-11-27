@@ -491,7 +491,7 @@ static int qpnp_pon_reset_config(struct qpnp_pon *pon,
 	int rc;
 	u16 rst_en_reg;
 #ifdef CONFIG_LGE_PM
-	int reg;
+	uint reg;
 #endif
 
 	if (pon->pon_ver == QPNP_PON_GEN1_V1)
@@ -1136,7 +1136,7 @@ qpnp_config_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
 	u8 i;
 	u16 s1_timer_addr, s2_timer_addr;
 #ifdef CONFIG_LGE_PM
-	int reg = 0x00;
+	uint reg = 0x00;
 #endif
 
 	switch (cfg->pon_type) {
