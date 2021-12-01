@@ -2399,7 +2399,7 @@ static int anx7688_probe(struct i2c_client *client,
 
 	schedule_delayed_work(&chip->cwork, msecs_to_jiffies(5000));
 
-	dev_info(cdev, "Chip work scheduled! OTG and USB_PSY configured.\n");
+	dev_info(cdev, "Chip work scheduled! OTG and USB_PSY configured and registered.\n");
 
 	return 0;
 err7:
