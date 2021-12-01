@@ -160,7 +160,7 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 		case DUAL_ROLE_PROP_PR_SRC:
 			//power_supply_set_usb_otg(&chip->usbpd_psy, 1);
 			otgprop.intval = 1;
-			power_supply_set_property(chip->usb_psy, 
+			power_supply_set_property(&chip->usbpd_psy, 
 			POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 			chip->power_role = DUAL_ROLE_PROP_PR_SRC;
 			break;
@@ -168,7 +168,7 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 			if (chip->power_role == DUAL_ROLE_PROP_PR_SRC){
 				//power_supply_set_usb_otg(&chip->usbpd_psy, 0);
 				otgprop.intval = 0;
-				power_supply_set_property(chip->usb_psy, 
+				power_supply_set_property(&chip->usbpd_psy, 
 					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 			}
 			chip->power_role = DUAL_ROLE_PROP_PR_SNK;
@@ -177,7 +177,7 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 			if (chip->power_role == DUAL_ROLE_PROP_PR_SRC){
 				//power_supply_set_usb_otg(&chip->usbpd_psy, 0);
 				otgprop.intval = 0;				
-				power_supply_set_property(chip->usb_psy, 
+				power_supply_set_property(&chip->usbpd_psy, 
 					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
 			}
 			chip->power_role = DUAL_ROLE_PROP_PR_NONE;

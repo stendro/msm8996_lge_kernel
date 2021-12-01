@@ -1667,7 +1667,7 @@ unchar sp_get_rx_bw(void)
 }
 EXPORT_SYMBOL(sp_get_rx_bw);
 
-static int anx7816_i2c_suspend(struct i2c_client *client, pm_message_t state)
+/*static int anx7816_i2c_suspend(struct i2c_client *client, pm_message_t state)
 {
 	return 0;
 }
@@ -1676,7 +1676,7 @@ static int anx7816_i2c_suspend(struct i2c_client *client, pm_message_t state)
 static int anx7816_i2c_resume(struct i2c_client *client)
 {
 	return 0;
-}
+}*/
 
 static const struct i2c_device_id anx7816_id[] = {
 	{ "anx7816", 0 },
