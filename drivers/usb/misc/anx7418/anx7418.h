@@ -21,7 +21,11 @@ struct anx7418 {
 
 	/* regulator */
 	struct regulator *avdd33;
-
+//LGE_USB_TYPE_C START
+	struct regulator *vbus_reg;
+	struct power_supply *usb_psy;
+	struct power_supply *batt_psy;
+//LGE_USB_TYPE_C END
 	/* gpio */
 	int pwr_en_gpio;
 	int resetn_gpio;
@@ -30,6 +34,10 @@ struct anx7418 {
 	int i2c_irq_gpio;
 	int cable_det_gpio;
 	int cable_det_irq;
+//CONFIG_LGE_ALICE_FRIENDS START
+	int ext_acc_en_gpio;
+	int ext_acc_en_irq;
+//CONFIG_LGE_ALICE_FRIENDS END
 
 	struct anx7418_charger chg;
 
