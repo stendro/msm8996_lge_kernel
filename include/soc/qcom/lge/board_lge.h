@@ -1,8 +1,7 @@
 #ifndef __ASM_ARCH_MSM_BOARD_LGE_H
 #define __ASM_ARCH_MSM_BOARD_LGE_H
 
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
-#else
+#ifndef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
 #if defined(CONFIG_MACH_MSM8996_LUCYE)
 enum hw_rev_type {
 	HW_REV_EVB1 = 0,
@@ -69,14 +68,11 @@ enum hw_rev_type {
 #endif
 #endif
 
+#ifndef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
 extern char *rev_str[];
-
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_BOARD_REVISION
-#else
 enum hw_rev_type lge_get_board_revno(void);
 #endif
 
-//#ifdef CONFIG_LGE_USB_FACTORY
 enum lge_boot_mode_type {
 	LGE_BOOT_MODE_NORMAL = 0,
 	LGE_BOOT_MODE_CHARGER,
@@ -87,30 +83,19 @@ enum lge_boot_mode_type {
 	LGE_BOOT_MODE_PIF_56K,
 	LGE_BOOT_MODE_PIF_130K,
 	LGE_BOOT_MODE_PIF_910K,
-	LGE_BOOT_MODE_MINIOS    /* LGE_UPDATE for MINIOS2.0 */
+	LGE_BOOT_MODE_MINIOS	/* LGE_UPDATE for MINIOS2.0 */
 };
 
 enum lge_boot_mode_type lge_get_boot_mode(void);
-int lge_get_android_dlcomplete(void);
 int lge_get_factory_boot(void);
-int get_lge_frst_status(void);
-//#endif
-
-int lge_get_mfts_mode(void);
-
 extern int lge_get_bootreason(void);
 
 #ifdef CONFIG_LGE_LCD_OFF_DIMMING
 extern int lge_get_bootreason_with_lcd_dimming(void);
 #endif
 
-extern int lge_get_fota_mode(void);
-extern int lge_get_boot_partition_recovery(void);
-extern char* lge_get_boot_partition(void);
-
 #if defined(CONFIG_LGE_DISPLAY_COMMON)
 int lge_get_lk_panel_status(void);
-int lge_get_dsv_status(void);
 int lge_get_panel(void);
 void lge_set_panel(int);
 #endif
@@ -139,6 +124,7 @@ enum panel_revision_id_type {
 enum panel_revision_id_type lge_get_panel_revision_id(void);
 #endif
 
+/* For debugging */
 #ifdef CONFIG_LGE_LCD_TUNING
 struct lcd_platform_data {
 int (*set_values) (int *tun_lcd_t);
@@ -148,5 +134,4 @@ int (*get_values) (int *tun_lcd_t);
 void __init lge_add_lcd_misc_devices(void);
 #endif
 
-extern int on_hidden_reset;
-#endif
+#endif /* __ASM_ARCH_MSM_BOARD_LGE_H */
