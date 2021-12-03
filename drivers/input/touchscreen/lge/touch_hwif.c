@@ -303,7 +303,7 @@ int touch_boot_mode_check(struct device *dev)
 
 	ret = lge_get_factory_boot();
 
-	if (ret) {
+	if (ret != NORMAL_BOOT) {
 		switch (atomic_read(&ts->state.mfts)) {
 			case MFTS_NONE :
 				ret = MINIOS_AAT;
