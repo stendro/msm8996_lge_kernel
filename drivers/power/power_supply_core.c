@@ -119,7 +119,9 @@ void power_supply_changed(struct power_supply *psy)
 	psy->changed = true;
 	pm_stay_awake(&psy->dev);
 	spin_unlock_irqrestore(&psy->changed_lock, flags);
-	schedule_work(&psy->changed_work);
+	queue_delayed_work(system_power_efficient_wq,
+			   &psy->deferred_register_work,
+			   POWER_SUPPLY_DEFERRED_REGISTER_TIME);
 }
 EXPORT_SYMBOL_GPL(power_supply_changed);
 
@@ -707,7 +709,7 @@ static void psy_unregister_cooler(struct power_supply *psy)
 
 static struct power_supply *__must_check
 __power_supply_register(struct device *parent,
-				   const struct power_supply_desc *desc,
+				   struct power_supply_desc *desc,
 				   const struct power_supply_config *cfg,
 				   bool ws)
 {
@@ -821,7 +823,7 @@ dev_set_name_failed:
  * resources.
  */
 struct power_supply *__must_check power_supply_register(struct device *parent,
-		const struct power_supply_desc *desc,
+		struct power_supply_desc *desc,
 		const struct power_supply_config *cfg)
 {
 	return __power_supply_register(parent, desc, cfg, true);
@@ -844,7 +846,7 @@ EXPORT_SYMBOL_GPL(power_supply_register);
  */
 struct power_supply *__must_check
 power_supply_register_no_ws(struct device *parent,
-		const struct power_supply_desc *desc,
+		struct power_supply_desc *desc,
 		const struct power_supply_config *cfg)
 {
 	return __power_supply_register(parent, desc, cfg, false);
@@ -874,7 +876,7 @@ static void devm_power_supply_release(struct device *dev, void *res)
  */
 struct power_supply *__must_check
 devm_power_supply_register(struct device *parent,
-		const struct power_supply_desc *desc,
+		struct power_supply_desc *desc,
 		const struct power_supply_config *cfg)
 {
 	struct power_supply **ptr, *psy;
@@ -910,7 +912,7 @@ EXPORT_SYMBOL_GPL(devm_power_supply_register);
  */
 struct power_supply *__must_check
 devm_power_supply_register_no_ws(struct device *parent,
-		const struct power_supply_desc *desc,
+		struct power_supply_desc *desc,
 		const struct power_supply_config *cfg)
 {
 	struct power_supply **ptr, *psy;

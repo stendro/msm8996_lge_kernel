@@ -1170,11 +1170,7 @@ static void timeout_cc_debounce(unsigned int port)
 		else if ((cc1 == CC_SRC_STATE_RD) &&
 				 (cc2 == CC_SRC_STATE_RD))
 		{
-#if defined(CONFIG_LGE_USB_FACTORY)
 			tcpm_set_state(dev, TCPC_STATE_UNATTACHED_SRC);
-#else
-			tcpm_set_state(dev, TCPC_STATE_UNORIENTED_DEBUG_ACC_SRC);
-#endif
 		}
 		else if ((cc1 == CC_SRC_STATE_RD) ||
 				 (cc2 == CC_SRC_STATE_RD))
@@ -1924,7 +1920,6 @@ void tcpm_connection_state_machine(unsigned int port)
 
 			tcpc_write16(port, TCPC_REG_VBUS_STOP_DISCHARGE_THRESH, VSTOP_DISCHRG);
 
-#if (defined(CONFIG_LGE_USB_FACTORY)
 			if (dev->debug_accessory_mode)
 			{
 				dev->debug_accessory_mode = false;
@@ -1935,7 +1930,6 @@ void tcpm_connection_state_machine(unsigned int port)
 				dual_role_instance_changed(tusb422_dual_role_phy);
 #endif
 			}
-#endif
 
 			if (dev->silicon_revision <= 1)
 			{
@@ -2437,7 +2431,6 @@ static void alert_cc_status_handler(tcpc_device_t *dev)
 						if (((cc1 == CC_SRC_STATE_RD) || (cc2 == CC_SRC_STATE_RD)) ||
 							((cc1 == CC_SRC_STATE_RA) && (cc2 == CC_SRC_STATE_RA)))
 						{
-#if defined(CONFIG_LGE_USB_FACTORY)
 							if ((cc1 == CC_SRC_STATE_RD) && (cc2 == CC_SRC_STATE_RD)) {
 								tcpm_set_state(dev, TCPC_STATE_ATTACH_WAIT_SNK);
 
@@ -2452,7 +2445,6 @@ static void alert_cc_status_handler(tcpc_device_t *dev)
 #endif
 								break;
 							}
-#endif
 							// Enable voltage monitoring.
 							tcpm_enable_voltage_monitoring(dev->port);
 
@@ -2560,7 +2552,6 @@ static void alert_cc_status_handler(tcpc_device_t *dev)
 					tcpm_notify_current_change(dev->port, dev->src_current_adv);
 					break;
 
-#if defined(CONFIG_LGE_USB_FACTORY)
 				case TCPC_STATE_ATTACHED_SRC:
 					if (!(((cc1 == CC_SRC_STATE_RD) && (cc2 != CC_SRC_STATE_RD)) ||
 						((cc1 != CC_SRC_STATE_RD) && (cc2 == CC_SRC_STATE_RD))))
@@ -2568,7 +2559,6 @@ static void alert_cc_status_handler(tcpc_device_t *dev)
 						tcpm_set_state(dev, TCPC_STATE_UNATTACHED_SRC);
 					}
 					break;
-#endif
 
 				default:
 					break;
