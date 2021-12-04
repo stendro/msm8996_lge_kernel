@@ -54,6 +54,9 @@
 #include "dbm.h"
 #include "debug.h"
 #include "xhci.h"
+/* #ifdef CONFIG_LGE_PM
+#include <soc/qcom/lge/board_lge.h>
+#endif */
 
 #define SDP_CONNETION_CHECK_TIME 10000 /* in ms */
 
@@ -246,6 +249,9 @@ struct dwc3_msm {
 #define MDWC3_ASYNC_IRQ_WAKE_CAPABILITY	BIT(1)
 #define MDWC3_POWER_COLLAPSE		BIT(2)
 
+/* #ifdef CONFIG_LGE_PM
+	bool xo_vote_for_charger;
+#endif */
 	unsigned int		irq_to_affin;
 	struct notifier_block	dwc3_cpu_notifier;
 	struct notifier_block	usbdev_nb;
@@ -2175,7 +2181,18 @@ static int dwc3_msm_suspend(struct dwc3_msm *mdwc, bool hibernation)
 	 */
 	clk_disable_unprepare(mdwc->iface_clk);
 	/* USB PHY no more requires TCXO */
+/* #ifdef CONFIG_LGE_PM
+	if (lge_get_boot_mode() != LGE_BOOT_MODE_CHARGERLOGO) {
+		if (!mdwc->xo_vote_for_charger) {
+			clk_disable_unprepare(mdwc->xo_clk);
+			dev_err(mdwc->dev, "%s unvote for TCXO buffer\n",
+					__func__);
+		}
+	} else
+		clk_disable_unprepare(mdwc->xo_clk);
+#else */
 	clk_disable_unprepare(mdwc->xo_clk);
+//#endif
 
 	/* Perform controller power collapse */
 	if ((!mdwc->in_host_mode && (!mdwc->in_device_mode || mdwc->in_restart))
@@ -2260,10 +2277,31 @@ static int dwc3_msm_resume(struct dwc3_msm *mdwc)
 	}
 
 	/* Vote for TCXO while waking up USB HSPHY */
+/* #ifdef CONFIG_LGE_PM
+	if (lge_get_boot_mode() != LGE_BOOT_MODE_CHARGERLOGO) {
+		if (!mdwc->xo_vote_for_charger) {
+			ret = clk_prepare_enable(mdwc->xo_clk);
+			if (ret)
+				dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
+						__func__, ret);
+			else
+				dev_err(mdwc->dev, "%s vote for TCXO buffer\n",
+						__func__);
+		} else
+			dev_err(mdwc->dev, "%s xo_vote_for_charger = %d\n",
+					__func__, mdwc->xo_vote_for_charger);
+	} else {
+		ret = clk_prepare_enable(mdwc->xo_clk);
+		if (ret)
+			dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
+					__func__, ret);
+	}
+#else */
 	ret = clk_prepare_enable(mdwc->xo_clk);
 	if (ret)
 		dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
 						__func__, ret);
+//#endif
 
 	/* Restore controller power collapse */
 	if (mdwc->lpm_flags & MDWC3_POWER_COLLAPSE) {
@@ -3447,6 +3485,10 @@ static int dwc3_msm_remove(struct platform_device *pdev)
 	clk_disable_unprepare(mdwc->xo_clk);
 	clk_put(mdwc->xo_clk);
 
+/* #ifdef CONFIG_LGE_PM
+	mdwc->xo_vote_for_charger = false;
+#endif */
+
 	dwc3_msm_config_gdsc(mdwc, 0);
 
 	return 0;
@@ -3894,6 +3936,39 @@ set_prop:
 	}
 
 	mdwc->max_power = mA;
+
+/* #ifdef CONFIG_LGE_PM
+	if (lge_get_boot_mode() != LGE_BOOT_MODE_CHARGERLOGO) {
+		if (mdwc->chg_type == DWC3_DCP_CHARGER && mA != 0) {
+			if (!mdwc->xo_vote_for_charger) {
+				struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+
+				if (atomic_read(&dwc->in_lpm)) {
+					int ret;
+					ret = clk_prepare_enable(mdwc->xo_clk);
+					if (ret)
+						dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
+								__func__, ret);
+					else
+						dev_err(mdwc->dev, "%s TCXO enabled\n",
+								__func__);
+				}
+				mdwc->xo_vote_for_charger = true;
+			}
+		} else {
+			if (mdwc->xo_vote_for_charger) {
+				struct dwc3 *dwc = platform_get_drvdata(mdwc->dwc3);
+
+				if (atomic_read(&dwc->in_lpm)) {
+					clk_disable_unprepare(mdwc->xo_clk);
+					dev_err(mdwc->dev, "%s TCXO disabled\n",
+							__func__);
+				}
+				mdwc->xo_vote_for_charger = false;
+			}
+		}
+	}
+#endif */
 	return 0;
 }
 
