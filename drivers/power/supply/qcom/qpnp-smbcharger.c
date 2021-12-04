@@ -43,6 +43,9 @@
 #include <linux/ktime.h>
 #include <linux/extcon.h>
 #include <linux/pmic-voter.h>
+#ifdef CONFIG_LGE_PM
+#include <soc/qcom/lge/board_lge.h>
+#endif
 
 /* Mask/Bit helpers */
 #define _SMB_MASK(BITS, POS) \
@@ -341,6 +344,9 @@ enum print_reason {
 	PR_MISC		= BIT(5),
 	PR_WIPOWER	= BIT(6),
 	PR_TYPEC	= BIT(7),
+#ifdef CONFIG_LGE_PM
+	PR_LGE		= BIT(8),
+#endif
 };
 
 enum wake_reason {
@@ -2229,8 +2235,8 @@ static void smbchg_parallel_usb_taper_work(struct work_struct *work)
 		return;
 	}
 
-	if (parallel_psy && parallel_psy->get_property) {
-		parallel_psy->get_property(parallel_psy,
+	if (parallel_psy && parallel_psy->desc->get_property) {
+		power_supply_get_property(parallel_psy,
 			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX, &pval);
 		parallel_fcc_ma = pval.intval / 1000;
 	} else {
