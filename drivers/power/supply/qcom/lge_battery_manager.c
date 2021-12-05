@@ -191,7 +191,7 @@ static int batt_mngr_get_fg_prop(struct power_supply *psy,
 		return -ENODEV;
 	}
 
-	rc = psy->get_property(psy, prop, &val);
+	rc = psy->desc->get_property(psy, prop, &val);
 	*value = val.intval;
 	if (unlikely(rc))
 		pr_bm(PR_ERR, "%s, rc: %d, intval: %d\n",
@@ -291,7 +291,7 @@ static int batt_mngr_set_fg_prop(struct power_supply *psy,
 	}
 
 	val.intval = value;
-	rc = psy->set_property(psy, prop, &val);
+	rc = psy->desc->set_property(psy, prop, &val);
 	if (unlikely(rc))
 		pr_bm(PR_ERR, "%s, rc: %d, intval: %d\n",
 			__func__, rc, value);
@@ -868,11 +868,11 @@ static int batt_mngr_probe(struct platform_device *pdev)
 		goto error;
 	}
 
-	bm->batt_mngr_psy.name = BM_PSY_NAME;
-	bm->batt_mngr_psy.get_property = batt_mngr_get_property;
-	bm->batt_mngr_psy.set_property = batt_mngr_set_property;
+	bm->batt_mngr_psy.desc->name = BM_PSY_NAME;
+	bm->batt_mngr_psy.desc->get_property = batt_mngr_get_property;
+	bm->batt_mngr_psy.desc->set_property = batt_mngr_set_property;
 
-	ret = power_supply_register(bm->dev, &bm->batt_mngr_psy);
+	ret = power_supply_register(bm->dev, &bm->batt_mngr_psy.desc, NULL);
 	if (ret < 0) {
 		pr_bm(PR_ERR, "%s power_supply_register charger controller failed ret=%d\n",
 			__func__, ret);
