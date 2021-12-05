@@ -1527,7 +1527,7 @@ static int smb1351_parallel_set_chg_suspend(struct smb1351_charger *chip,
 			return rc;
 		}
 
-/* #ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
+#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
 		// adapter allowance to 5~9V
 		rc = smb1351_masked_write(chip, FLEXCHARGER_REG,
 					CHG_CONFIG_MASK, 0);
@@ -1550,7 +1550,7 @@ static int smb1351_parallel_set_chg_suspend(struct smb1351_charger *chip,
 			pr_err("Couldn't set soft hot limit rc = %d\n", rc);
 			return rc;
 		}
-#endif */
+#endif
 		chip->parallel_charger_suspended = false;
 	} else {
 		rc = smb1351_usb_suspend(chip, CURRENT, true);
@@ -1639,10 +1639,10 @@ static int smb1351_parallel_set_property(struct power_supply *psy,
 		 */
 		if (!chip->parallel_charger_suspended)
 			rc = smb1351_usb_suspend(chip, USER, !val->intval);
-/* #ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
+#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
 		else
 			chip->usb_suspended_status &= ~USER;
-#endif */
+#endif
 		break;
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		rc = smb1351_parallel_set_chg_suspend(chip, val->intval);
