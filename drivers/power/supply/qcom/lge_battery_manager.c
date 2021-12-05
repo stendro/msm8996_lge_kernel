@@ -840,6 +840,7 @@ static int batt_mngr_probe(struct platform_device *pdev)
 {
 	int ret = 0;
 	struct batt_mngr *bm = NULL;
+	struct power_supply *bm_base_psy;
 
 	bm = kzalloc(sizeof(struct batt_mngr), GFP_KERNEL);
 	if (bm == NULL) {
@@ -868,11 +869,18 @@ static int batt_mngr_probe(struct platform_device *pdev)
 		goto error;
 	}
 
-	bm->batt_mngr_psy.desc->name = BM_PSY_NAME;
-	bm->batt_mngr_psy.desc->get_property = batt_mngr_get_property;
-	bm->batt_mngr_psy.desc->set_property = batt_mngr_set_property;
+	bm_base_psy = kzalloc(sizeof(struct power_supply),
+				GFP_KERNEL);
+	bm_base_psy->desc = kzalloc(sizeof(struct power_supply_desc),
+				GFP_KERNEL);
 
+	bm_base_psy->desc->name = BM_PSY_NAME;
+	bm_base_psy->desc->get_property = batt_mngr_get_property;
+	bm_base_psy->desc->set_property = batt_mngr_set_property;
+	bm->batt_mngr_psy = *bm_base_psy;
+	
 	bm->batt_mngr_psy = *power_supply_register(bm->dev, bm->batt_mngr_psy.desc, NULL);
+	pr_bm(PR_INFO, "Battery manager psy name: %s\n", bm->batt_mngr_psy.desc->name);
 	if (strcmp(bm->batt_mngr_psy.desc->name, BM_PSY_NAME) != 0) {
 		pr_bm(PR_ERR, "%s power_supply_register charger controller failed ret=%d\n",
 			__func__, ret);
