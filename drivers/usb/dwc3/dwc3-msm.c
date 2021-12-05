@@ -3374,13 +3374,14 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 		mdwc->pm_qos_latency = 0;
 	}
 
-	mdwc->usb_psy = power_supply_get_by_name("usb");
+	mdwc->usb_psy = power_supply_get_by_name("usb_pd");
 	if (!mdwc->usb_psy) {
 		dev_warn(mdwc->dev, "Could not get usb power_supply\n");
 		pval.intval = -EINVAL;
 	} else {
 		power_supply_get_property(mdwc->usb_psy,
 			POWER_SUPPLY_PROP_PRESENT, &pval);
+		dev_info(mdwc->dev, "USB PSY connected!\n");
 	}
 
 	mutex_init(&mdwc->suspend_resume_mutex);
@@ -3517,7 +3518,7 @@ static int dwc3_msm_host_notifier(struct notifier_block *nb,
 		return NOTIFY_DONE;
 
 	if (!mdwc->usb_psy) {
-		mdwc->usb_psy = power_supply_get_by_name("usb");
+		mdwc->usb_psy = power_supply_get_by_name("usb_pd");
 		if (!mdwc->usb_psy)
 			return NOTIFY_DONE;
 	}
@@ -3902,11 +3903,12 @@ int get_psy_type(struct dwc3_msm *mdwc)
 		return -EINVAL;
 
 	if (!mdwc->usb_psy) {
-		mdwc->usb_psy = power_supply_get_by_name("usb");
+		mdwc->usb_psy = power_supply_get_by_name("usb_pd");
 		if (!mdwc->usb_psy) {
 			dev_err(mdwc->dev, "Could not get usb psy\n");
 			return -ENODEV;
 		}
+		dev_info(mdwc->dev, "USB PSY found! Getting type...\n");
 	}
 
 	power_supply_get_property(mdwc->usb_psy, POWER_SUPPLY_PROP_REAL_TYPE,
