@@ -529,6 +529,13 @@ config LGE_PM
 	  Power Management, Battery charging, Battery Monitoring System
 	  with battery FET and fuel gauge.
 
+config LGE_PM_SUPPORT_LG_POWER_CLASS
+	bool "LG power class driver feature"
+	default n
+	depends on LGE_PM
+	help
+	  Support lge power class for charging scenario on LGE
+
 config LGE_PM_PARALLEL_CHARGING
 	tristate "LGE parallel charging feature"
 	depends on MACH_LGE

@@ -385,7 +385,7 @@ lge_power_lge_cable_detect_set_property(struct lge_power *lpc,
 					== POWER_SUPPLY_TYPE_USB_HVDCP) {
 				cd->modified_usb_ma = cd->ta_current*1000;
 			} else {
-				cd->usb_psy->get_property(
+				cd->usb_psy->desc->get_property(
 					cd->usb_psy,
 					POWER_SUPPLY_PROP_CURRENT_MAX, &ret);
 				cd->modified_usb_ma = ret.intval;
@@ -595,7 +595,7 @@ static void lge_cable_detect_external_power_changed(struct lge_power *lpc)
 	if(!cd->usb_psy){
 		pr_err("[LGE-CD] usb power_supply is not probed yet!!!\n");
 	} else {
-		rc = cd->usb_psy->get_property(
+		rc = cd->usb_psy->desc->get_property(
 				cd->usb_psy, POWER_SUPPLY_PROP_REAL_TYPE, &ret);
 		cd->chg_type = ret.intval;
 		if (cd->is_factory_cable) {
@@ -615,9 +615,9 @@ static void lge_cable_detect_external_power_changed(struct lge_power *lpc)
 				cd->modified_usb_ma = cd->usb_current * 1000;
 			cd->modified_ibat_ma = cd->usb_current * 1000;
 
-			if (cd->floated_charger != cd->usb_psy->is_floated_charger)
+			/*if (cd->floated_charger != cd->usb_psy->is_floated_charger)
 				is_changed = 1;
-			cd->floated_charger = cd->usb_psy->is_floated_charger;
+			cd->floated_charger = cd->usb_psy->is_floated_charger;*/
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_TYPE_HVDCP
 			cd->is_hvdcp_present = 0;
 #endif
@@ -642,7 +642,7 @@ static void lge_cable_detect_external_power_changed(struct lge_power *lpc)
 			cd->floated_charger = 0;
 #endif
 		} else {
-			cd->usb_psy->get_property(
+			cd->usb_psy->desc->get_property(
 				cd->usb_psy, POWER_SUPPLY_PROP_CURRENT_MAX,
 				&ret);
 			cd->modified_usb_ma = ret.intval;
@@ -653,7 +653,7 @@ static void lge_cable_detect_external_power_changed(struct lge_power *lpc)
 			cd->chg_type = 0;
 #endif
 		}
-		rc = cd->usb_psy->get_property(
+		rc = cd->usb_psy->desc->get_property(
 				cd->usb_psy, POWER_SUPPLY_PROP_PRESENT, &ret);
 		cd->chg_present = ret.intval;
 		if (cd->chg_present != prev_chg_present) {
@@ -677,7 +677,7 @@ static void lge_cable_detect_external_power_changed(struct lge_power *lpc)
 				cd->chg_enable = 1;
 		}
 #endif
-		rc = cd->usb_psy->get_property(cd->usb_psy,
+		rc = cd->usb_psy->desc->get_property(cd->usb_psy,
 				POWER_SUPPLY_PROP_CHARGING_ENABLED, &ret);
 		if (rc < 0) {
 			cd->chg_usb_enable = -1;

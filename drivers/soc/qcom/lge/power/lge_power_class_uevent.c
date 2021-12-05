@@ -67,18 +67,18 @@ static int update_power_supply_property(struct power_supply *psy)
 	int diff = 0;
 	union power_supply_propval val = {0,};
 
-	if (psy->property_data == NULL)
+	if (psy->desc->properties == NULL)
 		return 1;
-	for (i = 0; i < psy->num_properties; i++) {
-		check_psp = power_supply_is_check_uevent(psy->properties[i]);
-		if (psy->get_property(psy, psy->properties[i], &val))
+	for (i = 0; i < psy->desc->num_properties; i++) {
+		check_psp = power_supply_is_check_uevent(psy->desc->properties[i]);
+		if (psy->desc->get_property(psy, psy->desc->properties[i], &val))
 				return 0;
-		diff = psy->property_data[i] - val.intval;
+		diff = psy->desc->properties[i] - val.intval;
 		diff = abs(diff);
 		if (check_psp >= 0) {
 			if (diff >= uevent_offset_info[check_psp].offset) {
 				pr_debug("property: %d is changed\n", i);
-				psy->property_data[i] = val.intval;
+				psy->desc->properties[i] = val.intval;
 				update_event = 1;
 			} else {
 				pr_debug("prop:%d is changed within offset\n", i);
@@ -86,7 +86,7 @@ static int update_power_supply_property(struct power_supply *psy)
 			}
 		} else {
 			if (diff >0) {
-				psy->property_data[i] = val.intval;
+				psy->desc->properties[i] = val.intval;
 				update_event = 1;
 			} else {
 				update_event = 0;
@@ -108,8 +108,9 @@ static void
 lge_uevent_external_power_changed_with_psy(struct lge_power *lpc,
 										struct power_supply *psy)
 {
-	psy->update_uevent = 0;
-	psy->update_uevent = update_power_supply_property(psy);
+	//psy->update_uevent = 0;
+	//psy->update_uevent = update_power_supply_property(psy);
+	return;
 }
 
 static enum lge_power_property lge_power_lge_uevent_properties[] = {
