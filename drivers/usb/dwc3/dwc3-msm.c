@@ -54,9 +54,9 @@
 #include "dbm.h"
 #include "debug.h"
 #include "xhci.h"
-/* #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM
 #include <soc/qcom/lge/board_lge.h>
-#endif */
+#endif
 
 #define SDP_CONNETION_CHECK_TIME 10000 /* in ms */
 
@@ -186,6 +186,15 @@ enum plug_orientation {
 #define PM_QOS_SAMPLE_SEC	2
 #define PM_QOS_THRESHOLD	400
 
+enum dwc3_chg_type {
+	DWC3_INVALID_CHARGER = 0,
+	DWC3_SDP_CHARGER,
+	DWC3_DCP_CHARGER,
+	DWC3_CDP_CHARGER,
+	DWC3_PROPRIETARY_CHARGER,
+	DWC3_FLOATED_CHARGER,
+};
+
 struct dwc3_msm {
 	struct device *dev;
 	void __iomem *base;
@@ -226,6 +235,7 @@ struct dwc3_msm {
 	struct workqueue_struct *sm_usb_wq;
 	struct delayed_work	sm_work;
 	unsigned long		inputs;
+	enum dwc3_chg_type	chg_type;
 	unsigned		max_power;
 	bool			charging_disabled;
 	enum dwc3_drd_state	drd_state;
@@ -249,9 +259,9 @@ struct dwc3_msm {
 #define MDWC3_ASYNC_IRQ_WAKE_CAPABILITY	BIT(1)
 #define MDWC3_POWER_COLLAPSE		BIT(2)
 
-/* #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM
 	bool xo_vote_for_charger;
-#endif */
+#endif
 	unsigned int		irq_to_affin;
 	struct notifier_block	dwc3_cpu_notifier;
 	struct notifier_block	usbdev_nb;
@@ -2181,7 +2191,7 @@ static int dwc3_msm_suspend(struct dwc3_msm *mdwc, bool hibernation)
 	 */
 	clk_disable_unprepare(mdwc->iface_clk);
 	/* USB PHY no more requires TCXO */
-/* #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM
 	if (lge_get_boot_mode() != LGE_BOOT_MODE_CHARGERLOGO) {
 		if (!mdwc->xo_vote_for_charger) {
 			clk_disable_unprepare(mdwc->xo_clk);
@@ -2190,9 +2200,9 @@ static int dwc3_msm_suspend(struct dwc3_msm *mdwc, bool hibernation)
 		}
 	} else
 		clk_disable_unprepare(mdwc->xo_clk);
-#else */
+#else
 	clk_disable_unprepare(mdwc->xo_clk);
-//#endif
+#endif
 
 	/* Perform controller power collapse */
 	if ((!mdwc->in_host_mode && (!mdwc->in_device_mode || mdwc->in_restart))
@@ -2277,7 +2287,7 @@ static int dwc3_msm_resume(struct dwc3_msm *mdwc)
 	}
 
 	/* Vote for TCXO while waking up USB HSPHY */
-/* #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM
 	if (lge_get_boot_mode() != LGE_BOOT_MODE_CHARGERLOGO) {
 		if (!mdwc->xo_vote_for_charger) {
 			ret = clk_prepare_enable(mdwc->xo_clk);
@@ -2296,12 +2306,12 @@ static int dwc3_msm_resume(struct dwc3_msm *mdwc)
 			dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
 					__func__, ret);
 	}
-#else */
+#else
 	ret = clk_prepare_enable(mdwc->xo_clk);
 	if (ret)
 		dev_err(mdwc->dev, "%s failed to vote TCXO buffer%d\n",
 						__func__, ret);
-//#endif
+#endif
 
 	/* Restore controller power collapse */
 	if (mdwc->lpm_flags & MDWC3_POWER_COLLAPSE) {
@@ -3364,13 +3374,14 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 		mdwc->pm_qos_latency = 0;
 	}
 
-	mdwc->usb_psy = power_supply_get_by_name("usb");
+	mdwc->usb_psy = power_supply_get_by_name("usb_pd");
 	if (!mdwc->usb_psy) {
 		dev_warn(mdwc->dev, "Could not get usb power_supply\n");
 		pval.intval = -EINVAL;
 	} else {
 		power_supply_get_property(mdwc->usb_psy,
 			POWER_SUPPLY_PROP_PRESENT, &pval);
+		dev_info(mdwc->dev, "USB PSY connected!\n");
 	}
 
 	mutex_init(&mdwc->suspend_resume_mutex);
@@ -3485,9 +3496,9 @@ static int dwc3_msm_remove(struct platform_device *pdev)
 	clk_disable_unprepare(mdwc->xo_clk);
 	clk_put(mdwc->xo_clk);
 
-/* #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM
 	mdwc->xo_vote_for_charger = false;
-#endif */
+#endif
 
 	dwc3_msm_config_gdsc(mdwc, 0);
 
@@ -3507,7 +3518,7 @@ static int dwc3_msm_host_notifier(struct notifier_block *nb,
 		return NOTIFY_DONE;
 
 	if (!mdwc->usb_psy) {
-		mdwc->usb_psy = power_supply_get_by_name("usb");
+		mdwc->usb_psy = power_supply_get_by_name("usb_pd");
 		if (!mdwc->usb_psy)
 			return NOTIFY_DONE;
 	}
@@ -3892,11 +3903,12 @@ int get_psy_type(struct dwc3_msm *mdwc)
 		return -EINVAL;
 
 	if (!mdwc->usb_psy) {
-		mdwc->usb_psy = power_supply_get_by_name("usb");
+		mdwc->usb_psy = power_supply_get_by_name("usb_pd");
 		if (!mdwc->usb_psy) {
 			dev_err(mdwc->dev, "Could not get usb psy\n");
 			return -ENODEV;
 		}
+		dev_info(mdwc->dev, "USB PSY found! Getting type...\n");
 	}
 
 	power_supply_get_property(mdwc->usb_psy, POWER_SUPPLY_PROP_REAL_TYPE,
@@ -3937,7 +3949,7 @@ set_prop:
 
 	mdwc->max_power = mA;
 
-/* #ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM
 	if (lge_get_boot_mode() != LGE_BOOT_MODE_CHARGERLOGO) {
 		if (mdwc->chg_type == DWC3_DCP_CHARGER && mA != 0) {
 			if (!mdwc->xo_vote_for_charger) {
@@ -3968,7 +3980,7 @@ set_prop:
 			}
 		}
 	}
-#endif */
+#endif
 	return 0;
 }
 
