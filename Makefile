@@ -371,8 +371,7 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 # fall back to -march=armv8-a+crc+crypto in case the compiler isn't
 # compatible with -mcpu
 ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
-GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto) \
- -g0 -DNDEBUG -fsplit-paths -floop-block -fipa-pta -ftree-vectorize
+GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto)
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
