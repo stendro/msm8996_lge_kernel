@@ -47,7 +47,7 @@ static ssize_t power_supply_show_property(struct device *dev,
 		"Unknown", "Battery", "UPS", "Mains", "USB", "USB_DCP",
 		"USB_CDP", "USB_ACA", "USB_HVDCP", "USB_HVDCP_3", "USB_PD",
 		"Wireless", "USB_FLOAT", "BMS", "Parallel", "Main", "Wipower",
-		"TYPEC", "TYPEC_UFP", "TYPEC_DFP"
+		"TYPEC", "TYPEC_UFP", "TYPEC_DFP", "USB_C"
 	};
 	static char *status_text[] = {
 		"Unknown", "Charging", "Discharging", "Not charging", "Full"
@@ -88,7 +88,11 @@ static ssize_t power_supply_show_property(struct device *dev,
 	const ptrdiff_t off = attr - power_supply_attrs;
 	union power_supply_propval value;
 
+#ifdef CONFIG_LGE_PM
+	if (off == POWER_SUPPLY_PROP_TYPE && !!strcmp(psy->desc->name, "usb")) {
+#else
 	if (off == POWER_SUPPLY_PROP_TYPE) {
+#endif
 		value.intval = psy->desc->type;
 	} else {
 		ret = power_supply_get_property(psy, off, &value);
@@ -114,8 +118,12 @@ static ssize_t power_supply_show_property(struct device *dev,
 		return sprintf(buf, "%s\n", technology_text[value.intval]);
 	else if (off == POWER_SUPPLY_PROP_CAPACITY_LEVEL)
 		return sprintf(buf, "%s\n", capacity_level_text[value.intval]);
-	else if (off == POWER_SUPPLY_PROP_TYPE ||
-			off == POWER_SUPPLY_PROP_REAL_TYPE)
+#ifdef CONFIG_LGE_PM
+	else if (off == POWER_SUPPLY_PROP_TYPE
+			|| off == POWER_SUPPLY_PROP_REAL_TYPE)
+#else
+	else if (off == POWER_SUPPLY_PROP_TYPE)
+#endif
 		return sprintf(buf, "%s\n", type_text[value.intval]);
 	else if (off == POWER_SUPPLY_PROP_SCOPE)
 		return sprintf(buf, "%s\n", scope_text[value.intval]);
