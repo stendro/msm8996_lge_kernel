@@ -1555,7 +1555,10 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy,
 #else
 	char *name,
 #endif /* WL_CFG80211_P2P_DEV_IF */
-	unsigned char uctype, enum nl80211_iftype type, u32 *flags,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
+	unsigned char name_assign_type,
+#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)) */
+	enum nl80211_iftype type, u32 *flags,
 	struct vif_params *params)
 {
 	s32 err = -ENODEV;

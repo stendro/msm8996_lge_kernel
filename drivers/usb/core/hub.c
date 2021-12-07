@@ -36,11 +36,6 @@
 #define USB_VENDOR_GENESYS_LOGIC		0x05e3
 #define HUB_QUIRK_CHECK_PORT_AUTOSUSPEND	0x01
 
-#ifdef CONFIG_LGE_ALICE_FRIENDS
-bool alice_friends_hm;
-bool alice_friends_hm_earjack;
-#endif
-
 #ifdef CONFIG_LGE_DP_ANX7688
 unsigned int det_vendor_id;
 unsigned int det_product_id;
@@ -2470,6 +2465,13 @@ int usb_new_device(struct usb_device *udev)
 
 	/* Tell the world! */
 	announce_device(udev);
+
+#ifdef CONFIG_LGE_DP_ANX7688
+	if (udev->speed == USB_SPEED_SUPER) {
+		det_vendor_id = le16_to_cpu(udev->descriptor.idVendor);
+		det_product_id = le16_to_cpu(udev->descriptor.idProduct);
+	}
+#endif
 
 	if (udev->serial)
 		add_device_randomness(udev->serial, strlen(udev->serial));

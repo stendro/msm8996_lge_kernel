@@ -118,12 +118,8 @@ static ssize_t power_supply_show_property(struct device *dev,
 		return sprintf(buf, "%s\n", technology_text[value.intval]);
 	else if (off == POWER_SUPPLY_PROP_CAPACITY_LEVEL)
 		return sprintf(buf, "%s\n", capacity_level_text[value.intval]);
-#ifdef CONFIG_LGE_PM
-	else if (off == POWER_SUPPLY_PROP_TYPE
-			|| off == POWER_SUPPLY_PROP_REAL_TYPE)
-#else
-	else if (off == POWER_SUPPLY_PROP_TYPE)
-#endif
+	else if (off == POWER_SUPPLY_PROP_TYPE ||
+			off == POWER_SUPPLY_PROP_REAL_TYPE)
 		return sprintf(buf, "%s\n", type_text[value.intval]);
 	else if (off == POWER_SUPPLY_PROP_SCOPE)
 		return sprintf(buf, "%s\n", scope_text[value.intval]);
