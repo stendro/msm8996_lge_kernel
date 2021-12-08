@@ -10,6 +10,8 @@
  * GNU General Public License for more details.
  */
 
+#include "../qcom/msm8996-mtp.dtsi"
+
 / {
 	firmware: firmware {
 		android {
