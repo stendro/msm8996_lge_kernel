@@ -162,6 +162,9 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 			otgprop.intval = 1;
 			power_supply_set_property(&chip->usbpd_psy, 
 			POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+			extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
+				1);
+
 			chip->power_role = DUAL_ROLE_PROP_PR_SRC;
 			break;
 		case DUAL_ROLE_PROP_PR_SNK:
@@ -170,6 +173,8 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 				otgprop.intval = 0;
 				power_supply_set_property(&chip->usbpd_psy, 
 					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+				extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
+				0);
 			}
 			chip->power_role = DUAL_ROLE_PROP_PR_SNK;
 			break;
@@ -179,6 +184,8 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 				otgprop.intval = 0;				
 				power_supply_set_property(&chip->usbpd_psy, 
 					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+				extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
+				0);
 			}
 			chip->power_role = DUAL_ROLE_PROP_PR_NONE;
 			break;
@@ -195,6 +202,7 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 				presentprop.intval = 0;
 				power_supply_set_property(chip->usb_psy, 
 					POWER_SUPPLY_PROP_PRESENT,&presentprop);
+				extcon_set_cable_state_(chip->extcon, EXTCON_USB, 0);
 				mdelay(100);
 			}
 
@@ -202,6 +210,8 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 			otgprop.intval = 1;
 			power_supply_set_property(chip->usb_psy, 
 				POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+			extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
+				1);
 			chip->data_role = DUAL_ROLE_PROP_DR_HOST;
 			break;
 		case DUAL_ROLE_PROP_DR_DEVICE:
@@ -210,12 +220,15 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 				otgprop.intval = 0;
 				power_supply_set_property(chip->usb_psy, 
 					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+				extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
+				0);
 				mdelay(100);
 			}
 			presentprop.intval = 1;
 			//power_supply_set_present(chip->usb_psy, 1);
 			power_supply_set_property(chip->usb_psy, 
 					POWER_SUPPLY_PROP_PRESENT, &presentprop);
+			extcon_set_cable_state_(chip->extcon, EXTCON_USB, 1);
 			chip->data_role = DUAL_ROLE_PROP_DR_DEVICE;
 			break;
 		case DUAL_ROLE_PROP_DR_NONE:
@@ -224,6 +237,7 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 				presentprop.intval = 0;
 				power_supply_set_property(chip->usb_psy, 
 					POWER_SUPPLY_PROP_PRESENT, &presentprop);
+				extcon_set_cable_state_(chip->extcon, EXTCON_USB, 0);
 				mdelay(100);
 			}
 
@@ -232,6 +246,8 @@ static int dual_role_set_prop(struct dual_role_phy_instance *dual_role,
 				otgprop.intval = 0;
 				power_supply_set_property(chip->usb_psy, 
 					POWER_SUPPLY_PROP_USB_OTG, &otgprop);
+				extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
+				0);
 				mdelay(100);
 			}
 
@@ -2386,6 +2402,23 @@ static int anx7688_probe(struct i2c_client *client,
 			dev_err(cdev, "unalbe to register psy rc = %d\n", ret);
 			goto err7;
 		}
+	}
+
+	if (IS_ENABLED(CONFIG_EXTCON)) {
+		chip->extcon = devm_extcon_dev_allocate(cdev, anx7688_extcon_modes);
+
+		if (IS_ERR(chip->extcon)) {
+		dev_err(cdev, "failed to allocate extcon device\n");
+		return PTR_ERR(chip->extcon);
+		}
+
+		int rc = devm_extcon_dev_register(cdev, chip->extcon);
+		if (rc) {
+			dev_err(cdev, "failed to register extcon device\n");
+			return rc;
+		}
+
+		dev_info(cdev, "Allocated and registered extcon device.\n");
 	}
 
 	ret = anx7688_debugfs_init(chip);

@@ -21,7 +21,7 @@
 #include <linux/power_supply.h>
 #include <linux/regulator/consumer.h>
 #include <linux/usb/class-dual-role.h>
-
+#include <linux/extcon.h>
 #ifdef CONFIG_LGE_DP_ANX7688
 #include <linux/slimport.h>
 #endif
@@ -125,7 +125,19 @@ struct anx7688_chip {
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
 	union power_supply_propval rp;
 #endif
+/* extcon for VBUS / ID notification to USB */
+#ifdef CONFIG_EXTCON
+	struct extcon_dev		*extcon;
+#endif
 };
+
+#ifdef CONFIG_EXTCON
+static const unsigned int anx7688_extcon_modes[] = {
+	EXTCON_USB,
+	EXTCON_USB_HOST,
+	EXTCON_NONE,
+};
+#endif
 
 void anx7688_sbu_ctrl(struct anx7688_chip *chip, bool dir);
 void anx7688_pwr_on(struct anx7688_chip *chip);
