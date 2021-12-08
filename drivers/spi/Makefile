@@ -1,6 +1,7 @@
 #
 # Makefile for kernel SPI drivers.
 #
+subdir-ccflags-y := -DDEBUG
 
 ccflags-$(CONFIG_SPI_DEBUG) := -DDEBUG
 
