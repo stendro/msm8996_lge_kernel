@@ -139,5 +139,5 @@ CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE=1
 CONFIG_INTEGRITY=n
 
 # Enable debugging
-CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug initcall_debug sched_debug debug"
+CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
 CONFIG_CMDLINE_EXTEND=y

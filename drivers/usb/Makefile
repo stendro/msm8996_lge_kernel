@@ -1,6 +1,7 @@
 #
 # Makefile for the kernel USB device drivers.
 #
+subdir-ccflags-y := -DDEBUG
 
 # Object files in subdirectories
 
