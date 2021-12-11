@@ -2030,7 +2030,7 @@ void tcpm_connection_state_machine(unsigned int port)
 			tcpc_modify8(port, TUSB422_REG_INT_MASK, 0, TUSB422_INT_CC_FAULT);
 #endif
 
-#if (defined(CONFIG_LGE_USB_FACTORY)
+#if defined(CONFIG_LGE_USB_FACTORY)
 			if (dev->debug_accessory_mode)
 			{
 				dev->debug_accessory_mode = false;
