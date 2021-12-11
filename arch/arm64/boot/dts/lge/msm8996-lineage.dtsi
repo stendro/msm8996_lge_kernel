@@ -62,11 +62,11 @@
 
 #ifdef CONFIG_MACH_MSM8996_H1
 &usb3 {
-	extcon = <&anx7418>;
+	extcon = <&anx7418_usbc>;
 };
 #else
 &usb3 {
-	extcon = <&anx7688-usbc>;
+	extcon = <&anx7688_usbc>;
 };
 #endif
 

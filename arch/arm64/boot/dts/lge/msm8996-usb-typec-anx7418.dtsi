@@ -11,7 +11,7 @@
  */
 
 &i2c_6 {
-	anx7418@28 {
+	anx7418_usbc: anx7418@28 {
 		compatible = "analogix,anx7418";
 		reg = <0x28>;
 

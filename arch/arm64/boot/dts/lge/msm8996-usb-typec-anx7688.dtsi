@@ -13,7 +13,7 @@
 #include "msm8996-elsa-hdmi.dtsi"
 
 &i2c_6 {
-	anx7688-usbc@28 {
+	anx7688_usbc: anx7688-usbc@28 {
 		compatible = "analogix,anx7688-usbc";
 		reg = <0x28>;
 
