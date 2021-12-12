@@ -60,16 +60,6 @@
 	};
 };
 
-#ifdef CONFIG_MACH_MSM8996_H1
-&usb3 {
-	extcon = <&anx7418_usbc>;
-};
-#else
-&usb3 {
-	extcon = <&anx7688_usbc>;
-};
-#endif
-
 &pmi8994_charger {
 	qcom,external-typec;
 	qcom,typec-psy-name = "usb_pd";
