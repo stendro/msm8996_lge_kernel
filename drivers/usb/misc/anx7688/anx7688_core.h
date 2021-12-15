@@ -31,6 +31,10 @@
 #include <soc/qcom/smem.h>
 #endif
 
+#ifdef CONFIG_EXTCON
+#define PD_MAX_PDO_NUM 7
+#endif
+
 enum DP_HPD_STATUS {
 	STATE_LINK_TRAINING = 0,
 	STATE_HDMI_HPD,
@@ -128,6 +132,10 @@ struct anx7688_chip {
 /* extcon for VBUS / ID notification to USB */
 #ifdef CONFIG_EXTCON
 	struct extcon_dev		*extcon;
+	u32 src_pdo[PD_MAX_PDO_NUM];
+	u32 offered_pdo[PD_MAX_PDO_NUM];
+	u32 rdo;
+	u32 offered_rdo;
 #endif
 };
 
