@@ -1222,8 +1222,6 @@ static void get_property_from_typec(struct smbchg_chip *chip,
 				union power_supply_propval *prop)
 {
 	int rc;
-	dev_info(chip->dev, "Getting typec psy name ->");
-	dev_info(chip->dev, "TYPEC_PSY_name: %s\n", chip->typec_psy->desc->name);
 
 	if (!chip->typec_psy) {
 		chip->typec_psy = power_supply_get_by_name("usb_pd");
@@ -1234,10 +1232,13 @@ static void get_property_from_typec(struct smbchg_chip *chip,
 		}
 	}
 
-	dev_info(chip->dev, "NEW_TYPEC_PSY_name: %s\n", chip->typec_psy->desc->name);
+	dev_info(chip->dev, "Getting type_c property\n");
 
 	rc = power_supply_get_property(chip->typec_psy,
 			property, prop);
+
+	dev_info(chip->dev, "Type_c property retrieved successfully.\n");
+
 	if (rc)
 		pr_smb(PR_TYPEC,
 			"typec psy doesn't support reading prop %d rc = %d\n",

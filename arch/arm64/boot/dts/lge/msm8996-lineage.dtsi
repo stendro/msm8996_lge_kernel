@@ -61,6 +61,5 @@
 };
 
 &pmi8994_charger {
-	qcom,external-typec;
 	qcom,typec-psy-name = "usb_pd";
 };
