@@ -302,7 +302,6 @@ static int qcom_smem_alloc_private(struct qcom_smem *smem,
 {
 	struct smem_partition_header *phdr;
 	struct smem_private_entry *hdr, *end;
-	struct smem_partition_header *phdr;
 	size_t alloc_size;
 	void *cached;
 	void *p_end;
