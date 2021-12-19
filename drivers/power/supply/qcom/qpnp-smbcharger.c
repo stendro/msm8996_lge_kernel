@@ -4238,6 +4238,7 @@ static int smbchg_otg_regulator_enable(struct regulator_dev *rdev)
 		dev_err(chip->dev, "Couldn't set OTG = %d\n", rc);
 		return rc;
 	}
+#ifndef CONFIG_MACH_MSM8996_H1
 	rc = smbchg_sec_masked_write(chip, chip->otg_base + OTG_CFG_BATTUV,
 			CFG_BATTUV_MASK, CFG_BATTUV_2P9);
 	if (rc < 0) {
@@ -4256,6 +4257,7 @@ static int smbchg_otg_regulator_enable(struct regulator_dev *rdev)
 		dev_err(chip->dev, "Couldn't set OTG current limit = %d\n", rc);
 		return rc;
 	}
+#endif
 #endif
 	rc = smbchg_masked_write(chip, chip->bat_if_base + CMD_CHG_REG,
 			OTG_EN_BIT, OTG_EN_BIT);
@@ -4282,6 +4284,7 @@ static int smbchg_otg_regulator_disable(struct regulator_dev *rdev)
 		if (rc < 0)
 			dev_err(chip->dev, "Couldn't disable OTG mode rc=%d\n",
 					rc);
+#ifndef CONFIG_MACH_MSM8996_H1
 #ifdef CONFIG_LGE_PM
 		rc = smbchg_sec_masked_write(chip, chip->bat_if_base + 0xF6,
 					0x03, 0x02);
@@ -4295,6 +4298,7 @@ static int smbchg_otg_regulator_disable(struct regulator_dev *rdev)
 	if (rc < 0) {
 		dev_err(chip->dev, "Couldn't set OTG battery UVLO = %d\n", rc);
 		return rc;
+#endif
 #endif
 	}
 
