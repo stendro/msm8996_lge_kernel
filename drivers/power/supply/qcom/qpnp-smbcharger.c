@@ -704,6 +704,34 @@ static enum pwr_path_type smbchg_get_pwr_path(struct smbchg_chip *chip)
 	return reg & PWR_PATH_MASK;
 }
 
+static void get_property_from_typec(struct smbchg_chip *chip,
+				enum power_supply_property property,
+				union power_supply_propval *prop)
+{
+	int rc;
+
+	if (!chip->typec_psy) {
+		chip->typec_psy = power_supply_get_by_name("usb_pd");
+		if (!chip->typec_psy) {
+			pr_smb(PR_TYPEC, "type-c psy isn't ready\n");
+			prop->intval = 0;
+			return;
+		}
+	}
+
+	dev_info(chip->dev, "Getting type_c property\n");
+
+	rc = power_supply_get_property(chip->typec_psy,
+			property, prop);
+
+	dev_info(chip->dev, "Type_c property retrieved successfully.\n");
+
+	if (rc)
+		pr_smb(PR_TYPEC,
+			"typec psy doesn't support reading prop %d rc = %d\n",
+			property, rc);
+}
+
 #define RID_STS				0xB
 #define RID_MASK			0xF
 #define IDEV_STS			0x8
@@ -720,6 +748,9 @@ static bool is_otg_present_schg(struct smbchg_chip *chip)
 	u8 reg;
 	u8 usbid_reg[2];
 	u16 usbid_val;
+#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
+	union power_supply_propval prop;
+#endif
 	/*
 	 * After the falling edge of the usbid change interrupt occurs,
 	 * there may still be some time before the ADC conversion for USB RID
@@ -733,6 +764,10 @@ static bool is_otg_present_schg(struct smbchg_chip *chip)
 
 	msleep(20);
 
+#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
+	get_property_from_typec(chip, POWER_SUPPLY_PROP_USB_OTG, &prop);
+	return prop.intval ? true : false;
+#endif
 	/*
 	 * There is a problem with USBID conversions on PMI8994 revisions
 	 * 2.0.0. As a workaround, check that the cable is not
@@ -1216,34 +1251,6 @@ static int get_prop_batt_health(struct smbchg_chip *chip)
 		return POWER_SUPPLY_HEALTH_COOL;
 	else
 		return POWER_SUPPLY_HEALTH_GOOD;
-}
-
-static void get_property_from_typec(struct smbchg_chip *chip,
-				enum power_supply_property property,
-				union power_supply_propval *prop)
-{
-	int rc;
-
-	if (!chip->typec_psy) {
-		chip->typec_psy = power_supply_get_by_name("usb_pd");
-		if (!chip->typec_psy) {
-			pr_smb(PR_TYPEC, "type-c psy isn't ready\n");
-			prop->intval = 0;
-			return;
-		}
-	}
-
-	dev_info(chip->dev, "Getting type_c property\n");
-
-	rc = power_supply_get_property(chip->typec_psy,
-			property, prop);
-
-	dev_info(chip->dev, "Type_c property retrieved successfully.\n");
-
-	if (rc)
-		pr_smb(PR_TYPEC,
-			"typec psy doesn't support reading prop %d rc = %d\n",
-			property, rc);
 }
 
 static void update_typec_status(struct smbchg_chip *chip)
