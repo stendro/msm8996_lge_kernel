@@ -43,7 +43,7 @@
 #include <linux/ktime.h>
 #include <linux/extcon.h>
 #include <linux/pmic-voter.h>
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
+#ifdef CONFIG_LGE_PM
 #include <soc/qcom/lge/board_lge.h>
 #endif
 
@@ -70,9 +70,6 @@ struct parallel_usb_cfg {
 	int				initial_aicl_ma;
 	ktime_t				last_disabled;
 	bool				enabled_once;
-#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
-	int                             fastchg_current_max_ma;
-#endif
 };
 
 struct ilim_entry {
@@ -126,10 +123,6 @@ struct smbchg_chip {
 	int				dc_max_current_ma;
 	int				dc_target_current_ma;
 	int				cfg_fastchg_current_ma;
-#ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
-	int				target_fastchg_current_ma;
-	bool                            is_parallel_chg_dis_by_taper;
-#endif
 	int				fastchg_current_ma;
 	int				vfloat_mv;
 	int				fastchg_current_comp;
@@ -139,12 +132,6 @@ struct smbchg_chip {
 	int				prechg_safety_time;
 	int				bmd_pin_src;
 	int				jeita_temp_hard_limit;
-#ifdef CONFIG_LGE_PM
-	int				afvc_comp_voltage;
-#endif
-#ifdef CONFIG_LGE_PM_PSEUDO_BATTERY
-	u8              vbat_low_thr;
-#endif
 	int				aicl_rerun_period_s;
 	bool				use_vfloat_adjustments;
 	bool				iterm_disabled;
@@ -267,7 +254,6 @@ struct smbchg_chip {
 	struct power_supply		*bms_psy;
 	struct power_supply		*typec_psy;
 	struct power_supply		*dpdm_psy;
-
 	int				dc_psy_type;
 	const char			*bms_psy_name;
 	const char			*battery_psy_name;
@@ -278,10 +264,6 @@ struct smbchg_chip {
 	struct work_struct		usb_set_online_work;
 	struct delayed_work		vfloat_adjust_work;
 	struct delayed_work		hvdcp_det_work;
-#ifdef CONFIG_LGE_PM
-	struct delayed_work     hvdcp_check_work;
-	struct delayed_work		rerun_hvdcp_work;
-#endif
 	spinlock_t			sec_access_lock;
 	struct mutex			therm_lvl_lock;
 	struct mutex			usb_set_online_lock;
@@ -313,7 +295,6 @@ struct smbchg_chip {
 	struct votable			*hw_aicl_rerun_enable_indirect_votable;
 	struct votable			*aicl_deglitch_short_votable;
 	struct votable			*hvdcp_enable_votable;
-
 	/* extcon for VBUS / ID notification to USB */
 	struct extcon_dev		*extcon;
 
@@ -322,12 +303,6 @@ struct smbchg_chip {
 	struct delayed_work		battchg_protect_work;
 
 #endif
-
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	int				hvdcp_det_retry;
-	struct delayed_work		hvdcp_det_prepare_work;
-#endif
-
 #ifdef CONFIG_LGE_PM
 	int				maximum_icl_ma;
 	int				batt_pack_verify_cnt;
@@ -562,36 +537,6 @@ module_param_named(
 			pr_debug(fmt, ##__VA_ARGS__);	\
 	} while (0)
 
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-static void get_property_from_typec(struct smbchg_chip *chip,
-				enum power_supply_property property,
-				union power_supply_propval *prop)
-{
-	int rc;
-
-	if (!chip->typec_psy) {
-		chip->typec_psy = power_supply_get_by_name("usb_pd");
-		if (!chip->typec_psy) {
-			pr_smb(PR_TYPEC, "type-c psy isn't ready\n");
-			prop->intval = 0;
-			return;
-		}
-	}
-
-	dev_info(chip->dev, "Getting type_c property\n");
-
-	rc = power_supply_get_property(chip->typec_psy,
-			property, prop);
-
-	dev_info(chip->dev, "Type_c property retrieved successfully.\n");
-
-	if (rc)
-		pr_smb(PR_TYPEC,
-			"typec psy doesn't support reading prop %d rc = %d\n",
-			property, rc);
-}
-#endif
-
 static int smbchg_read(struct smbchg_chip *chip, u8 *val,
 			u16 addr, int count)
 {
@@ -775,9 +720,6 @@ static bool is_otg_present_schg(struct smbchg_chip *chip)
 	u8 reg;
 	u8 usbid_reg[2];
 	u16 usbid_val;
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-	union power_supply_propval prop;
-#endif
 	/*
 	 * After the falling edge of the usbid change interrupt occurs,
 	 * there may still be some time before the ADC conversion for USB RID
@@ -790,11 +732,6 @@ static bool is_otg_present_schg(struct smbchg_chip *chip)
 	 */
 
 	msleep(20);
-
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-	get_property_from_typec(chip, POWER_SUPPLY_PROP_USB_OTG, &prop);
-	return prop.intval ? true : false;
-#endif
 
 	/*
 	 * There is a problem with USBID conversions on PMI8994 revisions
@@ -985,31 +922,6 @@ static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
 	*usb_type_name = get_usb_type_name(type);
 	*usb_supply_type = get_usb_supply_type(type);
 }
-
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-static enum power_supply_type get_usb_pd_supply_type(struct smbchg_chip *chip)
-{
-   union power_supply_propval pval = {0, };
-   int rc = 0;
-
-   if (!chip->typec_psy) {
-       chip->typec_psy = power_supply_get_by_name("usb_pd");
-       if (IS_ERR(chip->typec_psy))
-           chip->typec_psy = 0;
-   }
-   if (chip->typec_psy) {
-       rc = chip->typec_psy->desc->get_property(chip->typec_psy,
-               POWER_SUPPLY_PROP_TYPE, &pval);
-   }
-
-   if (rc) {
-       pr_err("Couldn't get usb pd type = %d\n", rc);
-       return POWER_SUPPLY_TYPE_UNKNOWN;
-   } else {
-       return pval.intval;
-   }
-}
-#endif
 
 #define CHGR_STS			0x0E
 #define BATT_LESS_THAN_2V		BIT(4)
@@ -1304,6 +1216,34 @@ static int get_prop_batt_health(struct smbchg_chip *chip)
 		return POWER_SUPPLY_HEALTH_COOL;
 	else
 		return POWER_SUPPLY_HEALTH_GOOD;
+}
+
+static void get_property_from_typec(struct smbchg_chip *chip,
+				enum power_supply_property property,
+				union power_supply_propval *prop)
+{
+	int rc;
+
+	if (!chip->typec_psy) {
+		chip->typec_psy = power_supply_get_by_name("usb_pd");
+		if (!chip->typec_psy) {
+			pr_smb(PR_TYPEC, "type-c psy isn't ready\n");
+			prop->intval = 0;
+			return;
+		}
+	}
+
+	dev_info(chip->dev, "Getting type_c property\n");
+
+	rc = power_supply_get_property(chip->typec_psy,
+			property, prop);
+
+	dev_info(chip->dev, "Type_c property retrieved successfully.\n");
+
+	if (rc)
+		pr_smb(PR_TYPEC,
+			"typec psy doesn't support reading prop %d rc = %d\n",
+			property, rc);
 }
 
 static void update_typec_status(struct smbchg_chip *chip)
@@ -2627,10 +2567,6 @@ static bool smbchg_is_parallel_usb_ok(struct smbchg_chip *chip,
 	const char *fcc_voter
 		= get_effective_client_locked(chip->fcc_votable);
 	int usb_icl_ma = get_effective_result_locked(chip->usb_icl_votable);
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-	int c_type;
-	c_type = get_usb_pd_supply_type(chip);
-#endif
 
 	if (!parallel_psy || !smbchg_parallel_en
 			|| !chip->parallel_charger_detected) {
@@ -2704,12 +2640,7 @@ static bool smbchg_is_parallel_usb_ok(struct smbchg_chip *chip,
 		return false;
 	}
 
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-	if ((get_usb_supply_type(type) == POWER_SUPPLY_TYPE_USB) &&
-			 (c_type != POWER_SUPPLY_TYPE_USB_PD)) {
-#else
 	if (get_usb_supply_type(type) == POWER_SUPPLY_TYPE_USB) {
-#endif
 		pr_smb(PR_STATUS, "SDP adapter, skipping\n");
 		return false;
 	}
@@ -4230,82 +4161,10 @@ static void check_battery_type(struct smbchg_chip *chip)
 	}
 }
 
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-#define MAX_ICL_MA    2000
-static void smbchg_usb_pd_en(struct smbchg_chip *chip)
-{
-	union power_supply_propval prop = {0, };
-	enum power_supply_type usb_supply_type;
-	char *usb_type_name = "null";
-	int c_type, c_mv, c_ma, target_icl_ma;
-	int rc;
-
-	c_type = get_usb_pd_supply_type(chip);
-
-	if (c_type == POWER_SUPPLY_TYPE_TYPEC ||
-			c_type == POWER_SUPPLY_TYPE_USB_PD) {
-		rc = chip->typec_psy->desc->get_property(chip->typec_psy,
-				POWER_SUPPLY_PROP_VOLTAGE_MAX, &prop);
-		c_mv = prop.intval;
-
-		rc = chip->typec_psy->desc->get_property(chip->typec_psy,
-				POWER_SUPPLY_PROP_CURRENT_MAX, &prop);
-		c_ma = prop.intval;
-
-		target_icl_ma = get_effective_result_locked(chip->usb_icl_votable);
-
-		if (c_ma == 0 || c_ma == target_icl_ma || target_icl_ma == MAX_ICL_MA) {
-			pr_smb(PR_MISC, "skip current setting for C Type\n");
-		} else {
-			pr_smb(PR_LGE, "Type[%d], c_mV[%d], c_mA[%d], "
-					"target_icl_mA[%d]\n", c_type, c_mv, c_ma, target_icl_ma);
-			smbchg_parallel_usb_disable(chip);
-
-			read_usb_type(chip, &usb_type_name, &usb_supply_type);
-			if (usb_supply_type == POWER_SUPPLY_TYPE_USB) {
-				pr_smb(PR_LGE, "set HC mode\n");
-				rc = smbchg_masked_write(chip,
-						chip->usb_chgpth_base + CMD_IL,
-						ICL_OVERRIDE_BIT,
-						ICL_OVERRIDE_BIT);
-				if (rc < 0)
-					pr_err("Couldn't set override rc = %d\n", rc);
-
-				rc = smbchg_masked_write(chip,
-						chip->usb_chgpth_base + CMD_IL,
-						USBIN_MODE_CHG_BIT,
-						USBIN_HC_MODE);
-				if (rc < 0)
-					dev_err(chip->dev, "Couldn't write cfg 5 rc = %d\n", rc);
-			}
-			if (c_ma >= MAX_ICL_MA)
-				c_ma = MAX_ICL_MA;
-
-			rc = vote(chip->usb_icl_votable, PSY_ICL_VOTER, true, c_ma);
-			if (rc < 0)
-				pr_smb(PR_LGE, "Couldn't vote for "
-						"new USB ICL rc=%d\n", rc);
-		}
-	}
-}
-#endif
-
 static void smbchg_external_power_changed(struct power_supply *psy)
 {
 	struct smbchg_chip *chip = power_supply_get_drvdata(psy);
 	int rc, soc;
-
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-	int c_type = 0;
-
-	c_type = get_usb_pd_supply_type(chip);
-
-	if (c_type == POWER_SUPPLY_TYPE_TYPEC ||
-		c_type == POWER_SUPPLY_TYPE_USB_PD) {
-		smbchg_usb_pd_en(chip);
-		goto skip_current_for_non_sdp;
-	}
-#endif
 
 	smbchg_aicl_deglitch_wa_check(chip);
 
@@ -4332,16 +4191,8 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 		schedule_work(&chip->usb_set_online_work);
 #endif
 	/* adjust vfloat */
-
-skip_current_for_non_sdp:
-#ifdef CONFIG_MACH_MSM8996_LUCYE
-	/* To make UI status correct, below update work should be invoked after USB's uevent.
-	 * In fact, below work has effect to OVERRIDE UI status after updated by USB
-	 */
-	if (is_usb_suspended_by_scenario(chip))
-		schedule_work(&chip->usb_set_online_work);
-#endif
 	smbchg_vfloat_adjust_check(chip);
+	power_supply_changed(chip->batt_psy);
 }
 
 #ifdef CONFIG_LGE_PM
@@ -5098,6 +4949,7 @@ static int smbchg_set_optimal_charging_mode(struct smbchg_chip *chip, int type)
 #define WEAK_CHG_DET_CNT	3
 #endif
 
+
 #define DEFAULT_SDP_MA		100
 #define DEFAULT_CDP_MA		1500
 static int smbchg_change_usb_supply_type(struct smbchg_chip *chip,
@@ -5250,118 +5102,6 @@ static int force_9v_hvdcp(struct smbchg_chip *chip)
 	return rc;
 }
 
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-#define HVDCP_PREPARE_MS 500
-#define HVDCP_RETRY_MAX 5
-#define HVDCP_CHECK_MS 2500	/* same as HVDCP_NOTIFY_MS */
-static int rerun_apsd(struct smbchg_chip *chip);
-void update_usb_status(struct smbchg_chip *chip, bool usb_present, bool force);
-
-static void smbchg_hvdcp_det_prepare_work(struct work_struct *work)
-{
-	struct smbchg_chip *chip = container_of(work,
-				struct smbchg_chip,
-				hvdcp_det_prepare_work.work);
-	union power_supply_propval prop = {0, };
-	enum power_supply_type usb_supply_type;
-	char *usb_type_name;
-	int rc;
-
-	pr_smb(PR_LGE, "start prepare hvdcp (%d)\n", chip->hvdcp_det_retry);
-
-	if (!is_usb_present(chip)){
-		goto out;
-	}
-
-	/*
-	 * if High Voltage PD Charger exist, faking removal/insertion will fail.
-	 * so bypass HVDCP detection
-	 */
-	get_property_from_typec(chip, POWER_SUPPLY_PROP_VOLTAGE_MAX, &prop);
-	if (prop.intval > 5000) {
-		pr_smb(PR_LGE, "HV PD charger detected. ignore HVDCP\n");
-		goto out;
-	}
-
-#ifndef CONFIG_MACH_MSM8996_LUCYE
-	/* 1. The 'hvdcp_uv_recovery' will not be cleared on normal recovery process.
-	 *    It is cleared only when some error is occurred during recovery.
-	 *    So once the recovery is processed, the uncleared 'hvdcp_uv_recovery' causes skipping Rp check
-	 *    even though users dettach/attach charger next time.
-	 * 2. The purpose of 'hvdcp_uv_recovery' is to skip Rp checking on varying VBUS.
-	 *    Because ANX7688 measures Rp ADC with VBUS reference, ctype_rp has been changed during recovery.
-	 *    But TUSB422 of LUCYE can measure Rp ADC without VBUS reference.
-	 *
-	 *  By the reasons of 1, 2, LUCYE removes below skip routine.
-	 */
-	if (chip->hvdcp_uv_recovery) {
-		pr_smb(PR_LGE, "recover under voltage, enable HVDCP\n");
-		goto prepare_hvdcp_detection;
-	}
-#endif
-
-prepare_hvdcp_detection:
-	/* enable HVDCP */
-	rc = smbchg_sec_masked_write(chip,
-				chip->usb_chgpth_base + CHGPTH_CFG,
-				HVDCP_EN_BIT, HVDCP_EN_BIT);
-	if (rc < 0)
-		pr_err("Couldn't enable HVDCP rc=%d\n", rc);
-
-	pr_smb(PR_MISC, "Disable AICL\n");
-	rc = smbchg_sec_masked_write(chip,
-				chip->usb_chgpth_base + USB_AICL_CFG,
-				AICL_EN_BIT, 0);
-	if (rc < 0)
-		pr_err("Couldn't disable AICL rc=%d\n", rc);
-
-	rc = rerun_apsd(chip);
-	if (rc) {
-		pr_err("rerun apsd failed rc = %d\n", rc);
-		goto handle_removal;
-	}
-
-	read_usb_type(chip, &usb_type_name, &usb_supply_type);
-	if (usb_supply_type != POWER_SUPPLY_TYPE_USB_DCP) {
-		rc = rerun_apsd(chip);
-		if (rc) {
-			pr_err("rerun apsd failed rc = %d\n", rc);
-			goto handle_removal;
-		}
-
-		read_usb_type(chip, &usb_type_name, &usb_supply_type);
-		if (usb_supply_type != POWER_SUPPLY_TYPE_USB_DCP) {
-			pr_smb(PR_LGE, "final inserted type = %d (%s)\n",
-					usb_supply_type, usb_type_name);
-
-			smbchg_change_usb_supply_type(chip, usb_supply_type);
-		}
-	}
-
-	pr_smb(PR_MISC, "Enable AICL\n");
-	rc = smbchg_sec_masked_write(chip,
-				chip->usb_chgpth_base + USB_AICL_CFG,
-				AICL_EN_BIT, AICL_EN_BIT);
-	if (rc < 0)
-		pr_err("Couldn't enable AICL rc=%d\n", rc);
-
-	if (usb_supply_type != POWER_SUPPLY_TYPE_USB_DCP)
-		return;
-
-	cancel_delayed_work_sync(&chip->hvdcp_det_work);
-	schedule_delayed_work(&chip->hvdcp_det_work,
-				msecs_to_jiffies(HVDCP_CHECK_MS));
-	return;
-
-handle_removal:
-	update_usb_status(chip, 0, 0);
-out:
-	chip->hvdcp_det_retry = 0;
-	chip->hvdcp_uv_recovery = false;
-	smbchg_relax(chip, PM_DETECT_HVDCP);
-}
-#endif
-
 #ifdef CONFIG_LGE_PM
 #define HVDCP_RECOVERY_MS (60 * 1000)
 #define HVDCP_RECOVERY_UV_COUNT 2
@@ -5460,14 +5200,13 @@ static void smbchg_hvdcp_det_work(struct work_struct *work)
 				POWER_SUPPLY_TYPE_USB_HVDCP);
 		if (chip->batt_psy)
 			power_supply_changed(chip->batt_psy);
-
 		smbchg_aicl_deglitch_wa_check(chip);
 #ifdef CONFIG_LGE_PM
 		cancel_delayed_work(&chip->hvdcp_recovery_work);
 		schedule_delayed_work(&chip->hvdcp_recovery_work,
 				msecs_to_jiffies(HVDCP_RECOVERY_MS));
 #endif
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
+#ifdef CONFIG_LGE_PM
 	} else if (is_usb_present(chip)) {
 		if (!chip->typec_psy)
 			chip->typec_psy = power_supply_get_by_name("usb_pd");
@@ -5482,8 +5221,6 @@ static void smbchg_hvdcp_det_work(struct work_struct *work)
 		//smbchg_evp_det_start(chip, true);
 		power_supply_changed(chip->batt_psy); // dummy line
 		}
-	}
-#else
 	}
 #endif
 	
@@ -5682,29 +5419,6 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	chip->usb_health = POWER_SUPPLY_HEALTH_UNKNOWN;
 	power_supply_changed(chip->usb_psy);
 
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
-		if (!chip->typec_psy) {
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-			if (IS_ERR(chip->typec_psy))
-				chip->typec_psy = 0;
-		}
-		if (!chip->typec_psy) {
-			//power_supply_set_present(chip->usb_psy, chip->usb_present);
-			pval.intval = chip->usb_present;
-			power_supply_set_property(chip->usb_psy,
-				POWER_SUPPLY_PROP_PRESENT, &pval);
-		} else {
-			//power_supply_set_present(chip->typec_psy, 1);
-			pval.intval = 1;
-			power_supply_set_property(chip->typec_psy,
-				POWER_SUPPLY_PROP_PRESENT, &pval);
-		}
-#else
-		//power_supply_set_present(chip->usb_psy, chip->usb_present);
-		power_supply_set_property(chip->usb_psy,
-				POWER_SUPPLY_PROP_PRESENT, chip->usb_present);
-#endif
-
 	if (parallel_psy && chip->parallel_charger_detected) {
 		pval.intval = false;
 		power_supply_set_property(parallel_psy,
@@ -5717,9 +5431,6 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	}
 	chip->parallel.enabled_once = false;
 	chip->vbat_above_headroom = false;
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	chip->hvdcp_det_retry = 0;
-#endif
 #ifdef CONFIG_LGE_PM
 	chip->hvdcp_uv_count = 0;
 #endif
@@ -5788,15 +5499,14 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 		extcon_set_cable_state_(chip->extcon, EXTCON_USB,
 				chip->usb_present);
 	}
-
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
+#ifdef CONFIG_LGE_PM
 		if (!chip->typec_psy) {
 			chip->typec_psy = power_supply_get_by_name("usb_pd");
 			if (IS_ERR(chip->typec_psy))
 				chip->typec_psy = 0;
 		}
 		if (!chip->typec_psy) {
-			prop.intval = chip->usb_present;
+			prop.intval = (int) chip->usb_present;
 			power_supply_set_property(chip->usb_psy, POWER_SUPPLY_PROP_PRESENT, 
 			&prop);
 		} else {
@@ -5804,10 +5514,12 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 			power_supply_set_property(chip->typec_psy, POWER_SUPPLY_PROP_PRESENT,  &prop);
 		}
 #else
-		prop.intval = chip->usb_present;
+		dev_info(chip->dev, "Setup typec_psy as usb_pd\n");
+		prop.intval =  (int) chip->usb_present;
 		power_supply_set_property(chip->usb_psy, POWER_SUPPLY_PROP_PRESENT,  &prop);
-#endif
 
+		dev_info(chip->dev, "Setup typec_psy present mode\n");
+#endif
 	/* Notify the USB psy if OV condition is not present */
 	if (!chip->usb_ov_det) {
 		/*
@@ -5828,26 +5540,10 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 
 	if (!chip->hvdcp_not_supported &&
 			(usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP)) {
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
-		// do nothing
-#else
-		cancel_delayed_work_sync(&chip->hvdcp_det_prepare_work);
-#endif
-#endif
 		cancel_delayed_work_sync(&chip->hvdcp_det_work);
 		smbchg_stay_awake(chip, PM_DETECT_HVDCP);
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
-		// do nothing
-#else
-		schedule_delayed_work(&chip->hvdcp_det_prepare_work,
-					msecs_to_jiffies(HVDCP_PREPARE_MS));
-#endif
-#else
 		schedule_delayed_work(&chip->hvdcp_det_work,
 					msecs_to_jiffies(HVDCP_NOTIFY_MS));
-#endif
 	}
 
 #ifdef CONFIG_LGE_PM_PARALLEL_CHARGING
@@ -6236,18 +5932,8 @@ static void smbchg_handle_hvdcp3_disable(struct smbchg_chip *chip)
 		read_usb_type(chip, &usb_type_name, &usb_supply_type);
 		smbchg_change_usb_supply_type(chip, usb_supply_type);
 		if (usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP)
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
-			// do nothing
-#else
-			schedule_delayed_work(&chip->hvdcp_det_prepare_work,
-				msecs_to_jiffies(HVDCP_PREPARE_MS));
-#endif
-			pr_info("HVDCP TEST\n");
-#else
 			schedule_delayed_work(&chip->hvdcp_det_work,
 				msecs_to_jiffies(HVDCP_NOTIFY_MS));
-#endif
 	} else {
 		smbchg_change_usb_supply_type(chip, POWER_SUPPLY_TYPE_UNKNOWN);
 	}
@@ -6826,8 +6512,8 @@ static void update_typec_otg_status(struct smbchg_chip *chip, int mode,
 		pval.intval = 0;
 		extcon_set_cable_state_(chip->extcon, EXTCON_USB_HOST,
 				chip->typec_dfp);
-#if !defined (CONFIG_LGE_USB_ANX7418) && !defined (CONFIG_LGE_USB_ANX7688)
-		pval.intval = chip->typec_dfp;
+#ifndef CONFIG_LGE_USB_TYPE_C
+		pval.intval = (int) chip->typec_dfp;
 		power_supply_set_property(chip->usb_psy, POWER_SUPPLY_PROP_USB_OTG, &pval);
 #endif
 		/* update FG */
@@ -9393,12 +9079,6 @@ static void rerun_hvdcp_det_if_necessary(struct smbchg_chip *chip)
 	}
 #endif
 
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	/* We don't need to to this here because HVDCP is disabled in this time.
-	   We will do this job later in smbchg_hvdcp_det_prepare() */
-	return;
-#endif
-
 	read_usb_type(chip, &usb_type_name, &usb_supply_type);
 	if (usb_supply_type == POWER_SUPPLY_TYPE_USB_DCP
 		&& !is_hvdcp_present(chip)) {
@@ -9471,7 +9151,6 @@ static int smbchg_probe(struct platform_device *pdev)
     bool usb_present;
 #endif
 
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
 	if (of_property_read_bool(pdev->dev.of_node, "qcom,external-typec")) {
 		/* read the type power supply name */
 		rc = of_property_read_string(pdev->dev.of_node,
@@ -9482,7 +9161,6 @@ static int smbchg_probe(struct platform_device *pdev)
 			return rc;
 		}
 
-		dev_info(&pdev->dev, "Returned typec_psy_name:%s\n", typec_psy_name);
 		typec_psy = power_supply_get_by_name(typec_psy_name);
 		if (!typec_psy) {
 			pr_smb(PR_STATUS,
@@ -9490,7 +9168,6 @@ static int smbchg_probe(struct platform_device *pdev)
 			return -EPROBE_DEFER;
 		}
 	}
-#endif
 
 	vadc_dev = NULL;
 	if (of_find_property(pdev->dev.of_node, "qcom,dcin-vadc", NULL)) {
@@ -9628,10 +9305,6 @@ static int smbchg_probe(struct platform_device *pdev)
 			smbchg_parallel_usb_en_work);
 	INIT_DELAYED_WORK(&chip->vfloat_adjust_work, smbchg_vfloat_adjust_work);
 	INIT_DELAYED_WORK(&chip->hvdcp_det_work, smbchg_hvdcp_det_work);
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	INIT_DELAYED_WORK(&chip->hvdcp_det_prepare_work,
-		smbchg_hvdcp_det_prepare_work);
-#endif
 #ifdef CONFIG_LGE_PM
 	INIT_DELAYED_WORK(&chip->hvdcp_recovery_work, smbchg_hvdcp_recovery_work);
 #endif
@@ -9657,9 +9330,6 @@ static int smbchg_probe(struct platform_device *pdev)
 	chip->typec_psy = typec_psy;
 	chip->fake_battery_soc = -EINVAL;
 	chip->usb_online = -EINVAL;
-#if defined(CONFIG_LGE_USB_ANX7688_OVP) || defined(CONFIG_LGE_USB_TUSB422)
-	chip->hvdcp_det_retry = 0;
-#endif
 #ifdef CONFIG_LGE_PM
 	chip->hvdcp_uv_count = 0;
 	chip->hvdcp_uv_recovery = false;
@@ -9825,33 +9495,24 @@ static int smbchg_probe(struct platform_device *pdev)
 		goto unregister_led_class;
 	}
 
-#ifdef CONFIG_MACH_MSM8996_LUCYE
-	usb_present = is_usb_present(chip);
-	if (usb_present && (chip->usb_present != usb_present)){
-		power_supply_set_dp_dm(chip->usb_psy, POWER_SUPPLY_DP_DM_DPF_DMF);
-	}
-
-	update_usb_status(chip, usb_present, false);
-#endif
-
 #ifdef CONFIG_LGE_PM
 	chip->batt_pack_verify_cnt = 1;
 #endif
 
-#if defined (CONFIG_LGE_USB_ANX7418) || defined (CONFIG_LGE_USB_ANX7688)
+#ifdef CONFIG_LGE_PM
 		if (!chip->typec_psy) {
 			chip->typec_psy = power_supply_get_by_name("usb_pd");
 			if (IS_ERR(chip->typec_psy))
 				chip->typec_psy = 0;
 		}
 		if (!chip->typec_psy){
-			prop.intval = chip->usb_present;
+			prop.intval = (int) chip->usb_present;
 			power_supply_set_property(chip->usb_psy, POWER_SUPPLY_PROP_PRESENT, 
 			&prop);
 		}
 #else
 		
-		prop.intval = chip->usb_present;
+		prop.intval = (int) chip->usb_present;
 		power_supply_set_property(chip->usb_psy, POWER_SUPPLY_PROP_PRESENT, 
 		prop.intval);
 #endif
