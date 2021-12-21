@@ -1691,6 +1691,7 @@ static void smbchg_usb_update_online_work(struct work_struct *work)
 #else
 	online = user_enabled && chip->usb_present && !chip->very_weak_charger;
 #endif
+
 	mutex_lock(&chip->usb_set_online_lock);
 	if (chip->usb_online != online) {
 		pr_smb(PR_MISC, "setting usb psy online = %d\n", online);
@@ -3226,21 +3227,17 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 	}
 	effective_id = get_effective_client_locked(chip->usb_icl_votable);
 
+	if (!effective_id)
+		return 0;
+
 #ifdef CONFIG_LGE_PM
 	/* Disable the parallel charger if ICL has changed */
 	smbchg_parallel_usb_disable(chip);
 #else
 	/* disable parallel charging if HVDCP is voting for 300mA */
-	if (effective_id && strcmp(effective_client, HVDCP_ICL_VOTER) == 0)
-		smbchg_parallel_usb_disable(chip);
-#endif
-
-	if (!effective_id)
-		return 0;
-
-	/* disable parallel charging if HVDCP is voting for 300mA */
 	if (strcmp(effective_id, HVDCP_ICL_VOTER) == 0)
 		smbchg_parallel_usb_disable(chip);
+#endif
 
 	if (chip->parallel.current_max_ma == 0) {
 		rc = smbchg_set_usb_current_max(chip, icl_ma);
@@ -4199,7 +4196,6 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 #endif
 	/* adjust vfloat */
 	smbchg_vfloat_adjust_check(chip);
-	power_supply_changed(chip->batt_psy);
 }
 
 #ifdef CONFIG_LGE_PM
@@ -4951,6 +4947,7 @@ static int smbchg_set_optimal_charging_mode(struct smbchg_chip *chip, int type)
 
 	return 0;
 }
+
 #ifdef CONFIG_LGE_PM
 #define DEFAULT_WEAK_ICL_MA 1000
 #define WEAK_CHG_DET_CNT	3
@@ -5138,11 +5135,8 @@ static void smbchg_hvdcp_recovery_work(struct work_struct *work)
 			chip->usb_supply_type != POWER_SUPPLY_TYPE_USB_HVDCP_3)
 		goto out;
 
-	//usbin_vol = get_usb_adc(chip);
+	//usbin_vol = get_usb_adc(chip); // get_usb_adc() depends on CHARGING_CONTROLLER
 	//if (usbin_vol > HVDCP_RECOVERY_MV) {
-//#ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
-//		chip->incompatible_hvdcp_detected = HVDCP_DETECT_CONFIRMED;
-//#endif
 	//	schedule_delayed_work(&chip->hvdcp_recovery_work,
 	//			msecs_to_jiffies(HVDCP_RECOVERY_MS));
 	//	goto out;
@@ -5213,26 +5207,8 @@ static void smbchg_hvdcp_det_work(struct work_struct *work)
 		schedule_delayed_work(&chip->hvdcp_recovery_work,
 				msecs_to_jiffies(HVDCP_RECOVERY_MS));
 #endif
-#ifdef CONFIG_LGE_PM
-	} else if (is_usb_present(chip)) {
-		if (!chip->typec_psy)
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-		if (chip->typec_psy) {
-			union power_supply_propval prop = {0, };
-			get_property_from_typec(chip, POWER_SUPPLY_PROP_TYPE, &prop);
-			if (prop.intval != POWER_SUPPLY_TYPE_TYPEC){
-				//smbchg_evp_det_start(chip, true);
-				power_supply_changed(chip->batt_psy); // dummy line
-				}
-		} else {
-		//smbchg_evp_det_start(chip, true);
-		power_supply_changed(chip->batt_psy); // dummy line
-		}
 	}
-#endif
-	
 	smbchg_relax(chip, PM_DETECT_HVDCP);
-
 }
 
 static int set_dpdm_psy(struct smbchg_chip *chip, int state)
@@ -6600,7 +6576,12 @@ static int smbchg_usb_get_property(struct power_supply *psy,
 		val->intval = chip->usb_online;
 		break;
 	case POWER_SUPPLY_PROP_TYPE:
-		val->intval = chip->usb_psy_d.type;
+#ifdef CONFIG_LGE_PM
+		if (chip->usb_supply_type == POWER_SUPPLY_TYPE_UNKNOWN)
+			val->intval = POWER_SUPPLY_TYPE_USB_PD;
+		else
+#endif
+			val->intval = chip->usb_psy_d.type;
 		break;
 	case POWER_SUPPLY_PROP_REAL_TYPE:
 		val->intval = chip->usb_supply_type;
@@ -9154,9 +9135,6 @@ static int smbchg_probe(struct platform_device *pdev)
 	struct power_supply_config batt_psy_cfg = {};
 	struct power_supply_config dc_psy_cfg = {};
 	union power_supply_propval prop = {0,};
-#ifdef CONFIG_MACH_MSM8996_LUCYE
-    bool usb_present;
-#endif
 
 	if (of_property_read_bool(pdev->dev.of_node, "qcom,external-typec")) {
 		/* read the type power supply name */
