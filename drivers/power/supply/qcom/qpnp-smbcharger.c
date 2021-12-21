@@ -4199,7 +4199,6 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 #endif
 	/* adjust vfloat */
 	smbchg_vfloat_adjust_check(chip);
-	power_supply_changed(chip->batt_psy);
 }
 
 #ifdef CONFIG_LGE_PM
@@ -5138,11 +5137,8 @@ static void smbchg_hvdcp_recovery_work(struct work_struct *work)
 			chip->usb_supply_type != POWER_SUPPLY_TYPE_USB_HVDCP_3)
 		goto out;
 
-	//usbin_vol = get_usb_adc(chip);
+	//usbin_vol = get_usb_adc(chip); // get_usb_adc() depends on CHARGING_CONTROLLER
 	//if (usbin_vol > HVDCP_RECOVERY_MV) {
-//#ifdef CONFIG_LGE_PM_INCOMPATIBLE_HVDCP_SUPPORT
-//		chip->incompatible_hvdcp_detected = HVDCP_DETECT_CONFIRMED;
-//#endif
 	//	schedule_delayed_work(&chip->hvdcp_recovery_work,
 	//			msecs_to_jiffies(HVDCP_RECOVERY_MS));
 	//	goto out;
@@ -5213,23 +5209,7 @@ static void smbchg_hvdcp_det_work(struct work_struct *work)
 		schedule_delayed_work(&chip->hvdcp_recovery_work,
 				msecs_to_jiffies(HVDCP_RECOVERY_MS));
 #endif
-#ifdef CONFIG_LGE_PM
-	} else if (is_usb_present(chip)) {
-		if (!chip->typec_psy)
-			chip->typec_psy = power_supply_get_by_name("usb_pd");
-		if (chip->typec_psy) {
-			union power_supply_propval prop = {0, };
-			get_property_from_typec(chip, POWER_SUPPLY_PROP_TYPE, &prop);
-			if (prop.intval != POWER_SUPPLY_TYPE_TYPEC){
-				//smbchg_evp_det_start(chip, true);
-				power_supply_changed(chip->batt_psy); // dummy line
-				}
-		} else {
-		//smbchg_evp_det_start(chip, true);
-		power_supply_changed(chip->batt_psy); // dummy line
-		}
 	}
-#endif
 	
 	smbchg_relax(chip, PM_DETECT_HVDCP);
 
