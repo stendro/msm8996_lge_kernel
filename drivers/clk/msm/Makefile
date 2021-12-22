@@ -1,5 +1,3 @@
-subdir-ccflags-y := -DDEBUG
-
 obj-$(CONFIG_COMMON_CLK_MSM)	+= clock.o
 obj-$(CONFIG_COMMON_CLK_MSM)	+= clock-dummy.o
 obj-$(CONFIG_COMMON_CLK_MSM)	+= clock-generic.o
