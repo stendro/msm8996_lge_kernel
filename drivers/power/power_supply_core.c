@@ -119,7 +119,13 @@ void power_supply_changed(struct power_supply *psy)
 	psy->changed = true;
 	pm_stay_awake(&psy->dev);
 	spin_unlock_irqrestore(&psy->changed_lock, flags);
+#ifdef CONFIG_LGE_USB_ANX7688
+	queue_delayed_work(system_power_efficient_wq,
+			   &psy->deferred_register_work,
+			   msecs_to_jiffies(25));
+#else
 	schedule_work(&psy->changed_work);
+#endif
 }
 EXPORT_SYMBOL_GPL(power_supply_changed);
 
