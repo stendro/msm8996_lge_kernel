@@ -1,4 +1,5 @@
 # generic gpio support: platform drivers, dedicated expander chips, etc
+subdir-ccflags-y := -DDEBUG
 
 ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
 

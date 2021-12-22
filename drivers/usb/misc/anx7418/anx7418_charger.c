@@ -2,6 +2,7 @@
 #include <linux/of_gpio.h>
 #include <linux/delay.h>
 #include <linux/regulator/consumer.h>
+#include <linux/slab.h>
 
 #include "anx7418.h"
 #include "anx7418_charger.h"
@@ -77,7 +78,7 @@ static int chg_get_property(struct power_supply *psy,
 		val->intval = (rc == 0x11) ?
 			POWER_SUPPLY_TYPEC_SINK_DEBUG_ACCESSORY :
 			POWER_SUPPLY_TYPE_UNKNOWN;
-		break;
+		break;	
 
 	default:
 		return -EINVAL;
@@ -272,6 +273,8 @@ static void chg_work(struct work_struct *w)
 		//			POWER_SUPPLY_TYPE_USB_PD);
 		break;
 	default: // unknown charger
+		usbprop.intval = POWER_SUPPLY_TYPE_USB; // enum POWER_SUPPLY_TYPE_USB = 4
+		chg->psy.desc->type = usbprop.intval;
 		goto out;
 	}
 
@@ -289,7 +292,7 @@ int anx7418_charger_init(struct anx7418 *anx)
 {
 	struct anx7418_charger *chg = &anx->chg;
 	struct device *cdev = &anx->client->dev;
-	struct power_supply *usb_psy, *test_psy;
+	struct power_supply *usb_psy;
 	union power_supply_propval usbprop;
 	//int rc;
 	usbprop.intval = 0;
@@ -300,7 +303,7 @@ int anx7418_charger_init(struct anx7418 *anx)
 				GFP_KERNEL);
 
 	usb_psy->desc->name = "usb_pd";
-	usb_psy->desc->type = POWER_SUPPLY_TYPE_TYPEC;
+	usb_psy->desc->type = POWER_SUPPLY_TYPE_UNKNOWN;
 	usb_psy->desc->get_property = chg_get_property;
 	usb_psy->desc->set_property = chg_set_property;
 	usb_psy->desc->property_is_writeable = chg_is_writeable;
@@ -309,21 +312,18 @@ int anx7418_charger_init(struct anx7418 *anx)
 	usb_psy->supplied_to = chg_supplicants;
 	usb_psy->num_supplicants = ARRAY_SIZE(chg_supplicants);
 	chg->psy = *usb_psy;
+	kfree(usb_psy);
 
 	chg->anx = anx;
 	INIT_DELAYED_WORK(&chg->chg_work, chg_work);
 
 	//rc = 
-	chg->psy = *power_supply_register(cdev, chg->psy.desc, NULL);
-	test_psy = &chg->psy;
-	if (!test_psy) {
+	chg->psy = *devm_power_supply_register(cdev, chg->psy.desc, NULL);
+	if (chg->psy.desc->name == NULL) {
 		dev_err(cdev, "Unalbe to register ctype_psy");
 		return -EPROBE_DEFER;
 	}
-
-	//power_supply_set_supply_type(&chg->psy, POWER_SUPPLY_TYPE_UNKNOWN);
-	usbprop.intval = POWER_SUPPLY_TYPE_UNKNOWN;
-	chg->psy.desc->type = usbprop.intval;
+	
 	dev_info(cdev, "Charger init done, configured and registered.");
 	return 0;
 }

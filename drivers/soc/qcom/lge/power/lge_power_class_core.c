@@ -86,24 +86,24 @@ __power_supply_is_supplied_by_for_lge_power(struct lge_power *supplier,
 {
 	int i;
 
-	if (!supply->lge_power_supplied_from && !supplier->supplied_to)
+	if (!supply->supplied_from && !supplier->lge_psy_supplied_to)
 		return false;
 
 	/* Support both supplied_to and supplied_from modes */
-	if (supply->lge_power_supplied_from) {
+	if (supply->supplied_from) {
 		if (!supplier->name)
 			return false;
-		for (i = 0; i < supply->num_lge_power_supplies; i++)
+		for (i = 0; i < supply->num_supplies; i++)
 			if (!strcmp(supplier->name,
-				supply->lge_power_supplied_from[i]))
+				supply->supplied_from[i]))
 				return true;
 	}
 
-	if (supplier->supplied_to) {
-		if (!supply->name)
+	if (supplier->lge_psy_supplied_to) {
+		if (!supply->desc->name)
 			return false;
 		for (i = 0; i < supplier->num_supplicants; i++)
-			if (!strcmp(supplier->supplied_to[i], supply->name))
+			if (!strcmp(supplier->lge_psy_supplied_to[i], supply->desc->name))
 				return true;
 	}
 
@@ -117,25 +117,25 @@ __power_supply_is_supplied_by_for_lge_power_psy(struct lge_power *supplier,
 {
 	int i;
 
-	if (!supply->lge_psy_power_supplied_from &&
+	if (!supply->supplied_from &&
 			!supplier->lge_psy_supplied_to)
 		return false;
 
 	/* Support both supplied_to and supplied_from modes */
-	if (supply->lge_psy_power_supplied_from) {
+	if (supply->supplied_from) {
 		if (!supplier->name)
 			return false;
-		for (i = 0; i < supply->num_lge_psy_power_supplies; i++)
+		for (i = 0; i < supply->num_supplies; i++)
 			if (!strcmp(supplier->name,
-				supply->lge_psy_power_supplied_from[i]))
+				supply->supplied_from[i]))
 				return true;
 	}
 
 	if (supplier->lge_psy_supplied_to) {
-		if (!supply->name)
+		if (!supply->desc->name)
 			return false;
 		for (i = 0; i < supplier->num_lge_psy_supplicants; i++)
-			if (!strcmp(supplier->lge_psy_supplied_to[i], supply->name))
+			if (!strcmp(supplier->lge_psy_supplied_to[i], supply->desc->name))
 				return true;
 	}
 
@@ -149,13 +149,13 @@ __lge_power_changed_for_power_supply_work(struct device *dev, void *data)
 	struct power_supply *pst = dev_get_drvdata(dev);
 
 	if (__power_supply_is_supplied_by_for_lge_power(psy, pst)) {
-		if (pst->external_lge_power_changed)
-			pst->external_lge_power_changed(pst);
+		if (pst->desc->external_power_changed)
+			pst->desc->external_power_changed(pst);
 	}
 
 	if (__power_supply_is_supplied_by_for_lge_power_psy(psy, pst)) {
-		if (pst->external_power_changed)
-			pst->external_power_changed(pst);
+		if (pst->desc->external_power_changed)
+			pst->desc->external_power_changed(pst);
 	}
 
 	return 0;

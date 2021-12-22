@@ -137,3 +137,7 @@ CONFIG_USB_MON=y
 CONFIG_NOP_USB_XCEIV=y
 CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE=1
 CONFIG_INTEGRITY=n
+
+# Enable debugging
+CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
+CONFIG_CMDLINE_EXTEND=y

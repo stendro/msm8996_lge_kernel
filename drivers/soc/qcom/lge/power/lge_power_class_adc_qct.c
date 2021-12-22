@@ -146,7 +146,7 @@ static int lge_power_adc_get_property(struct lge_power *lpc,
 
 	case LGE_POWER_PROP_BATT_THERM_PHY:
 #ifdef CONFIG_ARCH_MSM8996
-	rc = lge_adc_chip->bms_psy->get_property(lge_adc_chip->bms_psy,
+	rc = lge_adc_chip->bms_psy->desc->get_property(lge_adc_chip->bms_psy,
 			POWER_SUPPLY_PROP_TEMP, &prop);
 	val->int64val = prop.intval;
 #else
@@ -161,7 +161,7 @@ static int lge_power_adc_get_property(struct lge_power *lpc,
 					pr_err("Failed to get bms property\n");
 					rc = -1;
 				} else {
-					rc = lge_adc_chip->bms_psy->get_property(lge_adc_chip->bms_psy,
+					rc = lge_adc_chip->bms_psy->desc->get_property(lge_adc_chip->bms_psy,
 						POWER_SUPPLY_PROP_TEMP, &prop);
 					if (rc) {
 						pr_err("Failed to get temp from property\n");
@@ -185,7 +185,7 @@ static int lge_power_adc_get_property(struct lge_power *lpc,
 
 	case LGE_POWER_PROP_BATT_THERM_RAW:
 #ifdef CONFIG_ARCH_MSM8996
-	rc = lge_adc_chip->bms_psy->get_property(lge_adc_chip->bms_psy,
+	rc = lge_adc_chip->bms_psy->desc->get_property(lge_adc_chip->bms_psy,
 			POWER_SUPPLY_PROP_TEMP, &prop);
 	val->intval = prop.intval;
 #else
@@ -201,7 +201,7 @@ static int lge_power_adc_get_property(struct lge_power *lpc,
 					pr_err("Failed to get bms property\n");
 					rc = -1;
 				} else {
-					rc = lge_adc_chip->bms_psy->get_property(lge_adc_chip->bms_psy,
+					rc = lge_adc_chip->bms_psy->desc->get_property(lge_adc_chip->bms_psy,
 						POWER_SUPPLY_PROP_TEMP, &prop);
 					if (rc) {
 						pr_err("Failed to get temp from property\n");
@@ -578,7 +578,7 @@ static int lge_adc_qct_probe(struct platform_device *pdev)
 				&lge_adc_chip->bd2_therm_channel);
 
 #ifdef CONFIG_ARCH_MSM8996
-	ret = lge_adc_chip->bms_psy->get_property(lge_adc_chip->bms_psy,
+	ret = lge_adc_chip->bms_psy->desc->get_property(lge_adc_chip->bms_psy,
 			POWER_SUPPLY_PROP_TEMP, &prop);
 	lge_adc_chip->batt_therm_channel = prop.intval;
 #else

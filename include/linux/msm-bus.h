@@ -87,7 +87,7 @@ struct msm_bus_client_handle {
  * The function returns 0 if bus driver is unable to register a client
  */
 
-#if (defined(CONFIG_QCOM_BUS_SCALING) || defined(CONFIG_QCOM_BUS_TOPOLOGY_ADHOC))
+#ifdef CONFIG_QCOM_BUS_SCALING
 int __init msm_bus_fabric_init_driver(void);
 uint32_t msm_bus_scale_register_client(struct msm_bus_scale_pdata *pdata);
 int msm_bus_scale_client_update_request(uint32_t cl, unsigned int index);
@@ -102,10 +102,6 @@ void msm_bus_scale_unregister(struct msm_bus_client_handle *cl);
 int msm_bus_scale_update_bw(struct msm_bus_client_handle *cl, u64 ab, u64 ib);
 int msm_bus_scale_update_bw_context(struct msm_bus_client_handle *cl,
 		u64 act_ab, u64 act_ib, u64 slp_ib, u64 slp_ab);
-/* AXI Port configuration APIs */
-int msm_bus_axi_porthalt(int master_port);
-int msm_bus_axi_portunhalt(int master_port);
-
 #else
 static inline int __init msm_bus_fabric_init_driver(void) { return 0; }
 static struct msm_bus_client_handle dummy_cl;
@@ -134,16 +130,6 @@ msm_bus_scale_unregister_client(uint32_t cl)
 {
 }
 
-static inline int msm_bus_axi_porthalt(int master_port)
-{
-	return 0;
-}
-
-static inline int msm_bus_axi_portunhalt(int master_port)
-{
-	return 0;
-}
-
 static inline struct msm_bus_client_handle*
 msm_bus_scale_register(uint32_t mas, uint32_t slv, char *name,
 							bool active_only)
@@ -168,8 +154,7 @@ msm_bus_scale_update_bw_context(struct msm_bus_client_handle *cl, u64 act_ab,
 {
 	return 0;
 }
-
-#endif
+#endif /* CONFIG_QCOM_BUS_SCALING */
 
 #if defined(CONFIG_OF) && defined(CONFIG_QCOM_BUS_SCALING)
 struct msm_bus_scale_pdata *msm_bus_pdata_from_node(

@@ -361,7 +361,7 @@ static int lgcc_set_iusb_control(const char *val,
 	pr_info("set lgcc_iusb_control to %d\n", lgcc_iusb_control);
 
 	pval.intval = lgcc_iusb_control;
-	the_cc->batt_psy->set_property(the_cc->batt_psy,
+	the_cc->batt_psy->desc->set_property(the_cc->batt_psy,
 			POWER_SUPPLY_PROP_CHARGING_ENABLED, &pval);
 
 	return 0;
@@ -636,7 +636,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 		return;
 	}
 
-	cc->batt_psy->get_property(cc->batt_psy,
+	cc->batt_psy->desc->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_TEMP, &ret);
 	if (cc->test_chg_scenario == 1)
 		req.batt_temp = cc->test_batt_therm_value;
@@ -644,18 +644,18 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 		req.batt_temp = ret.intval;
 	cc->batt_temp = req.batt_temp;
 
-	cc->batt_psy->get_property(cc->batt_psy,
+	cc->batt_psy->desc->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_VOLTAGE_NOW, &ret);
 	req.batt_volt = ret.intval;
 
-	cc->batt_psy->get_property(cc->batt_psy,
+	cc->batt_psy->desc->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret);
 	req.max_chg_volt = ret.intval;
 
-	cc->batt_psy->get_property(cc->batt_psy,
+	cc->batt_psy->desc->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_CURRENT_NOW, &ret);
 	req.current_now = ret.intval / 1000;
-	cc->usb_psy->get_property(
+	cc->usb_psy->desc->get_property(
 			cc->usb_psy, POWER_SUPPLY_PROP_CURRENT_MAX, &ret);
 	cc->chg_current_max = ret.intval / 1000;
 	req.chg_current_ma = cc->chg_current_max;
@@ -666,7 +666,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 		req.chg_current_te = cc->chg_current_max;
 
 	pr_debug("chg_curren_te = %d\n", cc->chg_current_te);
-	cc->usb_psy->get_property(cc->usb_psy,
+	cc->usb_psy->desc->get_property(cc->usb_psy,
 			POWER_SUPPLY_PROP_PRESENT, &ret);
 	req.is_charger = ret.intval;
 
@@ -679,10 +679,12 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 	}
 }
 #endif
+#if defined(CONFIG_LGE_PM_CHARGING_SCENARIO) || defined(CONFIG_LGE_PM_CHARGING_SCENARIO_V18)
 	lge_monitor_batt_temp(req, &res);
+#endif
 
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
-	cc->batt_psy->get_property(cc->batt_psy,
+	cc->batt_psy->desc->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_CAPACITY, &ret);
 	if (ret.intval == 100)
 		cc->charger_eoc = 1;
@@ -708,7 +710,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 #ifndef CONFIG_LGE_PM_CHARGING_SCENARIO_V18
 			//Float Voltage Change.
 			ret.intval = res.float_voltage;
-			cc->batt_psy->set_property(cc->batt_psy,
+			cc->batt_psy->desc->set_property(cc->batt_psy,
 				POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret);
 #endif
 			//Charge Current Change
@@ -763,7 +765,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 #ifndef CONFIG_LGE_PM_CHARGING_SCENARIO_V18
 			//Float Voltage Restore.
 			ret.intval = res.float_voltage;
-			if (!cc->batt_psy->set_property(cc->batt_psy,
+			if (!cc->batt_psy->desc->set_property(cc->batt_psy,
 				POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret)) {
 
 				ret.intval = 0;
@@ -836,7 +838,7 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 	}
 #endif
 
-	cc->batt_psy->get_property(cc->batt_psy,
+	cc->batt_psy->desc->get_property(cc->batt_psy,
 			POWER_SUPPLY_PROP_CAPACITY, &ret);
 #ifndef CONFIG_LGE_PM_LGE_POWER_CLASS_CHARGER_SLEEP
 	pr_debug("cap : %d, hvdcp : %d, usb : %d\n",
@@ -1102,7 +1104,7 @@ static void lge_hvdcp_set_ibat_work(struct work_struct *work){
 	if (!cc->batt_psy)
 		cc->batt_psy = power_supply_get_by_name("battery");
 	if (cc->batt_psy) {
-		rc = cc->batt_psy->get_property(cc->batt_psy,
+		rc = cc->batt_psy->desc->get_property(cc->batt_psy,
 				POWER_SUPPLY_PROP_CHARGE_TYPE, &pval);
 		if (pval.intval == POWER_SUPPLY_CHARGE_TYPE_TAPER)
 			taper_charging = true;
@@ -1220,7 +1222,7 @@ static void lge_cc_external_lge_power_changed(struct lge_power *lpc) {
 						value.intval = 0;
 					}
 				} else {
-					cc->batt_psy->get_property(cc->batt_psy,
+					cc->batt_psy->desc->get_property(cc->batt_psy,
 							POWER_SUPPLY_PROP_CAPACITY, &value);
 				}
 				lg_cc_stop_battemp_alarm(cc);

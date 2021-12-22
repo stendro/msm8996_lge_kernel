@@ -916,13 +916,13 @@ static int __init msm_bus_debugfs_init(void)
 	if (debugfs_create_file("update-request", S_IRUGO | S_IWUSR,
 		clients, NULL, &msm_bus_dbg_update_request_fops) == NULL)
 		goto err;
-
+		
 	rules_buf = kzalloc(MAX_BUFF_SIZE, GFP_KERNEL);
 	if (!rules_buf) {
 		MSM_BUS_ERR("Failed to alloc rules_buf");
 		goto err;
 	}
-
+	pr_info("Creating client files...\n");
 	rt_mutex_lock(&msm_bus_dbg_cllist_lock);
 	list_for_each_entry(cldata, &cl_list, list) {
 		if (cldata->pdata) {
@@ -937,18 +937,20 @@ static int __init msm_bus_debugfs_init(void)
 				MSM_BUS_DBG("Client doesn't have a name\n");
 				continue;
 			}
+			pr_info("Creating client file for %s", cldata->handle->name);
 			cldata->file = debugfs_create_file(cldata->handle->name,
 							S_IRUGO, clients,
 							(void *)cldata->handle,
 							&client_data_fops);
 		}
 	}
+	pr_info("Created client files.\n");
 	rt_mutex_unlock(&msm_bus_dbg_cllist_lock);
 
 	if (debugfs_create_file("dump_clients", S_IRUGO | S_IWUSR,
 		clients, NULL, &msm_bus_dbg_dump_clients_fops) == NULL)
 		goto err;
-
+		
 	mutex_lock(&msm_bus_dbg_fablist_lock);
 	list_for_each_entry(fablist, &fabdata_list, list) {
 		fablist->file = debugfs_create_file(fablist->name, S_IRUGO,
