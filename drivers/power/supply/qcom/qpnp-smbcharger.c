@@ -44,7 +44,9 @@
 #include <linux/extcon.h>
 #include <linux/pmic-voter.h>
 #ifdef CONFIG_LGE_PM
+#include <linux/wakelock.h>
 #include <soc/qcom/lge/board_lge.h>
+#define LGE_PM_DIS_AICL_IRQ_WAKE
 #endif
 
 /* Mask/Bit helpers */
@@ -7212,6 +7214,18 @@ static irqreturn_t chg_term_handler(int irq, void *_chip)
 	 */
 	set_property_on_fg(chip, POWER_SUPPLY_PROP_CHARGE_DONE, 1);
 
+#ifdef LGE_PM_DIS_AICL_IRQ_WAKE
+	if (chip->psy_registered) {
+		if (chip->enable_aicl_wake) {
+			pr_smb(PR_LGE, "disable aicl_done_irq\n");
+			disable_irq_wake(chip->aicl_done_irq);
+			chip->enable_aicl_wake = false;
+		}
+	} else {
+		pr_smb(PR_LGE, "smbchg irqs are not registered\n");
+	}
+#endif
+
 	smbchg_parallel_usb_check_ok(chip);
 	if (chip->batt_psy)
 		power_supply_changed(chip->batt_psy);
@@ -7243,6 +7257,17 @@ static irqreturn_t recharge_handler(int irq, void *_chip)
 
 	smbchg_read(chip, &reg, chip->chgr_base + RT_STS, 1);
 	pr_smb(PR_INTERRUPT, "triggered: 0x%02x\n", reg);
+#ifdef LGE_PM_DIS_AICL_IRQ_WAKE
+	if (chip->psy_registered) {
+		if (!chip->enable_aicl_wake) {
+			pr_smb(PR_LGE, "enable aicl_done_irq\n");
+			enable_irq_wake(chip->aicl_done_irq);
+			chip->enable_aicl_wake = true;
+		}
+	} else {
+		pr_smb(PR_LGE, "smbchg irqs are not registered\n");
+	}
+#endif
 	smbchg_parallel_usb_check_ok(chip);
 	if (chip->batt_psy)
 		power_supply_changed(chip->batt_psy);
