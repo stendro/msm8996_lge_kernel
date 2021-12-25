@@ -5465,6 +5465,8 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 	int rc;
 	char *usb_type_name = "null";
 
+	panic("We will get logs, one way or another");
+	return;
 	pr_smb(PR_STATUS, "triggered\n");
 	/* usb inserted */
 	read_usb_type(chip, &usb_type_name, &usb_supply_type);
@@ -7215,7 +7217,7 @@ static irqreturn_t chg_term_handler(int irq, void *_chip)
 	set_property_on_fg(chip, POWER_SUPPLY_PROP_CHARGE_DONE, 1);
 
 #ifdef LGE_PM_DIS_AICL_IRQ_WAKE
-	if (chip->psy_registered) {
+	if (chip->batt_psy) {
 		if (chip->enable_aicl_wake) {
 			pr_smb(PR_LGE, "disable aicl_done_irq\n");
 			disable_irq_wake(chip->aicl_done_irq);
@@ -7258,7 +7260,7 @@ static irqreturn_t recharge_handler(int irq, void *_chip)
 	smbchg_read(chip, &reg, chip->chgr_base + RT_STS, 1);
 	pr_smb(PR_INTERRUPT, "triggered: 0x%02x\n", reg);
 #ifdef LGE_PM_DIS_AICL_IRQ_WAKE
-	if (chip->psy_registered) {
+	if (chip->batt_psy) {
 		if (!chip->enable_aicl_wake) {
 			pr_smb(PR_LGE, "enable aicl_done_irq\n");
 			enable_irq_wake(chip->aicl_done_irq);
