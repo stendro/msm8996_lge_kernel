@@ -24,12 +24,9 @@
 #include <linux/power_supply.h>
 
 #include <soc/qcom/lge/lge_charging_scenario.h>
-#include <soc/qcom/lge/lge_cable_detection.h>
-
 #ifdef CONFIG_LGE_PM_PSEUDO_BATTERY
 #include <soc/qcom/lge/lge_pseudo_batt.h>
 #endif
-
 #ifdef CONFIG_LGE_PM_BATTERY_ID_CHECKER
 #include <linux/power/lge_battery_id.h>
 #endif
@@ -42,15 +39,6 @@
 #define MONITOR_USB_CURRENT_MODE_CHECK_PERIOD  (90 * HZ)
 #endif
 
-#ifdef CONFIG_LGE_PM_LLK_MODE
-#ifdef CONFIG_MACH_MSM8996_H1_VZW
-#define LLK_MAX_THR_SOC 35
-#define LLK_MIN_THR_SOC 30
-#else
-#define LLK_MAX_THR_SOC 50
-#define LLK_MIN_THR_SOC 45
-#endif
-#endif
 #ifdef CONFIG_LGE_PM_VZW_REQ
 #define VZW_SLOW_CHG_CURRENT_MIN 500
 #define VZW_SLOW_CHG_RESET_COUNT 5
@@ -153,14 +141,7 @@ struct lge_charging_controller{
 	int is_slow_charger;
 	int slow_chg_reset_cnt;
 	struct work_struct set_vzw_chg_work;
-#endif
-#if defined(CONFIG_LGE_PM_VZW_REQ) || defined(CONFIG_LGE_PM_LLK_MODE)
 	int usb_present;
-#endif
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	int store_demo_enabled;
-	int llk_charging_status;
-	int llk_iusb_status;
 #endif
 	int tdmb_mode_on;
 };
@@ -179,28 +160,11 @@ enum fcc_voters {
 	NUM_FCC_VOTER,
 };
 
-#ifdef CONFIG_LGE_PM_LLK_MODE
-enum enable_voters {
-	USER_EN_VOTER,
-	POWER_SUPPLY_EN_VOTER,
-	USB_EN_VOTER,
-	WIRELESS_EN_VOTER,
-	THERMAL_EN_VOTER,
-	OTG_EN_VOTER,
-	WEAK_CHARGER_EN_VOTER,
-	FAKE_BATTERY_EN_VOTER,
-	NUM_EN_VOTERS,
-};
-#endif
-
 enum battchg_enable_voters {
 	/* userspace has disabled battery charging */
 	BATTCHG_USER_EN_VOTER,
 	/* battery charging disabled while loading battery profiles */
 	BATTCHG_UNKNOWN_BATTERY_EN_VOTER,
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	BATTCHG_LLK_MODE_EN_VOTER,
-#endif
 	NUM_BATTCHG_EN_VOTERS,
 };
 
@@ -327,100 +291,8 @@ static void lgcc_set_vzw_chg_work(struct work_struct *work)
 			controller->vzw_chg_mode = VZW_NORMAL_CHARGING;
 			pr_info("normal charger is detected\n");
 		}
-#ifdef CONFIG_LGE_PM_LLK_MODE
-		if (controller->store_demo_enabled) {
-			pr_err("llk_iusb_status = %d, llk_charging_status = %d\n",
-					controller->llk_iusb_status,
-					controller->llk_charging_status);
-			if (!controller->llk_charging_status) {
-				controller->vzw_chg_mode = VZW_LLK_NOT_CHARGING;
-				pr_info("charging stopped in llk mode\n");
-			} else {
-				controller->vzw_chg_mode = VZW_NORMAL_CHARGING;
-				pr_info("normal charger is detected\n");
-			}
-		}
-#endif
 	}
 	power_supply_changed(&controller->lgcc_psy);
-}
-#endif
-
-#ifdef CONFIG_LGE_PM_LLK_MODE
-static bool lgcc_check_llk_mode(int usb_present)
-{
-	int capacity = 0;
-	int battery_charging_enabled;
-	int iusb_enabled;
-	struct power_supply     *bms_psy;
-	union power_supply_propval pval = {0, };
-	int rc = 0;
-
-	bms_psy = power_supply_get_by_name("bms");
-
-	if (!bms_psy) {
-		pr_err("bms psy is not initialized\n");
-		return false;
-	}
-
-	bms_psy->get_property(bms_psy,
-			POWER_SUPPLY_PROP_FIRST_SOC_EST_DONE, &pval);
-	if (pval.intval == false) {
-		pr_err("first soc is not estimated\n");
-		return false;
-	}
-
-	rc = the_controller->batt_psy->get_property(the_controller->batt_psy,
-			POWER_SUPPLY_PROP_CAPACITY, &pval);
-	capacity = pval.intval;
-
-	rc = the_controller->batt_psy->get_property(the_controller->batt_psy,
-			POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED, &pval);
-	battery_charging_enabled = pval.intval;
-
-	rc = the_controller->batt_psy->get_property(the_controller->batt_psy,
-			POWER_SUPPLY_PROP_CHARGING_ENABLED, &pval);
-	iusb_enabled = pval.intval;
-
-	if (usb_present) {
-		if (capacity > LLK_MAX_THR_SOC) {
-			if (iusb_enabled == true) {
-				lgcc_set_iusb_enable(0, USER_EN_VOTER);
-				pr_info("disable iusb by LLK mode. soc[%d]\n", capacity);
-				the_controller->llk_iusb_status = false;
-			}
-		} else {
-			if (iusb_enabled == false) {
-				lgcc_set_iusb_enable(1, USER_EN_VOTER);
-				pr_info("enable iusb by LLK mode. soc[%d]\n", capacity);
-			}
-			the_controller->llk_iusb_status = true;
-		}
-
-		if (capacity >= LLK_MAX_THR_SOC) {
-			if (battery_charging_enabled == true) {
-				lgcc_set_charging_enable(0, BATTCHG_LLK_MODE_EN_VOTER);
-				pr_info("stop charging by LLK mode. soc[%d]\n", capacity);
-			}
-			the_controller->llk_charging_status = false;
-		} else if ((capacity >= LLK_MIN_THR_SOC) &&
-				(capacity <= LLK_MAX_THR_SOC)) {
-			if (battery_charging_enabled == false)
-				the_controller->llk_charging_status = false;
-			else {
-				lgcc_set_charging_enable(0, BATTCHG_LLK_MODE_EN_VOTER);
-				pr_info("stop charging by LLK mode. soc[%d]\n", capacity);
-				the_controller->llk_charging_status = true;
-			}
-		} else if (capacity < LLK_MIN_THR_SOC) {
-			if (battery_charging_enabled == false) {
-				lgcc_set_charging_enable(1, BATTCHG_LLK_MODE_EN_VOTER);
-				pr_info("resume charging by LLK mode. soc[%d]\n", capacity);
-			}
-			the_controller->llk_charging_status = true;
-		}
-	}
-	return true;
 }
 #endif
 
@@ -434,9 +306,6 @@ static enum power_supply_property lgcc_cc_properties[] = {
 #endif
 #ifdef CONFIG_LGE_PM_VZW_REQ
 	POWER_SUPPLY_PROP_VZW_CHG,
-#endif
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	POWER_SUPPLY_PROP_STORE_DEMO_ENABLED,
 #endif
 #ifdef CONFIG_LGE_PM_PSEUDO_BATTERY
 	POWER_SUPPLY_PROP_PSEUDO_BATT,
@@ -462,11 +331,6 @@ static int lgcc_get_property(struct power_supply *psy,
 #ifdef CONFIG_LGE_PM_VZW_REQ
 	case POWER_SUPPLY_PROP_VZW_CHG:
 		val->intval = controller->vzw_chg_mode;
-		break;
-#endif
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	case POWER_SUPPLY_PROP_STORE_DEMO_ENABLED:
-		val->intval = controller->store_demo_enabled;
 		break;
 #endif
 #ifdef CONFIG_LGE_PM_PSEUDO_BATTERY
@@ -501,12 +365,6 @@ static int lgcc_set_property(struct power_supply *psy,
 		pr_err("usb_current_max_mode = %d\n", controller->usb_current_max_mode);
 		break;
 #endif
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	case POWER_SUPPLY_PROP_STORE_DEMO_ENABLED:
-		controller->store_demo_enabled = val->intval;
-		pr_info("llk mode is set to [%d]\n", controller->store_demo_enabled);
-		break;
-#endif
 	case POWER_SUPPLY_PROP_TDMB_MODE_ON:
 		controller->tdmb_mode_on = val->intval;
 		pr_info("tdmb mode is set to [%d]\n", controller->tdmb_mode_on);
@@ -535,11 +393,6 @@ static int lgcc_property_is_writerable(struct power_supply *psy,
 	switch(prop) {
 #ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
 	case POWER_SUPPLY_PROP_USB_CURRENT_MAX_MODE:
-		rc = 1;
-		break;
-#endif
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	case POWER_SUPPLY_PROP_STORE_DEMO_ENABLED:
 		rc = 1;
 		break;
 #endif
@@ -612,9 +465,6 @@ static void lgcc_external_power_changed(struct power_supply *psy)
 		else {
 			controller->is_floated_charger = false;
 			controller->is_slow_charger = false;
-#ifdef CONFIG_LGE_PM_LLK_MODE
-			controller->llk_charging_status = false;
-#endif
 		}
 		is_need_to_update = true;
 	}
@@ -626,10 +476,6 @@ static void lgcc_external_power_changed(struct power_supply *psy)
 		controller->is_floated_charger = is_floated_charger;
 		is_need_to_update = true;
 	}
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	if (controller->store_demo_enabled)
-		is_need_to_update = lgcc_check_llk_mode(usb_present);
-#endif
 
 	if (is_need_to_update) {
 		pr_info("vzw_chg_mode[%d] aicl_ma[%d] present[%d]\n",
@@ -637,23 +483,6 @@ static void lgcc_external_power_changed(struct power_supply *psy)
 		if (!work_pending(&controller->set_vzw_chg_work))
 				schedule_work(&controller->set_vzw_chg_work);
 	}
-#else
-#ifdef CONFIG_LGE_PM_LLK_MODE
-	if (controller->usb_present != usb_present) {
-		controller->usb_present = usb_present;
-		if (!controller->usb_present) {
-			controller->llk_charging_status = false;
-			controller->llk_iusb_status = false;
-		}
-	}
-
-	if (controller->store_demo_enabled) {
-		pr_err("lgcc_check_llk_mode iusb : %d, charging : %d\n",
-				controller->llk_iusb_status,
-				controller->llk_charging_status);
-		lgcc_check_llk_mode(usb_present);
-	}
-#endif
 #endif
 	return;
 }
@@ -668,7 +497,7 @@ static void usb_current_max_check_work(struct work_struct *work)
 	the_controller->usb_psy->get_property(the_controller->usb_psy,
 			POWER_SUPPLY_PROP_APSD_RERUN_NEED, &pval);
 
-	if (lge_is_factory_cable() || pval.intval == 1) {
+	if (/*lge_is_factory_cable() ||*/ pval.intval == 1) {
 		pr_err("%s : skip current_max_check work\n", __func__);
 		return;
 	}
@@ -1206,7 +1035,7 @@ void start_lgcc_work(int mdelay){
 		(delay * HZ));
 
 #ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
-	if (!lge_is_factory_cable())
+//	if (!lge_is_factory_cable())
 		schedule_delayed_work(&the_controller->usb_current_max_work,
 				(delay * HZ));
 #endif
@@ -1226,7 +1055,7 @@ void stop_lgcc_work(void) {
 	pr_err("stop_step_charging_work~!!\n");
 	cancel_delayed_work(&the_controller->step_charging_work);
 #ifdef CONFIG_LGE_PM_USB_CURRENT_MAX_MODE
-	if (!lge_is_factory_cable())
+//	if (!lge_is_factory_cable())
 		cancel_delayed_work(&the_controller->usb_current_max_work);
 #endif
 #ifdef CONFIG_LGE_PM_VZW_REQ

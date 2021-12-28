@@ -47,13 +47,6 @@ config LGE_PM_ADC_INTEL
 	help
 	  Say Y here enable support lge adc for INTEL
 
-config LGE_PM_CHARGING_LPC_BQ24296
-	tristate "BQ24296 driver for LG Power Class"
-	depends on LGE_PM_LGE_POWER_CORE
-	default n
-	help
-	  Say Y here enable support bq24296 driver for LG Power Class
-
 config LGE_PM_LGE_POWER_CLASS_CHARGING_CONTROLLER
 	tristate "LGE charging controller driver for LG Power Class"
 	depends on LGE_PM_LGE_POWER_CORE

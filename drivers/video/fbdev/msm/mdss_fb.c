@@ -58,7 +58,6 @@
 
 #ifdef CONFIG_MACH_LGE
 #include <soc/qcom/lge/board_lge.h>
-#include <soc/qcom/lge/lge_cable_detection.h>
 #endif
 #ifdef CONFIG_LGE_PM_THERMAL_VTS
 #include <linux/virtual_temp_sensor.h>
