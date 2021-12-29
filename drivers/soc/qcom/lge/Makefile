@@ -1,5 +1,3 @@
-subdir-ccflags-y := -DDEBUG
-
 obj-$(CONFIG_MACH_LGE) += devices_lge.o
 obj-$(CONFIG_LGE_BOOTLOADER_LOG) += lge_bootloader_log.o
 #obj-$(CONFIG_LGE_PM_CHARGING_CONTROLLER) += lge_charging_controller.o
