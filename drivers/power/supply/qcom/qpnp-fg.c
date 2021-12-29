@@ -88,13 +88,13 @@
 #ifdef CONFIG_LGE_PM
 #define CONFIG_LGE_PM_BATT_PROFILE
 //#define CONFIG_LGE_PM_BATT_PROFILE_DEBUG
-//#ifdef CONFIG_LGE_PM_BATT_PROFILE
+#ifdef CONFIG_LGE_PM_BATT_PROFILE
 #define BATTERY_SOC_100 10000
 #define BATTERY_SOC_Y1 9700 //real battery SOC level
 #define BATTERY_SOC_Y2 500  //real battery SOC level
 #define BATTERY_SOC_X1 9600 //modified battery SOC level
 #define BATTERY_SOC_X2 700  //modified battery SOC level
-//#endif
+#endif
 //#ifdef CONFIG_LGE_PM_BATT_PROFILE_DEBUG
 int batt_soc_original =0; //for battery log
 int batt_soc_modify =0; // for battery log
@@ -583,7 +583,13 @@ struct fg_chip {
 	bool			first_profile_loaded;
 #ifdef CONFIG_LGE_PM
 	struct fg_wakeup_source	lge_debug_wakeup_source;
+#ifdef CONFIG_LGE_PM_BATT_PROFILE
+	int			batt_profile_enabled;
+#endif
 	int			lge_rid_disable;
+#ifdef CONFIG_LGE_PM_BATT_PROFILE_DEBUG
+	struct delayed_work	soc_level_log;
+#endif
 #endif
 	struct fg_wakeup_source	update_temp_wakeup_source;
 	struct fg_wakeup_source	update_sram_wakeup_source;
@@ -712,6 +718,11 @@ struct fg_chip {
 	bool			batt_info_restore;
 	bool			*batt_range_ocv;
 	int			*batt_range_pct;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+	bool check_ima_err_handling;
+	struct delayed_work	guarantee_soc_interval_work;
+	int vint_err_pct;
+#endif
 };
 
 /* FG_MEMIF DEBUGFS structures */
@@ -7445,11 +7456,11 @@ static int fg_of_init(struct fg_chip *chip)
 	chip->cyc_ctr.en = of_property_read_bool(node,
 				"qcom,cycle-counter-en");
 #ifdef CONFIG_LGE_PM
-//#ifdef CONFIG_LGE_PM_BATT_PROFILE
-//	chip->batt_profile_enabled = of_property_read_bool(node,
-//							   "qcom,lge_batt_profile");
-//	pr_info("batt_profile_enabled : %d\n", chip->batt_profile_enabled);
-//#endif
+#ifdef CONFIG_LGE_PM_BATT_PROFILE
+	chip->batt_profile_enabled = of_property_read_bool(node,
+							   "qcom,lge_batt_profile");
+	pr_info("batt_profile_enabled : %d\n", chip->batt_profile_enabled);
+#endif
 	chip->lge_rid_disable = of_property_read_bool(node,
 						      "lge,lge_rid_disable");
 	pr_info("lge_rid_disable : %d\n", chip->lge_rid_disable);
@@ -9074,6 +9085,27 @@ done:
 	fg_cleanup(chip);
 }
 
+#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM_BATT_PROFILE_DEBUG
+static void fg_soc_level_log(struct work_struct *work)
+{
+	struct fg_chip *chip = container_of(work,
+					    struct fg_chip,
+					    soc_level_log.work);
+
+	if (chip == NULL) {
+		pr_err("%s : Called before init\n", __func__);
+		return;
+	}
+	pr_info("batt_soc_modify : %d, batt_soc_original : %d, voltage : %d\n",
+		batt_soc_modify, batt_soc_original,
+		get_sram_prop_now(chip, FG_DATA_VOLTAGE));
+	schedule_delayed_work(&chip->soc_level_log, 6000);
+	return;
+}
+#endif
+#endif
+
 static int fg_probe(struct platform_device *pdev)
 {
 	struct device *dev = &(pdev->dev);
@@ -9170,6 +9202,15 @@ static int fg_probe(struct platform_device *pdev)
 	INIT_WORK(&chip->slope_limiter_work, slope_limiter_work);
 	INIT_WORK(&chip->dischg_gain_work, discharge_gain_work);
 	INIT_WORK(&chip->cc_soc_store_work, cc_soc_store_work);
+#ifdef CONFIG_LGE_PM
+#ifdef CONFIG_LGE_PM_BATT_PROFILE_DEBUG
+	INIT_DELAYED_WORK(&chip->soc_level_log, fg_soc_level_log);
+	schedule_delayed_work(&chip->soc_level_log, 1000);
+#endif
+#endif
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+	INIT_DELAYED_WORK(&chip->guarantee_soc_interval_work, guarantee_soc_interval_work);
+#endif
 	alarm_init(&chip->fg_cap_learning_alarm, ALARM_BOOTTIME,
 			fg_cap_learning_alarm_cb);
 	alarm_init(&chip->hard_jeita_alarm, ALARM_BOOTTIME,
