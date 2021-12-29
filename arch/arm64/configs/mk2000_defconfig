@@ -138,6 +138,13 @@ CONFIG_NOP_USB_XCEIV=y
 CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE=1
 CONFIG_INTEGRITY=n
 
-# Enable debugging
+# Enable kernel debugging, shouldn't be used in a stable/use-ready build.
 CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
 CONFIG_CMDLINE_EXTEND=y
+CONFIG_POWER_SUPPLY_DEBUG=n
+CONFIG_SPI_DEBUG=n
+CONFIG_REGULATOR_DEBUG=n
+CONFIG_DEBUG_PINCTRL=n
+CONFIG_I2C_DEBUG_CORE=n
+CONFIG_HWMON_DEBUG_CHIP=n
+CONFIG_DEBUG_GPIO=n
