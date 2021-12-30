@@ -6597,6 +6597,15 @@ static int fg_batt_profile_init(struct fg_chip *chip)
 	bool tried_again = false, vbat_in_range, profiles_same;
 	u8 reg = 0;
 
+/*Overrides the default battery type string with the values 
+  from lge_battery_id.h to get the correct battery profile
+  for the phones and enable battery metrics*/
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_LUCYE) || defined (CONFIG_MACH_MSM8996_ANNA)
+	fg_batt_type = "LGE_BL44E1F_LGC_3200mAh"; // For V20/G6 and whatever ANNA is.
+#else
+	fg_batt_type = "Generic_2810mah_sept9th2015"; // For G5 and every other LGE MSM8996 device.
+#endif
+
 wait:
 	fg_stay_awake(&chip->profile_wakeup_source);
 	ret = wait_for_completion_interruptible_timeout(&chip->batt_id_avail,
@@ -6637,12 +6646,8 @@ wait:
 	if (fg_debug_mask & FG_STATUS)
 		pr_info("battery id = %dKOhms\n", batt_id);
 
-#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1)
-	profile_node = of_batterydata_get_best_profile(batt_node,fg_batt_type);
-#else
 	profile_node = of_batterydata_get_best_profile(batt_node, batt_id,
 							fg_batt_type);
-#endif
 	
 	if (IS_ERR_OR_NULL(profile_node)) {
 		rc = PTR_ERR(profile_node);
