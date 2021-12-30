@@ -6599,11 +6599,25 @@ static int fg_batt_profile_init(struct fg_chip *chip)
 
 /*Overrides the default battery type string with the values 
   from lge_battery_id.h to get the correct battery profile
-  for the phones and enable battery metrics*/
-#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_LUCYE) || defined (CONFIG_MACH_MSM8996_ANNA)
-	fg_batt_type = "LGE_BL44E1F_LGC_3200mAh"; // For V20/G6 and whatever ANNA is.
-#else
-	fg_batt_type = "Generic_2810mah_sept9th2015"; // For G5 and every other LGE MSM8996 device.
+  for the phones and enable battery metrics, iterated version
+  now has an improved and more flexible naming scheme to enable
+  fur*/
+
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) // V20, ANNA
+#if defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) // Jap V20
+	fg_batt_type = "LGE_BLT28_Tocad_3000mAh.dtsi"; // The 3000mAh batt from Japanese V20
+#else // If it isn't a japanese V20, get the standard 3200mAh battery
+	fg_batt_type = "LGE_BL44E1F_LGC_3200mAh"; // For V20 and whatever ANNA is.
+#endif 
+#endif // End of the V20 batt check
+
+#if defined (CONFIG_MACH_MSM8996_H1) // G5
+	fg_batt_type = "Generic_2810mAh_Sept9th2015_PMI8996GUI1004.dtsi" // Default G5 Battery in lge_battery_id.h
+	// "LGE_BL42D1F_2800mAh_averaged_MasterSlave_Nov30th2015_PMI8996GUI1100.dtsi"; // Standard G5 battery
+#endif
+
+#if defined (CONFIG_MACH_MSM8996_LUCYE) // G6
+	fg_batt_type = "LGE_BL44E1F_LGC_3200mAh"; //Standard G6 battery
 #endif
 
 wait:
