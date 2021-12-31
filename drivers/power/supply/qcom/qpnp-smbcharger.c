@@ -4026,6 +4026,26 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 	struct device_node *batt_node, *profile_node;
 	struct device_node *node = chip->pdev->dev.of_node;
 	union power_supply_propval prop = {0,};
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+	const char *batt_string;
+#endif
+
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) // V20, ANNA
+#if defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) // Jap V20
+	batt_string = "LGE_BLT28_Tocad_3000mAh.dtsi"; // The 3000mAh batt from Japanese V20
+#else // If it isn't a japanese V20, get the standard 3200mAh battery
+	batt_string = "LGE_BL44E1F_LGC_3200mAh"; // For V20 and whatever ANNA is.
+#endif 
+#endif // End of the V20 batt check
+
+#if defined (CONFIG_MACH_MSM8996_H1) // G5
+	batt_string = "Generic_2810mAh_Sept9th2015_PMI8996GUI1004.dtsi" // Default G5 Battery in lge_battery_id.h
+	// "LGE_BL42D1F_2800mAh_averaged_MasterSlave_Nov30th2015_PMI8996GUI1100.dtsi"; // Standard G5 battery
+#endif
+
+#if defined (CONFIG_MACH_MSM8996_LUCYE) // G6
+	batt_string = "LGE_BLT32_LGC_3300mAh.dtsi"; //Standard G6 battery
+#endif
 
 	rc = power_supply_get_property(chip->bms_psy,
 			POWER_SUPPLY_PROP_BATTERY_TYPE, &prop);
@@ -4043,7 +4063,12 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 		return 0;
 
 	chip->battery_type = prop.strval;
+
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+	batt_node = of_find_node_by_name(node, "qcom,battery-data");
+#else
 	batt_node = of_parse_phandle(node, "qcom,battery-data", 0);
+#endif
 	if (!batt_node) {
 		pr_smb(PR_MISC, "No batterydata available\n");
 		return 0;
