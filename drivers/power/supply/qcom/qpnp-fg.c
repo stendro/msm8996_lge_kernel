@@ -6601,7 +6601,7 @@ static int fg_batt_profile_init(struct fg_chip *chip)
   from lge_battery_id.h to get the correct battery profile
   for the phones and enable battery metrics, iterated version
   now has an improved and more flexible naming scheme to enable
-  fur*/
+  further improvements*/
 
 #if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) // V20, ANNA
 #if defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) // Jap V20
@@ -6617,7 +6617,7 @@ static int fg_batt_profile_init(struct fg_chip *chip)
 #endif
 
 #if defined (CONFIG_MACH_MSM8996_LUCYE) // G6
-	fg_batt_type = "LGE_BL44E1F_LGC_3200mAh"; //Standard G6 battery
+	fg_batt_type = "LGE_BLT32_LGC_3300mAh.dtsi"; //Standard G6 battery
 #endif
 
 wait:
