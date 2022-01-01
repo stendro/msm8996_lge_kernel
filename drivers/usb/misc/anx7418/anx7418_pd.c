@@ -447,11 +447,83 @@ pdo_selected:
 
 static int pswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 {
-	return anx7418_send_pd_msg(client, PD_TYPE_REJECT, 0, 0, PD_SEND_TIMEOUT);
+// CONFIG_LGE_USB_TYPE_C START
+	struct anx7418 *anx = dev_get_drvdata(&client->dev);
+	struct device *cdev = &anx->client->dev;
+
+	anx7418_send_pd_msg(client, PD_TYPE_ACCEPT, 0, 0, PD_SEND_TIMEOUT);
+
+	if (IS_INTF_IRQ_SUPPORT(anx))
+		return 0;
+
+	switch (anx->pr) {
+	case DUAL_ROLE_PROP_PR_SRC:
+		dev_info(cdev, "Source to Sink\n");
+		anx7418_set_pr(anx, DUAL_ROLE_PROP_PR_SNK);
+		break;
+
+	case DUAL_ROLE_PROP_PR_SNK:
+		dev_info(cdev, "Sink to Source\n");
+		anx7418_set_pr(anx, DUAL_ROLE_PROP_PR_SRC);
+		break;
+
+	default:
+		dev_err(cdev, "pswap: invalid role. %d\n", anx->pr);
+		break;
+	}
+
+#ifdef CONFIG_DUAL_ROLE_USB_INTF
+	dual_role_instance_changed(anx->dual_role);
+#endif
+	return 0;
+// CONFIG_LGE_USB_TYPE_C ELSE
+	//return anx7418_send_pd_msg(client, PD_TYPE_REJECT, 0, 0, PD_SEND_TIMEOUT);
+// CONFIG_LGE_USB_TYPE_C END
 }
 
 static int dswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 {
+// CONFIG_LGE_USB_TYPE_C START
+	struct device *cdev = &client->dev;
+	struct anx7418 *anx = dev_get_drvdata(cdev);
+	union power_supply_propval prop;
+
+	anx7418_send_pd_msg(client, PD_TYPE_ACCEPT, 0, 0, PD_SEND_TIMEOUT);
+
+	if (IS_INTF_IRQ_SUPPORT(anx))
+		return 0;
+
+	switch (anx->dr) {
+	case DUAL_ROLE_PROP_DR_HOST:
+		dev_info(cdev, "Host to Device\n");
+		anx7418_set_dr(anx, DUAL_ROLE_PROP_DR_DEVICE);
+
+		anx->usb_psy->desc->get_property(anx->usb_psy,
+				POWER_SUPPLY_PROP_TYPE, &prop);
+		if (prop.intval == POWER_SUPPLY_TYPE_UNKNOWN){
+			prop.intval = POWER_SUPPLY_TYPE_USB;
+			power_supply_set_property(anx->usb_psy,
+					POWER_SUPPLY_PROP_TYPE, &prop);
+			anx->usb_psy->desc->type = prop.intval;
+		}
+		break;
+
+	case DUAL_ROLE_PROP_DR_DEVICE:
+		dev_info(cdev, "Device to Host\n");
+		anx7418_set_dr(anx, DUAL_ROLE_PROP_DR_HOST);
+		break;
+
+	default:
+		dev_err(cdev, "dswap: invalid role. %d\n", anx->dr);
+		goto err;
+	}
+
+#ifdef CONFIG_DUAL_ROLE_USB_INTF
+	dual_role_instance_changed(anx->dual_role);
+#endif
+	return 0;
+err:
+// CONFIG_LGE_USB_TYPE_C END
 	return anx7418_send_pd_msg(client, PD_TYPE_REJECT, 0, 0, PD_SEND_TIMEOUT);
 }
 

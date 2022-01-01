@@ -1,7 +1,6 @@
 #
 # Makefile for the i2c core.
 #
-subdir-ccflags-y := -DDEBUG
 
 obj-$(CONFIG_I2C_BOARDINFO)	+= i2c-boardinfo.o
 obj-$(CONFIG_I2C)		+= i2c-core.o

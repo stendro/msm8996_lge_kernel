@@ -1,5 +1,3 @@
-subdir-ccflags-y := -DDEBUG
-
 obj-$(CONFIG_CLKSRC_PROBE)	+= clksrc-probe.o
 obj-$(CONFIG_ATMEL_PIT)		+= timer-atmel-pit.o
 obj-$(CONFIG_ATMEL_ST)		+= timer-atmel-st.o

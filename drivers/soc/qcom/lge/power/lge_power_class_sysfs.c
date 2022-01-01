@@ -267,21 +267,10 @@ static struct device_attribute lge_power_attrs[] = {
 #ifdef CONFIG_LGE_PM
 	LGE_POWER_ATTR(safety_timer),
 #endif
-#ifdef CONFIG_LGE_PM_CHARGING_BQ24296_CHARGER
-	LGE_POWER_ATTR(ext_pwr),
-	LGE_POWER_ATTR(removed),
-#elif defined(CONFIG_LGE_PM_CHARGING_BQ24262_CHARGER)
-	LGE_POWER_ATTR(ext_pwr),
-#endif
 #ifdef CONFIG_LGE_PM_CHARGING_VZW_POWER_REQ
 	LGE_POWER_ATTR(vzw_chg),
 #endif
 
-#if defined(CONFIG_LGE_PM_CHARGING_BQ24296_CHARGER) \
-		|| defined(CONFIG_LGE_PM_CHARGING_BQ24262_CHARGER)
-	LGE_POWER_ATTR(charger_timer),
-	LGE_POWER_ATTR(charging_complete),
-#endif
 #if defined(CONFIG_LGE_PM_BATTERY_EXTERNAL_FUELGAUGE)
 	LGE_POWER_ATTR(use_fuelgauge),
 #endif
@@ -289,9 +278,6 @@ static struct device_attribute lge_power_attrs[] = {
 	LGE_POWER_ATTR(usb_chg_detect_done),
 	LGE_POWER_ATTR(usb_chg_type),
 	LGE_POWER_ATTR(usb_dcd_timeout),
-#endif
-#if defined(CONFIG_LGE_PM_LLK_MODE)
-	LGE_POWER_ATTR(store_demo_enabled),
 #endif
 	LGE_POWER_ATTR(hw_rev),
 	LGE_POWER_ATTR(hw_rev_no),
