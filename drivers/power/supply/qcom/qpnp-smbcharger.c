@@ -48,6 +48,9 @@
 #include <soc/qcom/lge/board_lge.h>
 #define LGE_PM_DIS_AICL_IRQ_WAKE
 #endif
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+#include "lge/lge_batt_detection.h"
+#endif
 
 /* Mask/Bit helpers */
 #define _SMB_MASK(BITS, POS) \
@@ -4027,24 +4030,7 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 	struct device_node *node = chip->pdev->dev.of_node;
 	union power_supply_propval prop = {0,};
 #if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
-	const char *batt_string;
-#endif
-
-#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) // V20, ANNA
-#if defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP) // Jap V20
-	batt_string = "LGE_BLT28_Tocad_3000mAh.dtsi"; // The 3000mAh batt from Japanese V20
-#else // If it isn't a japanese V20, get the standard 3200mAh battery
-	batt_string = "LGE_BL44E1F_LGC_3200mAh"; // For V20 and whatever ANNA is.
-#endif 
-#endif // End of the V20 batt check
-
-#if defined (CONFIG_MACH_MSM8996_H1) // G5
-	batt_string = "Generic_2810mAh_Sept9th2015_PMI8996GUI1004.dtsi" // Default G5 Battery in lge_battery_id.h
-	// "LGE_BL42D1F_2800mAh_averaged_MasterSlave_Nov30th2015_PMI8996GUI1100.dtsi"; // Standard G5 battery
-#endif
-
-#if defined (CONFIG_MACH_MSM8996_LUCYE) // G6
-	batt_string = "LGE_BLT32_LGC_3300mAh.dtsi"; //Standard G6 battery
+	const char *batt_string = return_lge_battery_name();
 #endif
 
 	rc = power_supply_get_property(chip->bms_psy,
@@ -4081,8 +4067,13 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 		return 0;
 	}
 
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+	profile_node = of_batterydata_get_best_profile(batt_node,
+				prop.intval / 1000, batt_string);
+#else
 	profile_node = of_batterydata_get_best_profile(batt_node,
 				prop.intval / 1000, NULL);
+#endif
 	if (IS_ERR_OR_NULL(profile_node)) {
 		rc = PTR_ERR(profile_node);
 		pr_err("couldn't find profile handle %d\n", rc);
