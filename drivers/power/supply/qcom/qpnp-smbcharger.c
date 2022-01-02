@@ -48,6 +48,9 @@
 #include <soc/qcom/lge/board_lge.h>
 #define LGE_PM_DIS_AICL_IRQ_WAKE
 #endif
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+#include "lge/lge_batt_detection.h"
+#endif
 
 /* Mask/Bit helpers */
 #define _SMB_MASK(BITS, POS) \
@@ -4026,6 +4029,9 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 	struct device_node *batt_node, *profile_node;
 	struct device_node *node = chip->pdev->dev.of_node;
 	union power_supply_propval prop = {0,};
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+	const char *batt_string = return_lge_battery_name();
+#endif
 
 	rc = power_supply_get_property(chip->bms_psy,
 			POWER_SUPPLY_PROP_BATTERY_TYPE, &prop);
@@ -4043,7 +4049,12 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 		return 0;
 
 	chip->battery_type = prop.strval;
+
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+	batt_node = of_find_node_by_name(node, "qcom,battery-data");
+#else
 	batt_node = of_parse_phandle(node, "qcom,battery-data", 0);
+#endif
 	if (!batt_node) {
 		pr_smb(PR_MISC, "No batterydata available\n");
 		return 0;
@@ -4056,8 +4067,13 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 		return 0;
 	}
 
+#if defined (CONFIG_MACH_MSM8996_ELSA) || defined (CONFIG_MACH_MSM8996_ANNA) || defined (CONFIG_MACH_MSM8996_H1) || defined (CONFIG_MACH_MSM8996_LUCYE)
+	profile_node = of_batterydata_get_best_profile(batt_node,
+				prop.intval / 1000, batt_string);
+#else
 	profile_node = of_batterydata_get_best_profile(batt_node,
 				prop.intval / 1000, NULL);
+#endif
 	if (IS_ERR_OR_NULL(profile_node)) {
 		rc = PTR_ERR(profile_node);
 		pr_err("couldn't find profile handle %d\n", rc);
