@@ -3230,6 +3230,7 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 		pr_err("No voters\n");
 		return 0;
 	}
+	
 	effective_id = get_effective_client_locked(chip->usb_icl_votable);
 
 	if (!effective_id)
@@ -3259,7 +3260,9 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 	aicl_ma = smbchg_get_aicl_level_ma(chip);
 	if (icl_ma > aicl_ma)
 		smbchg_rerun_aicl(chip);
+
 	smbchg_parallel_usb_check_ok(chip);
+
 	return 0;
 }
 
