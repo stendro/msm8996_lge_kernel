@@ -679,7 +679,7 @@ static int usbpd_get_property(struct power_supply *psy,
 		break;
 #endif
 	case POWER_SUPPLY_PROP_TYPE:
-		val->intval = chip->usbpd_psy.type;
+		val->intval = chip->usbpd_psy.desc->type;
 		break;
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
 	case POWER_SUPPLY_PROP_CTYPE_RP:
@@ -833,8 +833,8 @@ static int usbpd_set_property(struct power_supply *psy,
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
 		// do nothing
 #else
-		chip->batt_psy->set_property(chip->batt_psy,
-				POWER_SUPPLY_PROP_CTYPE_RP, &chip->rp);
+		power_supply_set_property(chip->batt_psy, 
+					POWER_SUPPLY_PROP_CTYPE_RP, &chip->rp);
 #endif
 		break;
 #endif
