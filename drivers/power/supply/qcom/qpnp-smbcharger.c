@@ -3230,6 +3230,7 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 		pr_err("No voters\n");
 		return 0;
 	}
+	
 	effective_id = get_effective_client_locked(chip->usb_icl_votable);
 
 	if (!effective_id)
@@ -3259,7 +3260,9 @@ static int set_usb_current_limit_vote_cb(struct votable *votable,
 	aicl_ma = smbchg_get_aicl_level_ma(chip);
 	if (icl_ma > aicl_ma)
 		smbchg_rerun_aicl(chip);
+
 	smbchg_parallel_usb_check_ok(chip);
+
 	return 0;
 }
 
@@ -5481,8 +5484,6 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 	int rc;
 	char *usb_type_name = "null";
 
-	panic("We will get logs, one way or another");
-	return;
 	pr_smb(PR_STATUS, "triggered\n");
 	/* usb inserted */
 	read_usb_type(chip, &usb_type_name, &usb_supply_type);
@@ -9247,6 +9248,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->fcc_votable = create_votable("BATT_FCC",
 			VOTE_MIN,
+#ifdef CONFIG_LGE_PM
+			chip->cfg_fastchg_current_ma,
+#endif
 			set_fastchg_current_vote_cb, chip);
 	if (IS_ERR(chip->fcc_votable)) {
 		rc = PTR_ERR(chip->fcc_votable);
@@ -9255,6 +9259,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->usb_icl_votable = create_votable("SMBCHG_USB_ICL",
 			VOTE_MIN,
+#ifdef CONFIG_LGE_PM
+			3000,
+#endif
 			set_usb_current_limit_vote_cb, chip);
 	if (IS_ERR(chip->usb_icl_votable)) {
 		rc = PTR_ERR(chip->usb_icl_votable);
@@ -9263,6 +9270,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->dc_icl_votable = create_votable("DCIN_ICL",
 			VOTE_MIN,
+#ifdef CONFIG_LGE_PM
+			3000,
+#endif
 			set_dc_current_limit_vote_cb, chip);
 	if (IS_ERR(chip->dc_icl_votable)) {
 		rc = PTR_ERR(chip->dc_icl_votable);
@@ -9271,6 +9281,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->usb_suspend_votable = create_votable("USB_SUSPEND",
 			VOTE_SET_ANY,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			usb_suspend_vote_cb, chip);
 	if (IS_ERR(chip->usb_suspend_votable)) {
 		rc = PTR_ERR(chip->usb_suspend_votable);
@@ -9279,6 +9292,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->dc_suspend_votable = create_votable("DC_SUSPEND",
 			VOTE_SET_ANY,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			dc_suspend_vote_cb, chip);
 	if (IS_ERR(chip->dc_suspend_votable)) {
 		rc = PTR_ERR(chip->dc_suspend_votable);
@@ -9287,6 +9303,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->battchg_suspend_votable = create_votable("BATTCHG_SUSPEND",
 			VOTE_SET_ANY,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			charging_suspend_vote_cb, chip);
 	if (IS_ERR(chip->battchg_suspend_votable)) {
 		rc = PTR_ERR(chip->battchg_suspend_votable);
@@ -9295,6 +9314,9 @@ static int smbchg_probe(struct platform_device *pdev)
 
 	chip->hw_aicl_rerun_disable_votable = create_votable("HWAICL_DISABLE",
 			VOTE_SET_ANY,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			smbchg_hw_aicl_rerun_disable_cb, chip);
 	if (IS_ERR(chip->hw_aicl_rerun_disable_votable)) {
 		rc = PTR_ERR(chip->hw_aicl_rerun_disable_votable);
@@ -9304,6 +9326,9 @@ static int smbchg_probe(struct platform_device *pdev)
 	chip->hw_aicl_rerun_enable_indirect_votable = create_votable(
 			"HWAICL_ENABLE_INDIRECT",
 			VOTE_SET_ANY,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			smbchg_hw_aicl_rerun_enable_indirect_cb, chip);
 	if (IS_ERR(chip->hw_aicl_rerun_enable_indirect_votable)) {
 		rc = PTR_ERR(chip->hw_aicl_rerun_enable_indirect_votable);
@@ -9313,6 +9338,9 @@ static int smbchg_probe(struct platform_device *pdev)
 	chip->aicl_deglitch_short_votable = create_votable(
 			"HWAICL_SHORT_DEGLITCH",
 			VOTE_SET_ANY,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			smbchg_aicl_deglitch_config_cb, chip);
 	if (IS_ERR(chip->aicl_deglitch_short_votable)) {
 		rc = PTR_ERR(chip->aicl_deglitch_short_votable);
@@ -9322,6 +9350,9 @@ static int smbchg_probe(struct platform_device *pdev)
 	chip->hvdcp_enable_votable = create_votable(
 			"HVDCP_ENABLE",
 			VOTE_MIN,
+#ifdef CONFIG_LGE_PM
+			0,
+#endif
 			smbchg_hvdcp_enable_cb, chip);
 	if (IS_ERR(chip->hvdcp_enable_votable)) {
 		rc = PTR_ERR(chip->hvdcp_enable_votable);
