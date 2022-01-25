@@ -138,6 +138,11 @@ CONFIG_NOP_USB_XCEIV=y
 CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE=1
 CONFIG_INTEGRITY=n
 
+# Enable some extra BPF test configs
+CONFIG_NETFILTER_XT_MATCH_BPF=y
+CONFIG_BPF_SYSCALL=y
+CONFIG_NET_ACT_BPF=y
+
 # Enable kernel debugging, shouldn't be used in a stable/use-ready build.
 CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
 CONFIG_CMDLINE_EXTEND=y
