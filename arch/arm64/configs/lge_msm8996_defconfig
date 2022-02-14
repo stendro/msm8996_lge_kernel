@@ -178,11 +178,5 @@ CONFIG_NFC_NQ=n
 CONFIG_CNSS=n
 CONFIG_USELIB=n
 
-# Fix boot in chargerlogo state
-CONFIG_CMDLINE_SEARCHREPLACE=y
-CONFIG_CMDLINE_SAR_ENABLE0=y
-CONFIG_CMDLINE_SAR_SEARCH0=" androidboot.mode=chargerlogo "
-CONFIG_CMDLINE_SAR_REPLACE0=" androidboot.mode=charger "
-
 # mk2000 has override priority
 include mk2k_config
