@@ -678,20 +678,13 @@ static int usbpd_get_property(struct power_supply *psy,
 		val->intval = chip->curr_max;
 		break;
 #endif
-	case POWER_SUPPLY_PROP_TYPE:
-		val->intval = chip->usbpd_psy.desc->type;
-		break;
-#ifdef CONFIG_LGE_USB_ANX7688_OVP
-	case POWER_SUPPLY_PROP_CTYPE_RP:
-		dev_dbg(&chip->client->dev, "%s: Rp %dK\n", __func__,
-			chip->rp.intval);
-		val->intval = chip->rp.intval;
-		break;
 #ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
 	case POWER_SUPPLY_PROP_DP_ALT_MODE:
 		val->intval = chip->dp_alt_mode;
 #endif
-#endif
+	case POWER_SUPPLY_PROP_TYPE:
+		val->intval = chip->usbpd_psy.desc->type;
+		break;
 	default:
 		return -EINVAL;
 	}
@@ -786,6 +779,7 @@ static int usbpd_set_property(struct power_supply *psy,
 		}
 
 		if (chip->is_present == val->intval)
+			dev_info(cdev, "Setup USBPD PSY Present");
 			break;
 
 		chip->is_present = val->intval;
@@ -799,6 +793,7 @@ static int usbpd_set_property(struct power_supply *psy,
 			chip->volt_max = 0;
 			chip->charger_type = USBC_UNKNWON_CHARGER;
 		}
+		dev_info(cdev, "Setup USBPD PSY Present");
 		break;
 
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
@@ -826,18 +821,6 @@ static int usbpd_set_property(struct power_supply *psy,
 			break;
 		}
 		break;		
-#ifdef CONFIG_LGE_USB_ANX7688_OVP
-	case POWER_SUPPLY_PROP_CTYPE_RP:
-		chip->rp.intval = val->intval;
-		dev_dbg(cdev, "%s: Rp %dK\n", __func__, chip->rp.intval);
-#ifdef CONFIG_LGE_PM_LGE_POWER_CLASS_SIMPLE
-		// do nothing
-#else
-		power_supply_set_property(chip->batt_psy, 
-					POWER_SUPPLY_PROP_CTYPE_RP, &chip->rp);
-#endif
-		break;
-#endif
 	default:
 		return -EINVAL;
 	}
@@ -2558,6 +2541,8 @@ static int anx7688_probe(struct i2c_client *client,
 			dev_err(cdev, "unalbe to register psy rc = %d\n", ret);
 			goto err7;
 		}
+		else
+			dev_info(cdev, "Chip USBPD PSY name: %s\n", chip->usbpd_psy.desc->name);
 	}
 
 	if (IS_ENABLED(CONFIG_EXTCON)) {
