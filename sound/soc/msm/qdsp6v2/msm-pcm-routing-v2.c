@@ -5270,6 +5270,7 @@ static const struct snd_kcontrol_new tertiary_mi2s_rx_2_mixer_controls[] = {
 	SOC_SINGLE_EXT("MultiMedia26", MSM_BACKEND_DAI_TERTIARY_MI2S_RX_2,
 	MSM_FRONTEND_DAI_MULTIMEDIA26, 1, 0, msm_routing_get_audio_mixer,
 	msm_routing_put_audio_mixer),
+};
 
 static const struct snd_kcontrol_new tertiary_mi2s_rx_3_mixer_controls[] = {
 	SOC_SINGLE_EXT("MultiMedia1", MSM_BACKEND_DAI_TERTIARY_MI2S_RX_3,
