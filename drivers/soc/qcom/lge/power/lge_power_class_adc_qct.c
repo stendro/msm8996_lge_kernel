@@ -232,23 +232,23 @@ static int lge_power_adc_get_property(struct lge_power *lpc,
 				mutex_lock(&lge_adc_chip->lock_for_usb_id);
 
 				usb_pd_psy = power_supply_get_by_name("usb_pd");
-				if(usb_pd_psy && usb_pd_psy->get_property) {
-					usb_pd_psy->get_property(usb_pd_psy, POWER_SUPPLY_PROP_TYPEC_MODE, &prop);
+				if(usb_pd_psy && usb_pd_psy->desc->get_property) {
+					usb_pd_psy->desc->get_property(usb_pd_psy, POWER_SUPPLY_PROP_TYPEC_MODE, &prop);
 					typec_accessory = prop.intval;
 					pr_info("usb_pd : %d\n", typec_accessory);
 				}else{
 					pr_info("usb_pd is not ready\n");
 				}
 
-				if(usb_pd_psy && usb_pd_psy->get_property) {
-					usb_pd_psy->get_property(usb_pd_psy, POWER_SUPPLY_PROP_INPUT_SUSPEND, &prop);
+				if(usb_pd_psy && usb_pd_psy->desc->get_property) {
+					usb_pd_psy->desc->get_property(usb_pd_psy, POWER_SUPPLY_PROP_INPUT_SUSPEND, &prop);
 					waterproof = prop.intval;
 					pr_info("waterproof : %d\n", waterproof);
 				}else{
 					pr_info("battery_psy is not ready\n");
 				}
 
-				if ((!waterproof && POWER_SUPPLY_TYPE_CTYPE_DEBUG_ACCESSORY == typec_accessory) ||
+				if ((!waterproof && POWER_SUPPLY_TYPEC_SINK_DEBUG_ACCESSORY == typec_accessory) ||
 				    lge_get_board_rev_no() >= HW_REV_1_3) {
 					/* SBU_EN low, SBU_SEL high */
 					data = 0x11;
@@ -267,7 +267,7 @@ static int lge_power_adc_get_property(struct lge_power *lpc,
 						lge_adc_chip->usb_id_channel, &results);
 
 					/* SBU_EN high */
-					if (typec_accessory != POWER_SUPPLY_TYPE_CTYPE_DEBUG_ACCESSORY) {
+					if (typec_accessory != POWER_SUPPLY_TYPEC_SINK_DEBUG_ACCESSORY) {
 						pr_info("[BSP-USB] SBU EN high: waterproof(%d), physical(%d)\n",
 							waterproof, (int)results.physical);
 						gpiod_direction_output(gpio_to_desc(lge_adc_chip->sbu_en), 1);

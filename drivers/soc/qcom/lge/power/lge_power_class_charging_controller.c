@@ -769,8 +769,8 @@ static void lge_monitor_batt_temp_work(struct work_struct *work){
 				POWER_SUPPLY_PROP_VOLTAGE_MAX, &ret)) {
 
 				ret.intval = 0;
-				if (cc->bms_psy && cc->bms_psy->set_property &&
-					!cc->bms_psy->set_property(cc->bms_psy,
+				if (cc->bms_psy && cc->bms_psy->desc->set_property &&
+					!cc->bms_psy->desc->set_property(cc->bms_psy,
 						POWER_SUPPLY_PROP_CHARGE_DONE, &ret)) {
 						pr_info("vfloat is restored to %d\n", res.float_voltage);
 				}
