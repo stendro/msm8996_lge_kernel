@@ -3081,9 +3081,9 @@ wait:
 #define BATT_VTS_COEFFICIENT_BD2	(104)
 #define BATT_VTS_CONSTANT_DEFAULT	(-61)
 #define BATT_VTS_CONSTANT_WLC		(197)
-{	struct lge_power* lge_adc_lpc = lge_power_get_by_name("lge_adc");
-	if (lge_adc_lpc && lge_adc_lpc->get_property) {
-		union lge_power_propval lge_val = {0,};
+{	struct power_supply* lge_adc_lpc = power_supply_get_by_name("lge_adc");
+	if (lge_adc_lpc && lge_adc_lpc->desc->get_property) {
+		union power_supply_propval lge_val = {0,};
 		union power_supply_propval prop = {0,};
 
 		int xo_therm = 0;
@@ -3091,19 +3091,19 @@ wait:
 		int constant = BATT_VTS_CONSTANT_DEFAULT;
 
 		// Compensation for the wireless charging
-		if (chip->dc_psy && chip->dc_psy->get_property &&
-			!chip->dc_psy->get_property(chip->dc_psy,
+		if (chip->dc_psy && chip->dc_psy->desc->get_property &&
+			!chip->dc_psy->desc->get_property(chip->dc_psy,
 				POWER_SUPPLY_PROP_PRESENT, &prop) ) {
 			if (prop.intval == 1)
 				constant += BATT_VTS_CONSTANT_WLC;
 		}
 
-		lge_adc_lpc->get_property(lge_adc_lpc,
-			LGE_POWER_PROP_XO_THERM_PHY, &lge_val);
+		lge_adc_lpc->desc->get_property(lge_adc_lpc,
+			POWER_SUPPLY_PROP_TEMP, &lge_val); // TODO: replaces LGE_POWER_PROP_XO_THERM_PHY, but needs testing
 		xo_therm = lge_val.intval;
 
-		lge_adc_lpc->get_property(lge_adc_lpc,
-			LGE_POWER_PROP_BD2_THERM_PHY, &lge_val);
+		lge_adc_lpc->desc->get_property(lge_adc_lpc,
+			POWER_SUPPLY_PROP_TEMP_AMBIENT, &lge_val); // TODO: replaces LGE_POWER_PROP_BD2_THERM_PHY, but needs testing
 		board_therm = lge_val.intval;
 
 		fg_data[0].value = ((xo_therm * BATT_VTS_COEFFICIENT_XO) + (board_therm * BATT_VTS_COEFFICIENT_BD2) + constant)
@@ -5623,6 +5623,19 @@ static irqreturn_t fg_mem_avail_irq_handler(int irq, void *_chip)
 	return IRQ_HANDLED;
 }
 
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+#define GUARANTEE_INTERVAL_MS 1470
+static void guarantee_soc_interval_work(struct work_struct *work) {
+	struct fg_chip *chip = container_of(work,
+						struct fg_chip,
+						guarantee_soc_interval_work.work);
+
+	chip->use_last_soc = false;
+	chip->check_ima_err_handling = false;
+	pr_info("clear use_last_soc\n");
+}
+#endif
+
 static irqreturn_t fg_soc_irq_handler(int irq, void *_chip)
 {
 	struct fg_chip *chip = _chip;
@@ -5648,8 +5661,18 @@ static irqreturn_t fg_soc_irq_handler(int irq, void *_chip)
 		schedule_work(&chip->slope_limiter_work);
 	}
 
-	/* Backup last soc every delta soc interrupt */
+	/* Backup last soc every delta soc interrupt */	
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+	if (chip->check_ima_err_handling) {
+		pr_info("ima_error_handling before\n");
+		schedule_delayed_work(&chip->guarantee_soc_interval_work,
+			msecs_to_jiffies(GUARANTEE_INTERVAL_MS));
+	} else {
+		chip->use_last_soc = false;
+	}
+#else
 	chip->use_last_soc = false;
+#endif
 	if (fg_reset_on_lockup) {
 		if (!chip->ima_error_handling)
 			chip->last_soc = get_monotonic_soc_raw(chip);
@@ -7798,6 +7821,9 @@ static void fg_cancel_all_works(struct fg_chip *chip)
 	cancel_delayed_work_sync(&chip->update_jeita_setting);
 	cancel_delayed_work_sync(&chip->check_empty_work);
 	cancel_delayed_work_sync(&chip->batt_profile_init);
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+	cancel_delayed_work_sync(&chip->guarantee_soc_interval_work);
+#endif
 	alarm_try_to_cancel(&chip->fg_cap_learning_alarm);
 	alarm_try_to_cancel(&chip->hard_jeita_alarm);
 	if (!chip->ima_error_handling)

@@ -7590,7 +7590,7 @@ static irqreturn_t otg_fail_handler(int irq, void *_chip)
 	int rc;
 
 	if (chip->bms_psy) {
-		rc = chip->bms_psy->get_property(chip->bms_psy,
+		rc = chip->bms_psy->desc->get_property(chip->bms_psy,
 			POWER_SUPPLY_PROP_VOLTAGE_NOW, &ret);
 		if (rc < 0)
 			pr_smb(PR_LGE, "failed to read Battery Volatge\n");
