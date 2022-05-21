@@ -1691,7 +1691,6 @@ static int msm_cpp_buffer_ops(struct cpp_device *cpp_dev,
 	case VIDIOC_MSM_BUF_MNGR_PUT_BUF:
 	case VIDIOC_MSM_BUF_MNGR_BUF_DONE:
 	case VIDIOC_MSM_BUF_MNGR_GET_BUF:
-	case VIDIOC_MSM_BUF_MNGR_BUF_ERROR:
 	default: {
 		struct msm_buf_mngr_info *buff_mgr_info =
 			(struct msm_buf_mngr_info *)arg;
