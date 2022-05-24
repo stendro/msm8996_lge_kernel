@@ -14,6 +14,12 @@
 # Based on the ia64 boot/Makefile.
 #
 
+ifneq ($(CONFIG_MACH_LGE),y)
+include $(srctree)/arch/arm64/boot/dts/qcom/Makefile
+else
+include $(srctree)/arch/arm64/boot/dts/lge/Makefile
+endif
+
 targets := Image Image.gz Image.lz4
 
 DTB_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES))
