@@ -298,15 +298,6 @@ static int bl_get_led_temp(void *data) {
 }
 
 static int bl_get_led_c_temp(void *data) {
-#ifdef CONFIG_LGE_PM_SUPPORT_LG_POWER_CLASS //FIXME
-	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)data;
-	if (lge_charger_present()) {
-		if (mfd->br_level_val > 0)
-			return 1;
-		else
-			return 0;
-	} else
-#endif
 		return 0;
 }
 #endif
