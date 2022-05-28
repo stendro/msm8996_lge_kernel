@@ -4,9 +4,9 @@
 #include <linux/module.h>
 #include <linux/i2c.h>
 #include <linux/workqueue.h>
-#ifdef CONFIG_LGE_USB_TYPE_C
+// CONFIG_LGE_USB_TYPE_C START
 #include <linux/power_supply.h>
-#endif
+// CONFIG_LGE_USB_TYPE_C END
 #include <linux/wakelock.h>
 #include <linux/rwsem.h>
 #include <linux/usb/class-dual-role.h>
@@ -26,12 +26,11 @@ struct anx7418 {
 
 	/* regulator */
 	struct regulator *avdd33;
-#ifdef CONFIG_LGE_USB_TYPE_C
+//LGE_USB_TYPE_C START
 	struct regulator *vbus_reg;
 	struct power_supply *usb_psy;
 	struct power_supply *batt_psy;
-#endif
-
+//LGE_USB_TYPE_C END
 	/* gpio */
 	int pwr_en_gpio;
 	int resetn_gpio;

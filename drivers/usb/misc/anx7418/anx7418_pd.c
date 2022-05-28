@@ -447,7 +447,7 @@ pdo_selected:
 
 static int pswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 {
-#ifdef CONFIG_LGE_USB_TYPE_C
+// CONFIG_LGE_USB_TYPE_C START
 	struct anx7418 *anx = dev_get_drvdata(&client->dev);
 	struct device *cdev = &anx->client->dev;
 
@@ -476,14 +476,14 @@ static int pswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 	dual_role_instance_changed(anx->dual_role);
 #endif
 	return 0;
-#else
-	return anx7418_send_pd_msg(client, PD_TYPE_REJECT, 0, 0, PD_SEND_TIMEOUT);
-#endif
+// CONFIG_LGE_USB_TYPE_C ELSE
+	//return anx7418_send_pd_msg(client, PD_TYPE_REJECT, 0, 0, PD_SEND_TIMEOUT);
+// CONFIG_LGE_USB_TYPE_C END
 }
 
 static int dswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 {
-#ifdef CONFIG_LGE_USB_TYPE_C
+// CONFIG_LGE_USB_TYPE_C START
 	struct device *cdev = &client->dev;
 	struct anx7418 *anx = dev_get_drvdata(cdev);
 	union power_supply_propval prop;
@@ -498,11 +498,14 @@ static int dswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 		dev_info(cdev, "Host to Device\n");
 		anx7418_set_dr(anx, DUAL_ROLE_PROP_DR_DEVICE);
 
-		anx->usb_psy->get_property(anx->usb_psy,
+		anx->usb_psy->desc->get_property(anx->usb_psy,
 				POWER_SUPPLY_PROP_TYPE, &prop);
-		if (prop.intval == POWER_SUPPLY_TYPE_UNKNOWN)
-			power_supply_set_supply_type(anx->usb_psy,
-					POWER_SUPPLY_TYPE_USB);
+		if (prop.intval == POWER_SUPPLY_TYPE_UNKNOWN){
+			prop.intval = POWER_SUPPLY_TYPE_USB;
+			power_supply_set_property(anx->usb_psy,
+					POWER_SUPPLY_PROP_TYPE, &prop);
+			anx->chg.psy_d.type = prop.intval;
+		}
 		break;
 
 	case DUAL_ROLE_PROP_DR_DEVICE:
@@ -520,7 +523,7 @@ static int dswap_req_parse(struct i2c_client *client, const pd_msg_t msg)
 #endif
 	return 0;
 err:
-#endif
+// CONFIG_LGE_USB_TYPE_C END
 	return anx7418_send_pd_msg(client, PD_TYPE_REJECT, 0, 0, PD_SEND_TIMEOUT);
 }
 
