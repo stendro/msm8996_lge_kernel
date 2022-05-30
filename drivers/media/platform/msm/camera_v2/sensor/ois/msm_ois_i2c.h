@@ -4,7 +4,7 @@
 #include <linux/i2c.h>
 
 #ifdef CONFIG_MACH_LGE
-#define OIS_FIRMWARE_LOCATION "/system/vendor/etc/camera" // LGE_CHANGES
+#define OIS_FIRMWARE_LOCATION "/vendor/firmware"
 #endif
 
 int32_t ois_i2c_write_table(struct msm_camera_i2c_reg_setting *write_setting);
