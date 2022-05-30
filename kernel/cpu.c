@@ -714,7 +714,8 @@ void notify_cpu_starting(unsigned int cpu)
 	unsigned long val = CPU_STARTING;
 
 #ifdef CONFIG_PM_SLEEP_SMP
-	if (frozen_cpus != NULL && cpumask_test_cpu(cpu, frozen_cpus))
+	if (cpumask_available(frozen_cpus) &&
+			cpumask_test_cpu(cpu, frozen_cpus))
 		val = CPU_STARTING_FROZEN;
 #endif /* CONFIG_PM_SLEEP_SMP */
 	cpu_notify(val, (void *)(long)cpu);
