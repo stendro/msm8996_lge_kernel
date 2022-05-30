@@ -2034,7 +2034,7 @@ VL53L0_Error VL53L010_GetRangingMeasurementData(VL53L0_DEV Dev,
 {
 	VL53L0_Error Status = VL53L0_ERROR_NONE;
 	uint8_t DeviceRangeStatus;
-	uint8_t PalRangeStatus;
+	uint8_t PalRangeStatus = 0; //LGE CHANGE
 	uint16_t AmbientRate;
 	FixPoint1616_t SignalRate;
 	FixPoint1616_t CrosstalkCompensation;

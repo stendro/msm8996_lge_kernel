@@ -1,0 +1,1 @@
+obj-$(CONFIG_MACH_LGE) += camera_class.o

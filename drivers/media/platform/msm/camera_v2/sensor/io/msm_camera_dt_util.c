@@ -905,8 +905,16 @@ int msm_camera_get_dt_gpio_set_tbl(struct device_node *of_node,
 	uint32_t count = 0;
 	uint32_t *val_array = NULL;
 
+#ifdef CONFIG_MACH_LGE
+	rc = of_property_read_u32(of_node, "qcom,gpio-set-tbl-num", &count);
+	if (rc < 0) {
+		pr_err("%s failed %d\n", __func__, __LINE__);
+		return 0;
+	}
+#else
 	if (!of_get_property(of_node, "qcom,gpio-set-tbl-num", &count))
 		return 0;
+#endif
 
 	count /= sizeof(uint32_t);
 	if (!count) {
