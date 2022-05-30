@@ -2040,8 +2040,7 @@ static int msm_isp_cfg_ping_pong_address(
 	struct vfe_device *vfe_dev = stream_info->vfe_dev[0];
 	uint32_t buffer_size_byte = 0;
 	int32_t word_per_line = 0;
-	dma_addr_t paddr;
-
+	dma_addr_t paddr = 0; //LGE_CHANGE
 
 	/* Isolate pingpong_bit from pingpong_status */
 	pingpong_bit = ((pingpong_status >>
