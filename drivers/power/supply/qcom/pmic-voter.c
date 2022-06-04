@@ -9,9 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#ifdef CONFIG_LGE_PM
-#define DEBUG
-#endif
+
 #include <linux/debugfs.h>
 #include <linux/spinlock.h>
 #include <linux/errno.h>
@@ -362,10 +360,6 @@ int vote(struct votable *votable, const char *client_str, bool enabled, int val)
 	lock_votable(votable);
 
 	client_id = get_client_id(votable, client_str);
-#ifdef CONFIG_LGE_PM
-	pr_err("%s: name[%s], client[%s,%d], enabled[%d], val[%d]\n",
-		__func__, votable->name, client_str, client_id, enabled, val);
-#endif
 	if (client_id < 0) {
 		rc = client_id;
 		goto out;
@@ -577,9 +571,6 @@ static const struct file_operations votable_status_ops = {
 
 struct votable *create_votable(const char *name,
 				int votable_type,
-#ifdef CONFIG_LGE_PM
-				int effective_result,
-#endif
 				int (*callback)(struct votable *votable,
 					void *data,
 					int effective_result,
@@ -622,14 +613,6 @@ struct votable *create_votable(const char *name,
 	votable->data = data;
 	mutex_init(&votable->vote_lock);
 
-#ifdef CONFIG_LGE_PM
-	/*
-	 * These values will be used before the first vote is made and will then
-	 * be discarded
-	 */
-	votable->effective_result = effective_result;
-	votable->effective_client_id = 0;
-#else
 	/*
 	 * Because effective_result and client states are invalid
 	 * before the first vote, initialize them to -EINVAL
@@ -638,7 +621,6 @@ struct votable *create_votable(const char *name,
 	if (votable->type == VOTE_SET_ANY)
 		votable->effective_result = 0;
 	votable->effective_client_id = -EINVAL;
-#endif
 
 	spin_lock_irqsave(&votable_list_slock, flags);
 	list_add(&votable->list, &votable_list);

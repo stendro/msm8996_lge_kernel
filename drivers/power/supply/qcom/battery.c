@@ -1346,9 +1346,6 @@ int qcom_batt_init(void)
 		goto cleanup;
 
 	chip->fcc_votable = create_votable("FCC", VOTE_MIN,
-#ifdef CONFIG_LGE_PM
-			0,
-#endif
 					pl_fcc_vote_callback,
 					chip);
 	if (IS_ERR(chip->fcc_votable)) {
@@ -1357,9 +1354,6 @@ int qcom_batt_init(void)
 	}
 
 	chip->fv_votable = create_votable("FV", VOTE_MAX,
-#ifdef CONFIG_LGE_PM
-			0,
-#endif
 					pl_fv_vote_callback,
 					chip);
 	if (IS_ERR(chip->fv_votable)) {
@@ -1368,9 +1362,6 @@ int qcom_batt_init(void)
 	}
 
 	chip->usb_icl_votable = create_votable("USB_ICL", VOTE_MIN,
-#ifdef CONFIG_LGE_PM
-			3000,
-#endif
 					usb_icl_vote_callback,
 					chip);
 	if (IS_ERR(chip->usb_icl_votable)) {
@@ -1379,9 +1370,6 @@ int qcom_batt_init(void)
 	}
 
 	chip->pl_disable_votable = create_votable("PL_DISABLE", VOTE_SET_ANY,
-#ifdef CONFIG_LGE_PM
-			0,
-#endif
 					pl_disable_vote_callback,
 					chip);
 	if (IS_ERR(chip->pl_disable_votable)) {
@@ -1393,9 +1381,6 @@ int qcom_batt_init(void)
 	vote(chip->pl_disable_votable, PARALLEL_PSY_VOTER, true, 0);
 
 	chip->pl_awake_votable = create_votable("PL_AWAKE", VOTE_SET_ANY,
-#ifdef CONFIG_LGE_PM
-			0,
-#endif
 					pl_awake_vote_callback,
 					chip);
 	if (IS_ERR(chip->pl_awake_votable)) {
@@ -1405,9 +1390,6 @@ int qcom_batt_init(void)
 
 	chip->pl_enable_votable_indirect = create_votable("PL_ENABLE_INDIRECT",
 					VOTE_SET_ANY,
-#ifdef CONFIG_LGE_PM
-			0,
-#endif
 					pl_enable_indirect_vote_callback,
 					chip);
 	if (IS_ERR(chip->pl_enable_votable_indirect)) {

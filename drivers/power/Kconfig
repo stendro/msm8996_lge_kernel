@@ -521,27 +521,6 @@ config AXP20X_POWER
 	  This driver provides support for the power supply features of
 	  AXP20x PMIC.
 
-config LGE_PM
-	tristate "MSM8996 LGE POWER Feature"
-	depends on MACH_LGE && SPMI
-	help
-	  Say Y here to enable support for pm8994/pmi8994 chip lge feature.
-	  Power Management, Battery charging, Battery Monitoring System
-	  with battery FET and fuel gauge.
-
-config LGE_PM_SUPPORT_LG_POWER_CLASS
-	bool "LG power class driver feature"
-	default n
-	depends on LGE_PM
-	help
-	  Support lge power class for charging scenario on LGE
-
-config LGE_PM_PARALLEL_CHARGING
-	tristate "LGE parallel charging feature"
-	depends on MACH_LGE
-	help
-	  LGE parallel charging feature.
-
 source "drivers/power/reset/Kconfig"
 source "drivers/power/supply/Kconfig"
 
