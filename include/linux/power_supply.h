@@ -396,7 +396,7 @@ struct power_supply_desc {
 };
 
 struct power_supply {
-	struct power_supply_desc *desc;
+	const struct power_supply_desc *desc;
 
 	char **supplied_to;
 	size_t num_supplicants;
@@ -493,19 +493,19 @@ extern void power_supply_external_power_changed(struct power_supply *psy);
 
 extern struct power_supply *__must_check
 power_supply_register(struct device *parent,
-				 struct power_supply_desc *desc,
+				 const struct power_supply_desc *desc,
 				 const struct power_supply_config *cfg);
 extern struct power_supply *__must_check
 power_supply_register_no_ws(struct device *parent,
-				 struct power_supply_desc *desc,
+				 const struct power_supply_desc *desc,
 				 const struct power_supply_config *cfg);
 extern struct power_supply *__must_check
 devm_power_supply_register(struct device *parent,
-				 struct power_supply_desc *desc,
+				 const struct power_supply_desc *desc,
 				 const struct power_supply_config *cfg);
 extern struct power_supply *__must_check
 devm_power_supply_register_no_ws(struct device *parent,
-				 struct power_supply_desc *desc,
+				 const struct power_supply_desc *desc,
 				 const struct power_supply_config *cfg);
 extern void power_supply_unregister(struct power_supply *psy);
 extern int power_supply_powers(struct power_supply *psy, struct device *dev);

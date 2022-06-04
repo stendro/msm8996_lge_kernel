@@ -21,7 +21,7 @@
 #include <linux/power_supply.h>
 #include <linux/regulator/consumer.h>
 #include <linux/usb/class-dual-role.h>
-#include <linux/extcon.h>
+
 #ifdef CONFIG_LGE_DP_ANX7688
 #include <linux/slimport.h>
 #endif
@@ -31,7 +31,7 @@
 #include <soc/qcom/smem.h>
 #endif
 
-#ifdef CONFIG_EXTCON
+#ifdef  CONFIG_LGE_USB_TYPE_C
 #define PD_MAX_PDO_NUM 7
 #endif
 
@@ -79,6 +79,7 @@ struct anx7688_chip {
 	struct power_supply *usb_psy;
 	struct power_supply *batt_psy;
 	struct power_supply usbpd_psy;
+	struct power_supply_desc usbpd_psy_d;
 
 	struct dual_role_phy_instance *dual_role;
 	struct dual_role_phy_desc *desc;
@@ -129,23 +130,13 @@ struct anx7688_chip {
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
 	union power_supply_propval rp;
 #endif
-/* extcon for VBUS / ID notification to USB */
-#ifdef CONFIG_EXTCON
-	struct extcon_dev		*extcon;
+#ifdef CONFIG_LGE_USB_TYPE_C
 	u32 src_pdo[PD_MAX_PDO_NUM];
 	u32 offered_pdo[PD_MAX_PDO_NUM];
 	u32 rdo;
 	u32 offered_rdo;
 #endif
 };
-
-#ifdef CONFIG_EXTCON
-static const unsigned int anx7688_extcon_modes[] = {
-	EXTCON_USB,
-	EXTCON_USB_HOST,
-	EXTCON_NONE,
-};
-#endif
 
 void anx7688_sbu_ctrl(struct anx7688_chip *chip, bool dir);
 void anx7688_pwr_on(struct anx7688_chip *chip);

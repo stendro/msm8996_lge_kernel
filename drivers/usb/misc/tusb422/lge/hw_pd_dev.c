@@ -72,6 +72,7 @@ int set_mode(struct hw_pd_dev *dev, int mode)
 
 int set_pr(struct hw_pd_dev *dev, int pr)
 {
+	union power_supply_propval prop;
 	static const char *const strings[] = {
 		[DUAL_ROLE_PROP_PR_SRC]		= "Source",
 		[DUAL_ROLE_PROP_PR_SNK]		= "Sink",
@@ -83,12 +84,18 @@ int set_pr(struct hw_pd_dev *dev, int pr)
 
 	switch (pr) {
 	case DUAL_ROLE_PROP_PR_SRC:
-		power_supply_set_usb_otg(&dev->chg_psy, 1);
+		prop.intval = 1;
+		power_supply_set_property(&dev->chg_psy, 
+			POWER_SUPPLY_PROP_USB_OTG, &prop);
+		//power_supply_set_usb_otg(&dev->chg_psy, 1);
 		break;
 
 	case DUAL_ROLE_PROP_PR_SNK:
 	case DUAL_ROLE_PROP_PR_NONE:
-		power_supply_set_usb_otg(&dev->chg_psy, 0);
+		prop.intval = 0;
+		power_supply_set_property(&dev->chg_psy, 
+			POWER_SUPPLY_PROP_USB_OTG, &prop);
+		//power_supply_set_usb_otg(&dev->chg_psy, 0);
 		break;
 
 	default:
@@ -105,6 +112,7 @@ int set_pr(struct hw_pd_dev *dev, int pr)
 
 int set_dr(struct hw_pd_dev *dev, int dr)
 {
+	union power_supply_propval prop;
 	static const char *const strings[] = {
 		[DUAL_ROLE_PROP_DR_HOST]	= "Host",
 		[DUAL_ROLE_PROP_DR_DEVICE]	= "Device",
@@ -117,19 +125,30 @@ int set_dr(struct hw_pd_dev *dev, int dr)
 	switch (dr) {
 	case DUAL_ROLE_PROP_DR_HOST:
 		set_dr(dev, DUAL_ROLE_PROP_DR_NONE);
-		power_supply_set_usb_otg(dev->usb_psy, 1);
+		prop.intval = 1;
+		power_supply_set_property(&dev->chg_psy, 
+			POWER_SUPPLY_PROP_USB_OTG, &prop);
+		//power_supply_set_usb_otg(dev->usb_psy, 1);
 		break;
 
 	case DUAL_ROLE_PROP_DR_DEVICE:
 		set_dr(dev, DUAL_ROLE_PROP_DR_NONE);
-		power_supply_set_present(dev->usb_psy, 1);
+		prop.intval = 1;
+		power_supply_set_property(&dev->chg_psy, 
+			POWER_SUPPLY_PROP_USB_OTG, &prop);
+		//power_supply_set_present(dev->usb_psy, 1);
 		break;
 
 	case DUAL_ROLE_PROP_DR_NONE:
+		prop.intval = 0;
 		if (dev->dr == DUAL_ROLE_PROP_DR_HOST)
-			power_supply_set_usb_otg(dev->usb_psy, 0);
+			power_supply_set_property(&dev->chg_psy, 
+						POWER_SUPPLY_PROP_USB_OTG, &prop);
+			//power_supply_set_usb_otg(dev->usb_psy, 0);
 		if (dev->dr == DUAL_ROLE_PROP_DR_DEVICE)
-			power_supply_set_present(dev->usb_psy, 0);
+			power_supply_set_property(&dev->chg_psy, 
+						POWER_SUPPLY_PROP_USB_OTG, &prop);
+			//power_supply_set_present(dev->usb_psy, 0);
 		break;
 
 	default:
@@ -172,7 +191,7 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 	switch (event) {
 	case PD_DPM_PE_EVT_SOURCE_VBUS:
 		set_pr(dev, DUAL_ROLE_PROP_PR_SRC);
-		dev->chg_psy.type = POWER_SUPPLY_TYPE_DFP;
+		dev->chg_psy_d.type = POWER_SUPPLY_TYPE_DFP;
 		break;
 
 	case PD_DPM_PE_EVT_DIS_VBUS_CTRL:
@@ -182,16 +201,16 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 			set_pr(dev, DUAL_ROLE_PROP_PR_NONE);
 		}
 
-		dev->chg_psy.type = POWER_SUPPLY_TYPE_UNKNOWN;
+		dev->chg_psy_d.type = POWER_SUPPLY_TYPE_UNKNOWN;
 		dev->curr_max = 0;
 		dev->volt_max = 0;
 
 		if (dev->rp) {
 			dev->rp = 0;
 			prop.intval = 0;
-			set_property_to_battery(dev,
-						POWER_SUPPLY_PROP_CTYPE_RP,
-						&prop);
+			//set_property_to_battery(dev,
+			//			POWER_SUPPLY_PROP_CTYPE_RP, TODO: Either add that prop, or work around it.
+			//			&prop);
 		}
 		break;
 
@@ -206,12 +225,12 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 		set_pr(dev, DUAL_ROLE_PROP_PR_SNK);
 
 		if (vbus_state->vbus_type) {
-			if (dev->chg_psy.type == POWER_SUPPLY_TYPE_CTYPE_PD &&
+			if (dev->chg_psy_d.type == POWER_SUPPLY_TYPE_USB_PD &&
 			    dev->volt_max == vbus_state->mv &&
 			    dev->curr_max == vbus_state->ma)
 				goto print_vbus_state;
 
-			dev->chg_psy.type = POWER_SUPPLY_TYPE_CTYPE_PD;
+			dev->chg_psy_d.type = POWER_SUPPLY_TYPE_USB_PD;
 			dev->volt_max = vbus_state->mv;
 			dev->curr_max = vbus_state->ma;
 
@@ -223,8 +242,8 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 			uint16_t ma = vbus_state->ma;
 			int rp = 0;
 
-			if (dev->chg_psy.type == POWER_SUPPLY_TYPE_USB_HVDCP ||
-			    dev->chg_psy.type == POWER_SUPPLY_TYPE_USB_HVDCP_3) {
+			if (dev->chg_psy_d.type == POWER_SUPPLY_TYPE_USB_HVDCP ||
+			    dev->chg_psy_d.type == POWER_SUPPLY_TYPE_USB_HVDCP_3) {
 				DEBUG("HVDCP is present. ignore Rp advertisement\n");
 				if (dev->curr_max) {
 					dev->curr_max = 0;
@@ -261,9 +280,9 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 			if (rp && !dev->rp) {
 				dev->rp = rp;
 				prop.intval = dev->rp;
-				set_property_to_battery(dev,
-							POWER_SUPPLY_PROP_CTYPE_RP,
-							&prop);
+				//set_property_to_battery(dev,
+				//			POWER_SUPPLY_PROP_CTYPE_RP, TODO: Either add that prop, or work around it.
+				//			&prop);
 			}
 
 			if (dev->volt_max == vbus_state->mv &&
@@ -282,8 +301,8 @@ int pd_dpm_handle_pe_event(enum pd_dpm_pe_evt event, void *state)
 print_vbus_state:
 		PRINT("%s: %s, %dmV, %dmA\n", __func__,
 		      chg_to_string(vbus_state->vbus_type ?
-				    POWER_SUPPLY_TYPE_CTYPE_PD :
-				    POWER_SUPPLY_TYPE_CTYPE),
+				    POWER_SUPPLY_TYPE_USB_PD :
+				    POWER_SUPPLY_TYPE_TYPEC),
 		      vbus_state->mv,
 		      vbus_state->ma);
 		break;
@@ -318,14 +337,16 @@ print_vbus_state:
 		case PD_DPM_TYPEC_UNATTACHED:
 			dev->typec_mode = POWER_SUPPLY_TYPE_UNKNOWN;
 
-			if (dev->mode == DUAL_ROLE_PROP_MODE_FAULT) {
 #ifdef CONFIG_LGE_PM_WATERPROOF_PROTECTION
+			if (dev->mode == DUAL_ROLE_PROP_MODE_FAULT) {
+
 				prop.intval = 0;
 				set_property_to_battery(dev,
 							POWER_SUPPLY_PROP_INPUT_SUSPEND,
 							&prop);
-#endif
+
 			}
+#endif
 
 #ifdef CONFIG_LGE_USB_MOISTURE_DETECT
 			if (dev->is_sbu_ov) {
@@ -375,7 +396,7 @@ print_vbus_state:
 			set_pr(dev, DUAL_ROLE_PROP_PR_NONE);
 			set_dr(dev, DUAL_ROLE_PROP_DR_NONE);
 
-			dev->chg_psy.type = POWER_SUPPLY_TYPE_UNKNOWN;
+			dev->chg_psy_d.type = POWER_SUPPLY_TYPE_UNKNOWN;
 			dev->curr_max = 0;
 			dev->volt_max = 0;
 
@@ -405,7 +426,9 @@ print_vbus_state:
 			(struct pd_dpm_swap_state *)state;
 		switch (swap_state->new_role) {
 		case PD_DATA_ROLE_UFP:
-			power_supply_set_supply_type(dev->usb_psy, POWER_SUPPLY_TYPE_USB);
+			prop.intval = POWER_SUPPLY_TYPE_USB;
+			power_supply_set_property(dev->usb_psy, POWER_SUPPLY_PROP_TYPE, &prop);
+			//power_supply_set_supply_type(dev->usb_psy, POWER_SUPPLY_TYPE_USB);
 			set_dr(dev, DUAL_ROLE_PROP_DR_DEVICE);
 			break;
 

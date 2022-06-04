@@ -149,6 +149,7 @@ struct batt_mngr {
 	struct device		*dev;
 	struct kobject		*kobj;
 	struct power_supply batt_mngr_psy;
+	struct power_supply_desc batt_mngr_psy_d;
 	struct power_supply *bm_psy;
 	struct power_supply *cc_psy;
 	struct power_supply *batt_psy;
@@ -871,17 +872,18 @@ static int batt_mngr_probe(struct platform_device *pdev)
 
 	bm_base_psy = kzalloc(sizeof(struct power_supply),
 				GFP_KERNEL);
-	bm_base_psy->desc = kzalloc(sizeof(struct power_supply_desc),
-				GFP_KERNEL);
+	//bm_base_psy_d = kzalloc(sizeof(struct power_supply_desc),
+	//			GFP_KERNEL);
 
-	bm_base_psy->desc->name = BM_PSY_NAME;
-	bm_base_psy->desc->get_property = batt_mngr_get_property;
-	bm_base_psy->desc->set_property = batt_mngr_set_property;
-	bm->batt_mngr_psy = *bm_base_psy;
+	bm->batt_mngr_psy_d.name = BM_PSY_NAME;
+	bm->batt_mngr_psy_d.get_property = batt_mngr_get_property;
+	bm->batt_mngr_psy_d.set_property = batt_mngr_set_property;
+	//bm->batt_mngr_psy = *bm_base_psy;
 	
-	bm->batt_mngr_psy = *power_supply_register(bm->dev, bm->batt_mngr_psy.desc, NULL);
-	pr_bm(PR_INFO, "Battery manager psy name: %s\n", bm->batt_mngr_psy.desc->name);
-	if (strcmp(bm->batt_mngr_psy.desc->name, BM_PSY_NAME) != 0) {
+	pr_bm(PR_INFO, "registering battery manager psy: %s\n", bm->batt_mngr_psy_d.name);
+	bm->batt_mngr_psy = *power_supply_register(bm->dev, &bm->batt_mngr_psy_d, NULL);
+	pr_bm(PR_INFO, "Registered. Battery manager psy name: %s\n", bm->batt_mngr_psy_d.name);
+	if (strcmp(bm->batt_mngr_psy_d.name, BM_PSY_NAME) != 0) {
 		pr_bm(PR_ERR, "%s power_supply_register charger controller failed ret=%d\n",
 			__func__, ret);
 		goto error;
