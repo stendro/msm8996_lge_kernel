@@ -130,6 +130,12 @@ struct anx7688_chip {
 #ifdef CONFIG_LGE_USB_ANX7688_OVP
 	union power_supply_propval rp;
 #endif
+#ifdef CONFIG_LGE_USB_TYPE_C
+	u32 src_pdo[PD_MAX_PDO_NUM];
+	u32 offered_pdo[PD_MAX_PDO_NUM];
+	u32 rdo;
+	u32 offered_rdo;
+#endif
 };
 
 void anx7688_sbu_ctrl(struct anx7688_chip *chip, bool dir);

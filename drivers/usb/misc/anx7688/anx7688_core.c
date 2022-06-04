@@ -712,9 +712,6 @@ static int usbpd_set_property(struct power_supply *psy,
 				dev_info(cdev, "power on by charger\n");
 				anx7688_set_data_role(chip,
 						DUAL_ROLE_PROP_DR_DEVICE);
-<<<<<<< HEAD
-#ifdef  CONFIG_LGE_USB_TYPE_C
-=======
 #if defined(CONFIG_LGE_USB_TYPE_C)
 				if (chip->pdata->fwver < MI1_FWVER_RC1)
 					anx7688_pwr_on(chip);
@@ -723,23 +720,17 @@ static int usbpd_set_property(struct power_supply *psy,
 				if (!atomic_read(&chip->power_on)) {
 #if defined(CONFIG_LGE_USB_TYPE_C)
 				
->>>>>>> 77096fbcffec (drivers: usb: anx7688: Restructure code based on fusb301 driver.)
 				anx7688_pwr_on(chip);
-#endif
-		} else if (chip->state == STATE_DEBUG_ACCESSORY) {
-				if (!atomic_read(&chip->power_on)) {
-#if defined( CONFIG_LGE_USB_TYPE_C)
-					anx7688_pwr_on(chip);
-					anx7688_set_data_role(chip,
+				anx7688_set_data_role(chip,
 						DUAL_ROLE_PROP_DR_DEVICE);
 #else
-					/* Do nothing */
-					;
+				/* Do nothing */
+				;
 #endif
-#if defined( CONFIG_LGE_USB_TYPE_C)
+#if defined(CONFIG_LGE_USB_TYPE_C)
 				} else if (chip->data_role ==
 						DUAL_ROLE_PROP_DR_NONE) {
-						anx7688_set_data_role(chip,
+					anx7688_set_data_role(chip,
 							DUAL_ROLE_PROP_DR_DEVICE);
 				}
 #else
@@ -924,10 +915,7 @@ static void anx7688_ctype_work(struct work_struct *w)
 		chip->usbpd_psy_d.type = usbprop.intval;
 		//power_supply_set_property(&chip->usbpd_psy, POWER_SUPPLY_PROP_TYPE, 
 		//					&usbprop);
-<<<<<<< HEAD
-=======
 		dev_info(cdev, "Charger set to USB_PD, usbprop_intval: %d, usbpd_type: %d\n", usbprop.intval, chip->usbpd_psy_d.type);
->>>>>>> 77096fbcffec (drivers: usb: anx7688: Restructure code based on fusb301 driver.)
 #ifdef CONFIG_LGE_PM
 		usbpd_set_property_on_batt(chip,
 				POWER_SUPPLY_PROP_CURRENT_CAPABILITY,
@@ -937,13 +925,8 @@ static void anx7688_ctype_work(struct work_struct *w)
 	default:
 		/* unknown charger */
 		usbprop.intval = POWER_SUPPLY_TYPE_USB; // enum POWER_SUPPLY_TYPE_USB = 4
-<<<<<<< HEAD
-		chip->usbpd_psy.desc->type = usbprop.intval;
-
-=======
 		chip->usbpd_psy_d.type = usbprop.intval;
 		dev_info(cdev, "Charger set to Generic USB, usbprop_intval: %d, usbpd_type: %d\n", usbprop.intval, chip->usbpd_psy_d.type);
->>>>>>> 77096fbcffec (drivers: usb: anx7688: Restructure code based on fusb301 driver.)
 #ifdef CONFIG_LGE_PM
 		usbpd_set_property_on_batt(chip,
 				POWER_SUPPLY_PROP_CURRENT_CAPABILITY,
