@@ -113,7 +113,7 @@
 
 	blsp1_uart6: serial@7574000 {
 		compatible = "qcom,msm-uartdm-v1.4", "qcom,msm-uartdm";
-		reg = <0x7574000 0x1000>;
+		reg = <0x7574000 0x100>;
 		interrupts = <0 112 0>;
 		status = "ok";
 		clocks = <&clock_gcc clk_gcc_blsp1_uart6_apps_clk>,
