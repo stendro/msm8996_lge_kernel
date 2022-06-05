@@ -11,6 +11,9 @@ enum dual_role_supported_modes {
 	DUAL_ROLE_SUPPORTED_MODES_DFP_AND_UFP = 0,
 	DUAL_ROLE_SUPPORTED_MODES_DFP,
 	DUAL_ROLE_SUPPORTED_MODES_UFP,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_SUPPORTED_MODES_DFP_AND_UFP_AND_FAULT,
+#endif
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_SUPPORTED_MODES_TOTAL,
 };
@@ -18,6 +21,9 @@ enum dual_role_supported_modes {
 enum {
 	DUAL_ROLE_PROP_MODE_UFP = 0,
 	DUAL_ROLE_PROP_MODE_DFP,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_MODE_FAULT,
+#endif
 	DUAL_ROLE_PROP_MODE_NONE,
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_MODE_TOTAL,
@@ -26,6 +32,9 @@ enum {
 enum {
 	DUAL_ROLE_PROP_PR_SRC = 0,
 	DUAL_ROLE_PROP_PR_SNK,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_PR_FAULT,
+#endif
 	DUAL_ROLE_PROP_PR_NONE,
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_PR_TOTAL,
@@ -35,6 +44,9 @@ enum {
 enum {
 	DUAL_ROLE_PROP_DR_HOST = 0,
 	DUAL_ROLE_PROP_DR_DEVICE,
+#ifdef CONFIG_LGE_USB_TYPE_C
+	DUAL_ROLE_PROP_DR_FAULT,
+#endif
 	DUAL_ROLE_PROP_DR_NONE,
 /*The following should be the last element*/
 	DUAL_ROLE_PROP_DR_TOTAL,
@@ -47,7 +59,7 @@ enum {
 	DUAL_ROLE_PROP_VCONN_SUPPLY_TOTAL,
 };
 
-#ifdef CONFIG_EXTCON
+#ifdef CONFIG_LGE_USB_TYPE_C
 enum {
 	DUAL_ROLE_PROP_CC_OPEN = 0,
 	DUAL_ROLE_PROP_CC_RP_DEFAULT,
@@ -66,7 +78,7 @@ enum dual_role_property {
 	DUAL_ROLE_PROP_PR,
 	DUAL_ROLE_PROP_DR,
 	DUAL_ROLE_PROP_VCONN_SUPPLY,
-#ifdef CONFIG_EXTCON
+#ifdef CONFIG_LGE_USB_TYPE_C
 	DUAL_ROLE_PROP_CC1,
 	DUAL_ROLE_PROP_CC2,
 	DUAL_ROLE_PROP_PDO1,
@@ -77,7 +89,7 @@ enum dual_role_property {
 #endif
 };
 
-#ifdef CONFIG_EXTCON
+#ifdef CONFIG_LGE_USB_TYPE_C
 /* PDO */
 enum {
 	DUAL_ROLE_PROP_PDO_TYPE_FIXED,
