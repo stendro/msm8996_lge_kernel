@@ -21,7 +21,7 @@
 	interrupt-parent = <&intc>;
 
 	chosen {
-		bootargs = "app_setting.use_32bit_app_setting=1 kpti=1";
+		bootargs = "app_setting.use_32bit_app_setting=1";
 	};
 
 	aliases {
