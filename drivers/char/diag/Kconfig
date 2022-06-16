@@ -31,3 +31,28 @@ config DIAGFWD_BRIDGE_CODE
 	help
 	 SMUX/HSIC Transport Layer for DIAG Router
 endmenu
+
+menu "LGE DIAG Support"
+
+config LGE_DM_APP
+	bool "LGE DM APP Support"
+	depends on LGE_STOCK
+	default y
+	help
+	 LGE DM APP Support
+
+config LGE_ACG_CARRIER_CODE
+	bool "LGE ACG Carrier Code"
+	depends on LGE_STOCK
+	depends on MACH_MSM8996_H1_LRA_US
+	default y
+	help
+	 LGE ACG Carrier Code
+
+config LGE_DIAG_BYPASS
+	tristate "Support LGE diag bypass for factory"
+	depends on LGE_STOCK
+	default n
+	help
+	  LGE diag bypass
+endmenu

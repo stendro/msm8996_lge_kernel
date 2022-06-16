@@ -3,7 +3,9 @@
 
 #include <linux/i2c.h>
 
-#ifdef CONFIG_MACH_LGE
+#ifdef CONFIG_LGE_STOCK
+#define OIS_FIRMWARE_LOCATION "/system/vendor/etc/camera"
+#else
 #define OIS_FIRMWARE_LOCATION "/vendor/firmware"
 #endif
 

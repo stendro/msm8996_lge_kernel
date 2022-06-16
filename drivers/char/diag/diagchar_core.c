@@ -49,6 +49,13 @@
 #include <linux/compat.h>
 #endif
 
+#ifdef CONFIG_LGE_STOCK
+#include "mts_tty.h"
+#endif
+#ifdef CONFIG_LGE_DIAG_BYPASS
+#include "lg_diag_bypass.h"
+#endif
+
 MODULE_DESCRIPTION("Diag Char Driver");
 MODULE_LICENSE("GPL v2");
 MODULE_VERSION("1.0");
@@ -1497,8 +1504,22 @@ static int diag_md_session_check(int curr_mode, int req_mode,
 		return -EINVAL;
 
 	if (req_mode == DIAG_USB_MODE) {
+#ifndef CONFIG_LGE_STOCK
 		if (curr_mode == DIAG_USB_MODE)
+#else
+		if (curr_mode == DIAG_USB_MODE) {
+			if (mts_tty->run) {
+				err = diag_md_session_create(DIAG_MD_PERIPHERAL,
+						param->peripheral_mask, DIAG_LOCAL_PROC);
+				if (err)
+					return err;
+				*change_mode = 1;
+			}
+#endif
 			return 0;
+#ifdef CONFIG_LGE_STOCK
+		}
+#endif
 		mutex_lock(&driver->md_session_lock);
 		if (driver->md_session_mode == DIAG_MD_NONE
 		    && driver->md_session_mask == 0 && driver->logging_mask) {
@@ -3143,7 +3164,11 @@ static ssize_t diagchar_write(struct file *file, const char __user *buf,
 		return -EIO;
 	}
 
+#ifdef CONFIG_LGE_DIAG_BYPASS
+	if (driver->logging_mode == DIAG_USB_MODE && !driver->usb_connected && !lge_bypass_status()) {
+#else
 	if (driver->logging_mode == DIAG_USB_MODE && !driver->usb_connected) {
+#endif
 		if (!((pkt_type == DCI_DATA_TYPE) ||
 		    (pkt_type == DCI_PKT_TYPE) ||
 		    (pkt_type & DATA_TYPE_DCI_LOG) ||

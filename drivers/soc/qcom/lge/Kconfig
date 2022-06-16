@@ -329,7 +329,7 @@ config MACH_MSM8996_ELSA_KDDI_JP
 	select MACH_LGE
 	help
 	  Support for the Qualcomm MSM8996 ELSA_KDDI_JP device.
-	  	  
+
 config MACH_MSM8996_ELSA_DCM_JP
 	bool "MSM8996 ELSA_DCM_JP"
 	depends on ARCH_MSM8996
@@ -616,6 +616,14 @@ config LGE_MSM8996_ENABLE_VENDOR
 	depends on MACH_LGE
 	help
 	  Enables the /vendor partition in device-tree fstab
+
+config LGE_STOCK
+	bool "Support LG stock Android"
+	depends on MACH_LGE
+	default n
+	help
+	  Enable support for LG stock Android roms. This option will disable
+	  support for custom roms.
 
 endmenu
 

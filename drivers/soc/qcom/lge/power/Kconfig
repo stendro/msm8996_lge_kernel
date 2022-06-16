@@ -85,7 +85,8 @@ config LGE_PM_LGE_POWER_CLASS_UEVENT
 config LGE_PM_LGE_POWER_CLASS_VZW_REQ
 	tristate "VZW requirement driver for LG Power Class"
 	depends on LGE_PM_LGE_POWER_CORE
-	default n
+	depends on MACH_MSM8996_ELSA_VZW && LGE_STOCK
+	default y
 	help
 	  Say Y here enable support VZW requirement driver for LG Power Class
 

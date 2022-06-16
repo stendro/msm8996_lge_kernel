@@ -744,10 +744,11 @@ config LGE_PM_SOC_RECHARGING_WA
          Say Y here to recharging by SOC
 
 config LGE_PM_VZW_REQ
-	 tristate "Implementation of power requirements of Verizon"
-	 default n
-	 help
-	   power requirements for Verizon Wireless
+	tristate "Implementation of power requirements of Verizon"
+	depends on MACH_MSM8996_ELSA_VZW && LGE_STOCK
+	default y
+	help
+	  power requirements for Verizon Wireless
 
 config LGE_PM_CHARGERLOGO_WAIT_FOR_FG_INIT
 	bool "Wait for FG init in LGE Chargerlogo"
@@ -827,15 +828,17 @@ config LGE_PM_STEP_DECREASING_TAPER_CHARGING
 
 config LGE_PM_OTP_SCENARIO_FOR_VZW
 	tristate "LGE OTP SCENARIO FOR VZW"
-	default n
 	depends on LGE_PM
+	depends on MACH_MSM8996_ELSA_VZW && LGE_STOCK
+	default y
 	help
 	  Support otp scenario for vzw on LGE
 
 config LGE_PM_OTP_SCENARIO_FOR_SPRINT
 	tristate "LGE OTP SCENARIO FOR SPRINT"
-	default n
 	depends on LGE_PM
+	depends on MACH_MSM8996_ELSA_SPR_US && LGE_STOCK
+	default y
 	help
 	  Support otp scenario for sprint on LGE
 

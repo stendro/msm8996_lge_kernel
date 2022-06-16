@@ -31,6 +31,9 @@ VER=$(cat "${RDIR}/VERSION") \
 COMP=$(cat "${BDIR}/COMPRESSION") \
 		|| ABORT "No compression file found in ${BDIR}"
 
+IS_STOCK=$(cat "${BDIR}/include/generated/utsrelease.h" | grep -q 'STOCK') \
+		|| echo "Looks like ${BDIR} is empty"
+
 BVER=$(cat ${RDIR}/VERSION | cut -f1 -d'-')
 BDATE=$(LC_ALL='en_US.utf8' date '+%b %d %Y')
 GBRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -48,6 +51,12 @@ DDIR=${RDIR}/${OUTDIR}/${DEVICE}
 INIT_FILE_G6=${MK2DIR}/init-g6
 INIT_FILE=${MK2DIR}/init
 BANNER=${MK2DIR}/banner
+
+if [ "$IS_STOCK" ]; then
+	VER="${VER}-STOCK"
+	BANNER=${MK2DIR}/banner-stock
+	BANNER_BETA=${MK2DIR}/banner-beta-stock
+fi
 
 CLEAN_DIR() {
 	echo "Cleaning folder..."

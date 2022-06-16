@@ -31,6 +31,10 @@
 #include "diagmem.h"
 #include "diag_ipc_logging.h"
 
+#ifdef CONFIG_LGE_DIAG_BYPASS
+int diag_bypass_enable = 1;
+#endif
+
 #define DIAG_USB_STRING_SZ	10
 #define DIAG_USB_MAX_SIZE	16384
 
@@ -285,9 +289,15 @@ static void usb_read_done_work_fn(struct work_struct *work)
 	 * USB is disconnected/Disabled before the previous read completed.
 	 * Discard the packet and don't do any further processing.
 	 */
+#ifdef CONFIG_LGE_DM_APP
+	if (diag_mux->mode != DIAG_MEMORY_DEVICE_MODE) {
+#endif
 	if (!atomic_read(&ch->connected) || !ch->enabled ||
 	    !atomic_read(&ch->diag_state))
 		return;
+#ifdef CONFIG_LGE_DM_APP
+	}
+#endif
 
 	req = ch->read_ptr;
 	ch->read_cnt++;
@@ -357,12 +367,18 @@ static void diag_usb_notifier(void *priv, unsigned event,
 	case USB_DIAG_CONNECT:
 		usb_info->max_size = usb_diag_request_size(usb_info->hdl);
 		atomic_set(&usb_info->connected, 1);
+#ifdef CONFIG_LGE_DIAG_BYPASS
+		diag_bypass_enable = 0;
+#endif
 		pr_info("diag: USB channel %s connected\n", usb_info->name);
 		queue_work(usb_info->usb_wq,
 			   &usb_info->connect_work);
 		break;
 	case USB_DIAG_DISCONNECT:
 		atomic_set(&usb_info->connected, 0);
+#ifdef CONFIG_LGE_DIAG_BYPASS
+		diag_bypass_enable = 1;
+#endif
 		pr_info("diag: USB channel %s disconnected\n", usb_info->name);
 		queue_work(usb_info->usb_wq,
 			   &usb_info->disconnect_work);

@@ -495,13 +495,13 @@ config LGE_USB_DIAG_LOCK
 
 config LGE_USB_DIAG_LOCK_SPR
 	boolean "feature for usb diag access lock"
-	depends on LGE_USB_DIAG_LOCK
+	depends on LGE_USB_DIAG_LOCK && LGE_STOCK
+	depends on MACH_MSM8996_ELSA_SPR_US
+	default y
 	help
 	  this feature should be applied to meet SPR requirement
 
 	  Say y if this must be needed.
-
-	default n
 
 config LGE_USB_DIAG_LOCK_TRF
 	boolean "feature for usb diag access lock"
@@ -512,7 +512,6 @@ config LGE_USB_DIAG_LOCK_TRF
 	  Say y if this must be needed.
 
 	default n
-
 
 config LGE_USB_EMBEDDED_BATTERY
 	boolean "power cycle when factory cable is connected"
@@ -526,13 +525,13 @@ config LGE_USB_EMBEDDED_BATTERY
 
 config LGE_USB_DIAG_LOCK_VZW
 	boolean "feature for usb diag access lock"
-	depends on LGE_USB_DIAG_LOCK
+	depends on LGE_USB_DIAG_LOCK && LGE_STOCK
+	depends on MACH_MSM8996_ELSA_VZW
+	default y
 	help
 	  this feature should be applied to meet VZW requirement
 
 	  Say y if this must be needed.
-
-	default n
 
 config LGE_USB_TYPE_C
 	bool "USB Type-C support"

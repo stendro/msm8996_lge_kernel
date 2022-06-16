@@ -9,7 +9,9 @@
 # file to point to the toolchain's root directory.
 #
 # once you've set up the config section how you like it, you can simply run
-# ./build.sh [VARIANT]
+# ./build.sh [VARIANT] [OPTION]
+#
+# *Options are: STOCK (for stock kernel build)
 #
 ################################ VARIANTS ################################
 #
@@ -146,6 +148,14 @@ fi
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified!"
 
+# setup stock configuration
+[ "$2" = STOCK ] && MAKE_STOCK=yes && \
+	echo -e $COLOR_R"Stock build selected!"
+if [ "$MAKE_STOCK" = "yes" ]; then
+  STOCK_CONFIG=arch/$ARCH/configs/stock_config
+  export LOCALVERSION="-${VER}-STOCK"
+fi
+
 # link device name to lg config files
 if [ "$DEVICE" = "H850" ]; then
   DEVICE_DEFCONFIG=lineageos_h850_defconfig
@@ -210,6 +220,11 @@ SETUP_BUILD() {
 		|| echo -e $COLOR_R"Failed to reflect device!"
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build."
+	if [ "$MAKE_STOCK" = "yes" ]; then
+	  cat $STOCK_CONFIG >> $BDIR/.config
+	  make -C "$RDIR" O=$BDIR olddefconfig \
+		|| ABORT "Failed to set up stock config."
+	fi
 }
 
 BUILD_KERNEL() {
