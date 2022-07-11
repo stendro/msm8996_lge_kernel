@@ -2100,7 +2100,7 @@ static int smbchg_set_fastchg_current_raw(struct smbchg_chip *chip,
 #ifdef CONFIG_LGE_PM
 #ifdef CONFIG_MACH_MSM8996_LUCYE
 #define PARALLEL_CHG_THRESHOLD_CURRENT	500
-#elif CONFIG_MACH_MSM8996_H1
+#elif defined(CONFIG_MACH_MSM8996_H1)
 #define PARALLEL_CHG_THRESHOLD_CURRENT	600
 #else
 #define PARALLEL_CHG_THRESHOLD_CURRENT	1000
@@ -5300,6 +5300,7 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 		}
 	/* If APSD returned "SDP". */
 	} else if (rc == 0) {
+#ifndef CONFIG_MACH_LGE
 		rc = is_floated_charger(chip);
 		if (IS_ERR_VALUE(rc)) {
 			pr_err("failed to check floated charger rc=%d\n", rc);
@@ -5308,6 +5309,7 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 			chip->somc_params.chg_det.sub_type =
 						POWER_SUPPLY_SUB_TYPE_FLOATED;
 		}
+#endif
 	}
 #endif
 
