@@ -311,15 +311,6 @@ config LGE_BLUETOOTH_PM
 	  LGE Bluetooth Power & Sleep driver.
 	  This driver provides support for LGE BT Power & Sleep.
 
-config BT_BCM_COMBO
-	tristate "Broadcom BT/FM Combo chip driver"
-	help
-	  This enables the Broadcom BT/FM combo chip driver for
-	  certain BCM chips found primarily on various handheld
-	  devices.
-	  If unsure, say N.
-
 source "drivers/bluetooth/brcm_v4l2/Kconfig"
-source drivers/bluetooth/broadcom/Kconfig
 
 endmenu
