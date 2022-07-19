@@ -382,12 +382,9 @@ AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage -fno-tree-loop-im
 CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 
-# fall back to -march=armv8-a+crc+crypto in case the compiler isn't
-# compatible with -mcpu
-ARM_ARCH_OPT := -mcpu=cortex-a57+crc+crypto
-GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crc+crypto)
-# remove this below line until development has reached a certain point.
-# -g0 -DNDEBUG -fsplit-paths -floop-block -fipa-pta -ftree-vectorize
+# enable various optimization flags appropriate for the target device
+MK2K_OPTS := -mcpu=cortex-a57+crc+crypto \
+ --param l1-cache-line-size=64 --param l1-cache-size=24 --param l2-cache-size=512
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
@@ -414,7 +411,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -std=gnu89 $(call cc-option,-fno-PIE) \
-		   $(GEN_OPT_FLAGS)
+		   $(MK2K_OPTS)
 
 ifeq ($(TARGET_BOARD_TYPE),auto)
 KBUILD_CFLAGS    += -DCONFIG_PLATFORM_AUTO
