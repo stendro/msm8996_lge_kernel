@@ -55,6 +55,10 @@ if echo ${UTSREL} | grep -q 'STOCK'; then
 	VER="${VER}-STOCK"
 	BANNER=${MK2DIR}/banner-stock
 	BANNER_BETA=${MK2DIR}/banner-beta-stock
+elif echo ${UTSREL} | grep -q 'TWRP'; then
+        VER="${VER}-TWRP"
+        BANNER=${MK2DIR}/banner-twrp
+        BANNER_BETA=${MK2DIR}/banner-twrp
 fi
 
 CLEAN_DIR() {

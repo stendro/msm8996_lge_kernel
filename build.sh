@@ -11,7 +11,7 @@
 # once you've set up the config section how you like it, you can simply run
 # ./build.sh [VARIANT] [OPTION]
 #
-# *Options are: STOCK (for stock kernel build)
+# *Options are: TWRP and STOCK (for stock kernel build)
 #
 ################################ VARIANTS ################################
 #
@@ -148,12 +148,17 @@ fi
 [ "$1" ] && DEVICE=$1
 [ "$DEVICE" ] || ABORT "No device specified!"
 
-# setup stock configuration
-[ "$2" = STOCK ] && MAKE_STOCK=yes && \
-	echo -e $COLOR_R"Stock build selected!"
-if [ "$MAKE_STOCK" = "yes" ]; then
-  STOCK_CONFIG=arch/$ARCH/configs/stock_config
+# setup options
+if [ "$2" = STOCK ]; then
+  MK2K_OPT=yes
+  OPT_CONF=arch/$ARCH/configs/stock_config
   export LOCALVERSION="-${VER}-STOCK"
+  echo -e $COLOR_R"Stock build selected!"
+elif [ "$2" = TWRP ]; then
+  MK2K_OPT=yes
+  OPT_CONF=arch/$ARCH/configs/twrp_config
+  export LOCALVERSION="-${VER}-TWRP"
+  echo -e $COLOR_R"Twrp build selected!"
 fi
 
 # link device name to lg config files
@@ -220,10 +225,10 @@ SETUP_BUILD() {
 		|| echo -e $COLOR_R"Failed to reflect device!"
 	make -C "$RDIR" O=$BDIR "$DEVICE_DEFCONFIG" \
 		|| ABORT "Failed to set up build."
-	if [ "$MAKE_STOCK" = "yes" ]; then
-	  cat $STOCK_CONFIG >> $BDIR/.config
+	if [ "$MK2K_OPT" = "yes" ]; then
+	  cat $OPT_CONF >> $BDIR/.config
 	  make -C "$RDIR" O=$BDIR olddefconfig \
-		|| ABORT "Failed to set up stock config."
+		|| ABORT "Failed to set up option config."
 	fi
 }
 
