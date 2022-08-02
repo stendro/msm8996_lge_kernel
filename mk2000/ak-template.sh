@@ -13,10 +13,16 @@ else
   ABOOT_LOW=us996
 fi
 
-if [ "$DEVICE" = "US996Santa" ]; then
+if [ "$DEVICE" = "US996Dirty" ]; then
   AK_DEV=US996
 else
   AK_DEV=$DEVICE
+fi
+
+if echo ${UTSREL} | grep -q 'TWRP'; then
+  FLASHTO=recovery
+else
+  FLASHTO=boot
 fi
 
 DEV_LOW=$(echo "$AK_DEV" | awk '{print tolower($0)}')
@@ -44,7 +50,7 @@ device.name6=$ABOOT_LOW
 '; } # end properties
 
 # shell variables
-block=/dev/block/bootdevice/by-name/boot;
+block=/dev/block/bootdevice/by-name/$FLASHTO;
 is_slot_device=0;
 ramdisk_compression=auto;
 
