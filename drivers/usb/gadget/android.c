@@ -56,8 +56,10 @@
 #include "u_fs.h"
 #include "u_ecm.h"
 #include "u_ncm.h"
+#ifdef CONFIG_SOUND
 #if defined(CONFIG_SND_RAWMIDI) || defined(CONFIG_LGE_USB_G_ANDROID)
 #include "f_midi.c"
+#endif
 #endif
 #include "f_diag.c"
 #include "f_qdss.c"
@@ -1917,6 +1919,7 @@ static struct android_usb_function audio_function = {
 };
 #endif
 
+#ifdef CONFIG_USB_F_UAC2
 /* PERIPHERAL uac2 */
 struct uac2_function_config {
 	struct usb_function *func;
@@ -1974,6 +1977,7 @@ static struct android_usb_function uac2_function = {
 	.cleanup	= uac2_function_cleanup,
 	.bind_config	= uac2_function_bind_config,
 };
+#endif
 
 #ifdef CONFIG_MEDIA_SUPPORT
 /* PERIPHERAL VIDEO */
@@ -3430,6 +3434,7 @@ static struct android_usb_function accessory_function = {
 	.ctrlrequest	= accessory_function_ctrlrequest,
 };
 
+#ifdef CONFIG_USB_F_AUDIO_SRC
 struct audio_source_function_config {
 	struct usb_function *f_aud;
 	struct usb_function_instance *f_aud_inst;
@@ -3483,7 +3488,9 @@ static struct android_usb_function audio_source_function = {
 	.cleanup	= audio_source_function_cleanup,
 	.bind_config	= audio_source_function_bind_config,
 };
+#endif
 
+#ifdef CONFIG_SOUND
 #if defined(CONFIG_SND_RAWMIDI) || defined(CONFIG_LGE_USB_G_ANDROID)
 static int midi_function_init(struct android_usb_function *f,
 					struct usb_composite_dev *cdev)
@@ -3538,6 +3545,7 @@ static struct android_usb_function midi_function = {
 	.bind_config	= midi_function_bind_config,
 	.attributes	= midi_function_attributes,
 };
+#endif
 #endif
 
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
@@ -3773,7 +3781,9 @@ static struct android_usb_function *supported_functions[] = {
 	[ANDROID_NCM] = &ncm_function,
 	[ANDROID_UMS] = &mass_storage_function,
 	[ANDROID_ACCESSORY] = &accessory_function,
+#ifdef CONFIG_USB_F_AUDIO_SRC
 	[ANDROID_AUDIO_SRC] = &audio_source_function,
+#endif
 	[ANDROID_CHARGER] = &charger_function,
 #ifdef CONFIG_SND_RAWMIDI
 	[ANDROID_MIDI] = &midi_function,
@@ -3815,10 +3825,14 @@ static struct android_usb_function *default_functions[] = {
 	&charge_only_function,
 #endif
 	&accessory_function,
+#ifdef CONFIG_USB_F_AUDIO_SRC
 	&audio_source_function,
+#endif
 	&charger_function,
+#ifdef CONFIG_SOUND
 #if defined(CONFIG_SND_RAWMIDI) || defined(CONFIG_LGE_USB_G_ANDROID)
 	&midi_function,
+#endif
 #endif
 #ifdef CONFIG_LGE_USB_MAXIM_EVP
 	&evp_function,

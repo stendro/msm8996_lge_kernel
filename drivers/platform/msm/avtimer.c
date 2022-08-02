@@ -271,11 +271,13 @@ EXPORT_SYMBOL(avcs_core_disable_power_collapse);
 
 static void reset_work(struct work_struct *work)
 {
+#ifdef CONFIG_MSM_QDSP6V2_CODECS
 	if (q6core_is_adsp_ready()) {
 		avcs_core_disable_power_collapse(1);
 		avtimer.num_retries = Q6_READY_MAX_RETRIES;
 		return;
 	}
+#endif
 	pr_debug("%s:Q6 not ready-retry after sometime\n", __func__);
 	if (--avtimer.num_retries > 0) {
 		schedule_delayed_work(&avtimer.ssr_dwork,
