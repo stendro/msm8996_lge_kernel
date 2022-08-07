@@ -5,7 +5,7 @@ if [ "$DEVICE" = "H870" ] || [ "$DEVICE" = "US997" ] || [ "$DEVICE" = "H872" ]; 
   DEV_NAME=LUCYE
 elif [ "$DEVICE" = "H850" ] || [ "$DEVICE" = "RS988" ] || [ "$DEVICE" = "H830" ]; then
   DEV_NAME=H1
-elif [ "$DEVICE" = "US996Santa" ] || [ "$DEVICE" = "US996" ] || [ "$DEVICE" = "H918" ]; then
+elif [ "$DEVICE" = "US996Dirty" ] || [ "$DEVICE" = "US996" ] || [ "$DEVICE" = "H918" ]; then
   DEV_NAME=ELSA
 else
   DEV_NAME=ELSA
@@ -13,7 +13,7 @@ else
   ABOOT_LOW=us996
 fi
 
-if [ "$DEVICE" = "US996Santa" ]; then
+if [ "$DEVICE" = "US996Dirty" ]; then
   AK_DEV=US996
 else
   AK_DEV=$DEVICE
