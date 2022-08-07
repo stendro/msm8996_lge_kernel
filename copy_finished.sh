@@ -17,11 +17,13 @@ COLOR_G="\033[1;32m"
 # intended android version
 ADROID="Android 11"
 
+# abort function
 ABORT() {
 	echo -e $COLOR_R"Error: $*"
 	exit 1
 }
 
+# variables
 DEVICE=$(cat "${BDIR}/DEVICE") \
 		|| ABORT "No device file found in ${BDIR}"
 
@@ -49,6 +51,7 @@ INIT_FILE_G6=${MK2DIR}/init-g6
 INIT_FILE=${MK2DIR}/init
 BANNER=${MK2DIR}/banner
 
+# functions
 CLEAN_DIR() {
 	echo "Cleaning folder..."
 	rm -rf $DDIR
@@ -75,7 +78,7 @@ COPY_AK() {
 		|| ABORT "Failed to copy banner"
 	  echo "  ${BVER} ${ADROID}" > $DDIR/version
 	else
-	  cp $BANNER $DDIR \
+	  cp $BANNER $DDIR/banner \
 		|| ABORT "Failed to copy banner"
 	  echo "  ${VER} ${ADROID}" > $DDIR/version
 	fi
@@ -111,17 +114,20 @@ COPY_KERNEL() {
 ZIP_UP() {
 	echo "Creating AnyKernel3 archive..."
 	cd $DDIR
-	zip -7qr $RDIR/$OUTDIR/${DEVICE}_${VER}-mk2000.zip * \
+	OUTZIP=$OUTDIR/${DEVICE}_${VER}-mk2000.zip
+	ZIPPATH=$RDIR/$OUTZIP
+	zip -7qr $ZIPPATH * \
 		|| ABORT "Failed to create zip archive"
 }
 
+# execute functions
 cd "$RDIR" || ABORT "Failed to enter ${RDIR}"
 echo -e $COLOR_G"Preparing ${DEVICE} ${VER}"$COLOR_N
 
-CLEAN_DIR &&
-SETUP_DIR &&
-COPY_AK &&
-COPY_INIT &&
-COPY_KERNEL &&
-ZIP_UP &&
-echo -e $COLOR_G"Finished! -- Look in *${OUTDIR}* folder."
+CLEAN_DIR
+SETUP_DIR
+COPY_AK
+COPY_INIT
+COPY_KERNEL
+ZIP_UP
+echo -e $COLOR_G"Finished! -- ${OUTZIP}"
