@@ -40,6 +40,8 @@ mdss-dsi-objs += mdss_dsi_phy_v3.o
 mdss-dsi-objs += mdss_dsi_clk.o
 obj-$(CONFIG_FB_MSM_MDSS) += mdss-dsi.o
 obj-$(CONFIG_FB_MSM_MDSS) += mdss_panel.o
+obj-$(CONFIG_FB_MSM_MDSS_KCAL_CTRL) += mdss_mdp_kcal_ctrl.o
+
 obj-$(CONFIG_FB_MSM_MDSS) += mdss_hdmi_util.o
 obj-$(CONFIG_FB_MSM_MDSS) += mdss_hdmi_edid.o
 obj-$(CONFIG_FB_MSM_MDSS) += mdss_cec_core.o
