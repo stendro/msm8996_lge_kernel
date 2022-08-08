@@ -95,15 +95,20 @@ static bool lpm_prediction = true;
 module_param_named(lpm_prediction,
 	lpm_prediction, bool, S_IRUGO | S_IWUSR | S_IWGRP);
 
-static uint32_t ref_stddev = 100;
+static uint32_t ref_stddev = 500;
 module_param_named(
 	ref_stddev, ref_stddev, uint, S_IRUGO | S_IWUSR | S_IWGRP
 );
 
-static uint32_t tmr_add = 100;
+static uint32_t tmr_add = 1000;
 module_param_named(
 	tmr_add, tmr_add, uint, S_IRUGO | S_IWUSR | S_IWGRP
 );
+
+static uint32_t ref_premature_cnt = 1;
+
+static bool cluster_use_deepest_state;
+module_param(cluster_use_deepest_state, bool, 0664);
 
 struct lpm_history {
 	uint32_t resi[MAXSAMPLES];
@@ -176,6 +181,11 @@ void lpm_suspend_wake_time(uint64_t wakeup_time)
 		suspend_wake_time = wakeup_time;
 }
 EXPORT_SYMBOL(lpm_suspend_wake_time);
+
+void lpm_cluster_use_deepest_state(bool enable)
+{
+	cluster_use_deepest_state = enable;
+}
 
 static uint32_t least_cluster_latency(struct lpm_cluster *cluster,
 					struct latency_level *lat_level)
@@ -552,6 +562,7 @@ static uint64_t lpm_cpuidle_predict(struct cpuidle_device *dev,
 	int64_t thresh = LLONG_MAX;
 	struct lpm_history *history = &per_cpu(hist, dev->cpu);
 	uint32_t *min_residency = get_per_cpu_min_residency(dev->cpu);
+	uint32_t *max_residency = get_per_cpu_max_residency(dev->cpu);
 
 	if (!lpm_prediction)
 		return 0;
@@ -638,9 +649,17 @@ again:
 					total += history->resi[i];
 				}
 			}
-			if (failed > (MAXSAMPLES/2)) {
+			if (failed >= ref_premature_cnt) {
 				*idx_restrict = j;
 				do_div(total, failed);
+				for (i = 0; i < j; i++) {
+					if (total < max_residency[i]) {
+						*idx_restrict = i+1;
+						total = max_residency[i];
+						break;
+					}
+				}
+
 				*idx_restrict_time = total;
 				history->stime = ktime_to_us(ktime_get())
 						+ *idx_restrict_time;
@@ -1014,6 +1033,24 @@ static void clear_cl_predict_history(void)
 	}
 }
 
+static int cluster_select_deepest(struct lpm_cluster *cluster)
+{
+	int i;
+
+	for (i = cluster->nlevels - 1; i >= 0; i--) {
+		struct lpm_cluster_level *level = &cluster->levels[i];
+
+		if (level->notify_rpm) {
+			if (level->notify_rpm && msm_rpm_waiting_for_ack())
+				continue;
+		}
+
+		break;
+	}
+
+	return i;
+}
+
 static int cluster_select(struct lpm_cluster *cluster, bool from_idle,
 							int *ispred)
 {
@@ -1027,6 +1064,9 @@ static int cluster_select(struct lpm_cluster *cluster, bool from_idle,
 
 	if (!cluster)
 		return -EINVAL;
+
+	if (cluster_use_deepest_state)
+		return cluster_select_deepest(cluster);
 
 	sleep_us = (uint32_t)get_cluster_sleep_time(cluster, NULL,
 						from_idle, &cpupred_us);
