@@ -28,3 +28,39 @@
 		};
 	};
 };
+
+&soc {
+#ifdef CONFIG_LGE_KERNEL44_RAMOOPS
+	/* Make kernel better able to get
+	 * ramoops dumped by 4.4 kernel.
+	 */
+	ramoops {
+		compatible = "ramoops";
+		mem-size = <0x100000>;
+		mem-address = <0xc0000000>;
+		record-size = <8192>;
+		console-size = <0x80000>;
+		ftrace-size = <0x20000>;
+		pmsg-size = <0x40000>;
+		dump-oops = <1>;
+	};
+#else
+	/*  Original */
+	ramoops {
+		compatible = "ramoops";
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+		mem-size = <0xc0000>;
+#else
+		mem-size = <0x80000>;
+#endif
+		mem-address = <0xc0000000>;
+		record-size = <4096>;
+		console-size = <0x40000>;
+		ftrace-size = <0x40000>;
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+		pmsg-size = <0x40000>;
+#endif
+		dump-oops = <1>;
+	};
+#endif /* CONFIG_LGE_KERNEL44_RAMOOPS */
+};

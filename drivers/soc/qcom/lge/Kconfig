@@ -625,6 +625,15 @@ config LGE_STOCK
 	  Enable support for LG stock Android roms. This option will disable
 	  support for custom roms.
 
+config LGE_KERNEL44_RAMOOPS
+	bool "Kernel 4.4 ramoops support"
+	depends on MACH_LGE
+	default n
+	help
+	  Enable this to use ramoops values matching that of 4.4 kernel.
+	  Makes this 3.18 kernel able to grab ramoops memory dumped by
+	  4.4 kernel.
+
 endmenu
 
 source "drivers/soc/qcom/lge/power/Kconfig"
