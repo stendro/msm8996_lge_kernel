@@ -315,6 +315,7 @@ static struct cpufreq_driver msm_cpufreq_driver = {
 	.attr		= msm_freq_attr,
 };
 
+#ifdef CONFIG_MSM8996_UNDERCLOCK
 /*
  * Always underclock both clusters for both MSM8996. There
  * are reproducible crashes with the cpu_stress_test driver when both clusters
@@ -322,6 +323,7 @@ static struct cpufreq_driver msm_cpufreq_driver = {
  */
 #define UNDERCLK_MAX_PERFCL_MSM8996	1824000
 #define UNDERCLK_MAX_PWRCL_MSM8996	1478400
+#endif
 
 static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 						char *tbl_name, int cpu)
@@ -358,6 +360,7 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 			break;
 		f /= 1000;
 
+#ifdef CONFIG_MSM8996_UNDERCLOCK
 		if (cpu < 2) {
 			if (ftbl[i - 1].frequency ==
 					UNDERCLK_MAX_PWRCL_MSM8996)
@@ -367,6 +370,7 @@ static struct cpufreq_frequency_table *cpufreq_parse_dt(struct device *dev,
 					UNDERCLK_MAX_PERFCL_MSM8996)
 				break;
 		}
+#endif
 
 		/*
 		 * Check if this is the last feasible frequency in the table.

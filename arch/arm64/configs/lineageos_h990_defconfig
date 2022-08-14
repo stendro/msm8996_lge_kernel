@@ -1,4 +1,5 @@
 include lineageos_elsa_common
+
 # LG Platform
 CONFIG_MACH_MSM8996_ELSA_GLOBAL_COM=y
 
@@ -12,9 +13,11 @@ CONFIG_BCMDHD_USE_SCHED_SCAN=y
 CONFIG_BCMDHD_FOLLOW_AP_DTIM_PERIOD=n
 CONFIG_WIFI_CONTROL_FUNC=y
 
-
 # Required for functioning modem
 CONFIG_DIRTYSANTA_FIXUP=y
+
+# Underclock
+CONFIG_MSM8996_UNDERCLOCK=y
 
 # Wipes out the incorrect modem parameters
 CONFIG_CMDLINE_SEARCHREPLACE=y

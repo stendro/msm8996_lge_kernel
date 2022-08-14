@@ -45,6 +45,14 @@ config CPU_FREQ_STAT_DETAILS
 
 	  If in doubt, say N.
 
+config MSM8996_UNDERCLOCK
+        bool "CPU underclock"
+        depends on ARCH_MSM8996
+        default n
+        help
+          Underclock big and little cluster to 1824000 and 1478400
+          respectively.
+
 choice
 	prompt "Default CPUFreq governor"
 	default CPU_FREQ_DEFAULT_GOV_USERSPACE if ARM_SA1100_CPUFREQ || ARM_SA1110_CPUFREQ
