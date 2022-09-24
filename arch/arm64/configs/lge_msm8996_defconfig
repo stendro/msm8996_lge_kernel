@@ -160,6 +160,7 @@ CONFIG_SOCK_CGROUP_DATA=y
 CONFIG_KERNEL_LZ4=y
 CONFIG_CRYPTO_LZ4=y
 CONFIG_ACPI=n # Kernel fails to build if this is enabled
+CONFIG_JUMP_LABEL=y
 
 # Disable CPU Governors that cause issues with EAS backport
 CONFIG_CPU_FREQ_GOV_ONDEMAND=n
