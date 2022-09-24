@@ -142,5 +142,8 @@ CONFIG_NFC_NQ=n
 CONFIG_CNSS=n
 CONFIG_USELIB=n
 
+# Work around some camera issues specific to LGE on 4.4
+CONFIG_LGE_ISP_CMD_WORKAROUND_FOR_44=y
+
 # mk2000 has override priority
 include mk2k_config
