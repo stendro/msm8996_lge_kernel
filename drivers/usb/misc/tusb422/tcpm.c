@@ -51,7 +51,7 @@
 #endif
 #include "usb_pd_policy_engine.h"
 
-#if defined(CONFIG_LGE_USB_TYPE_C) && defined(CONFIG_DUAL_ROLE_USB_INTF)
+#if defined(CONFIG_DUAL_ROLE_USB_INTF)
 #include "tusb422_linux_dual_role.h"
 #endif
 
@@ -1776,25 +1776,6 @@ void tcpm_execute_error_recovery(unsigned int port)
 
 	return;
 }
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-void tcpm_execute_shutdown(unsigned int port)
-{
-	tcpc_device_t *dev = &tcpc_dev[port];
-
-	PRINT("Shutdown!\n");
-
-	dev->role = ROLE_SNK;
-	tcpm_set_state(dev, TCPC_STATE_UNATTACHED_SNK);
-	tcpm_connection_state_machine(port);
-
-	tusb422_sw_reset(port);
-
-	tcpc_write8(port, TCPC_REG_ROLE_CTRL,
-		    tcpc_reg_role_ctrl_set(false, dev->rp_val, CC_RD, CC_RD));
-	return;
-}
-#endif
 
 static void timeout_try_role_swap(unsigned int port)
 {

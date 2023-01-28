@@ -20,9 +20,6 @@
 
 #include "tcpm.h"
 #include "usb_pd_policy_engine.h"
-#ifdef CONFIG_LGE_USB_TYPE_C
-#include "hw_pd_dev.h"
-#endif
 
 void usb_pd_pal_disable_vbus(unsigned int port);
 void usb_pd_pal_source_vbus(unsigned int port, bool usb_pd, uint16_t mv, uint16_t ma);

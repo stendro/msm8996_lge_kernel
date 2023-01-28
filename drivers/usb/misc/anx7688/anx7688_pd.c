@@ -55,20 +55,12 @@ static u8 init_svid[4] = {0x00, 0x00, 0x01, 0xFF};
  * 0x00, 0xAB, 0x88, 0x76,
  */
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-static u8 init_snk_ident[12] = {
-	0x04, 0x10, 0x00, 0xD0, /*snk_id HEADER */
-	0x00, 0x00, 0x00, 0x00, /*snk_certify VDO */
-	0x01, 0x00, 0x00, 0x00, /*snk_product VDO*/
-};
-#else
 static u8 init_snk_ident[16] = {
 	0x00, 0x00, 0x00, 0xec, /*snk_id_hdr */
 	0x00, 0x00, 0x00, 0x00, /*snk_cert */
 	0x00, 0x00, 0x00, 0x00, /*snk_prd*/
 	0x39, 0x00, 0x00, 0x51  /*snk_ama*/
 };
-#endif
 
 u8 pd_src_pdo_cnt = 2;
 u8 pd_src_pdo[VDO_SIZE] = {
@@ -354,9 +346,6 @@ void anx7688_send_init_setting(struct anx7688_chip *chip)
 			send_pd_msg(chip, TYPE_PWR_SRC_CAP,
 					(const char *)init_src_caps,
 					sizeof(init_src_caps));
-#ifdef CONFIG_LGE_USB_TYPE_C
-			memcpy(chip->src_pdo, init_src_caps, sizeof(init_src_caps));
-#endif
 			send_init_setting_state++;
 			break;
 		case 2:
@@ -519,36 +508,15 @@ static int handle_dp_alt_exit(struct anx7688_chip *chip)
 	return 0;
 }
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-uint32_t get_data_object(uint8_t *obj_data)
-{
-	return((((uint32_t)obj_data[3]) << 24) |
-		   (((uint32_t)obj_data[2]) << 16) |
-		   (((uint32_t)obj_data[1]) << 8) |
-		   (((uint32_t)obj_data[0])));
-}
-#endif
-
 u8 dispatch_rcvd_pd_msg(struct anx7688_chip *chip, PD_MSG_TYPE type, void *data, u8 len)
 {
 	struct device *cdev = &chip->client->dev;
 	int rc = 0;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	uint8_t *buf = (uint8_t *) data;
-	int i;
-#endif
 
 	dev_dbg(cdev,"%s: msg type : %s\n", __func__, interface_to_str(type));
 
 	switch (type) {
 	case TYPE_PWR_SRC_CAP:
-#ifdef CONFIG_LGE_USB_TYPE_C
-		for (i = 0 ; i < len >> 2 ; i++)
-		{
-			if(i < PD_MAX_PDO_NUM)
-				chip->offered_pdo[i] = get_data_object(&buf[i << 2]);
-		}
-#endif
 		/* TODO: need to vbus off adjust */
 		OhioWriteReg(USBC_ADDR, USBC_VBUS_DELAY_TIME, 0xA0);
 		break;
@@ -565,10 +533,6 @@ u8 dispatch_rcvd_pd_msg(struct anx7688_chip *chip, PD_MSG_TYPE type, void *data,
 	case TYPE_REJECT:
 		break;
 	case TYPE_PWR_OBJ_REQ:
-#ifdef CONFIG_LGE_USB_TYPE_C
-		if(len == sizeof(chip->offered_rdo))
-			chip->offered_rdo = get_data_object(buf);
-#endif
 		/* TODO: need to vbus offadjust */
 		OhioWriteReg(USBC_ADDR, USBC_VBUS_DELAY_TIME, 0xA0);
 		break;

@@ -267,10 +267,6 @@ typedef struct
 
 	uint32_t            src_pdo[PD_MAX_PDO_NUM];
 	uint32_t            snk_pdo[PD_MAX_PDO_NUM];
-#ifdef CONFIG_LGE_USB_TYPE_C
-	uint32_t            offered_pdo[PD_MAX_PDO_NUM];
-	uint32_t            offered_rdo;
-#endif
 
 	uint16_t            cable_max_current_ma;
 	uint16_t            cable_max_voltage_mv;

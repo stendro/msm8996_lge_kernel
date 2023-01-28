@@ -62,19 +62,11 @@
 #define MV_TO_25MV(x) ((x)/25)
 #define VSAFE0V_MAX   MV_TO_25MV(800)   /* 0.80V max in 25mV units */
 #define VSAFE5V_MIN   MV_TO_25MV(4450)  /* 4.45V min in 25mV units */
-#ifdef CONFIG_LGE_USB_TYPE_C
-#define VDISCON_MAX   VSAFE0V_MAX
-#else
 #define VDISCON_MAX   MV_TO_25MV(4000)  /* 4.00V min in 25mV units */
-#endif
 #define VSTOP_DISCHRG MV_TO_25MV(500)   /* Stop discharge threshold in 25mV units */
 
 /* assume default current of 500mA (USB2) */
-#ifdef CONFIG_LGE_USB_TYPE_C
-#define GET_SRC_CURRENT_MA(cc_adv) (((cc_adv) == CC_SNK_STATE_POWER30) ? 3000 : ((cc_adv) == CC_SNK_STATE_POWER15) ? 1500 : ((cc_adv) == CC_SNK_STATE_DEFAULT) ? 500 : 0)
-#else
 #define GET_SRC_CURRENT_MA(cc_adv) (((cc_adv) == CC_SNK_STATE_POWER30) ? 3000 : ((cc_adv) == CC_SNK_STATE_POWER15) ? 1500 : 500)
-#endif
 
 /* Sink with Accessory Support is NOT supported by the state machine */
 
@@ -162,9 +154,6 @@ typedef struct
 	uint8_t             flags;
 
 	uint8_t             cc_status;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	uint8_t             last_cc_status;
-#endif
 	bool				src_detected;  /* source detected for debounce period */
 
 	plug_polarity_t     plug_polarity;
@@ -174,22 +163,6 @@ typedef struct
 	uint8_t             silicon_revision;
 	uint8_t             rx_buff_overflow_cnt;
 	uint8_t             vconn_ocp_cnt;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	bool                debug_accessory_mode;
-#ifdef CONFIG_LGE_USB_MOISTURE_DETECT
-	unsigned long       cc_swing_timeout;
-	uint8_t             cc_swing_cnt;
-	unsigned int        cc_swing_recheck_cnt;
-
-	struct timespec     cc_fault_timeout;
-	void                (*cc_fault_timeout_function)(unsigned int);
-	struct mutex        cc_fault_timer_lock;
-
-	bool                moisture_detect_disable;
-	bool                moisture_detect_use_sbu;
-#endif
-	struct power_supply *typec_psy;
-#endif
 } tcpc_device_t;
 
 typedef struct
@@ -261,9 +234,6 @@ void tcpm_force_discharge(unsigned int port, uint16_t threshold_25mv);
 void tcpm_enable_bleed_discharge(unsigned int port);
 
 void tcpm_execute_error_recovery(unsigned int port);
-#ifdef CONFIG_LGE_USB_TYPE_C
-void tcpm_execute_shutdown(unsigned int port);
-#endif
 
 void tcpm_try_role_swap(unsigned int port);
 void tcpm_change_role(unsigned int port, tc_role_t new_role);
@@ -289,12 +259,6 @@ void tcpm_set_rp_value(unsigned int port, tcpc_role_rp_val_t rp_val);
 void tcpm_snk_swap_standby(unsigned int port);
 
 void tcpm_register_dump(unsigned int port);
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-void tcpm_cc_fault_timer(unsigned int port, bool enable);
-void tcpm_cc_fault_set(unsigned int port, tcpc_state_t state);
-void tcpm_cc_fault_test(unsigned int port, bool enable);
-#endif
 
 #endif //__TCPM_H__
 

@@ -42,9 +42,9 @@ CONFIG_SOCK_CGROUP_DATA=y
 CONFIG_NETFILTER_XT_MATCH_BPF=y
 CONFIG_NETFILTER_XT_MATCH_OWNER=y
 
-# Bluetooth
+# Bluetooth + FM
 CONFIG_BRCM_V4L2=y
-# Barebones driver
+# Older barebones Bluetooth driver from 3.18
 CONFIG_BT_BCM43XX=n
 CONFIG_BT_MSM_SLEEP=n
 
