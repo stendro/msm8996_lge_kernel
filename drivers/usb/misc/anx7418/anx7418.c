@@ -281,22 +281,16 @@ int anx7418_set_pr(struct anx7418 *anx, int pr)
 
 	switch (pr) {
 	case DUAL_ROLE_PROP_PR_SRC:
-#ifdef CONFIG_LGE_USB_TYPE_C
 		if (!IS_INTF_IRQ_SUPPORT(anx))
 			anx->is_otg = 1;
-#endif
 		break;
 
 	case DUAL_ROLE_PROP_PR_SNK:
-#ifdef CONFIG_LGE_USB_TYPE_C
 			anx->is_otg = 0;
-#endif
 		break;
 
 	case DUAL_ROLE_PROP_PR_NONE:
-#ifdef CONFIG_LGE_USB_TYPE_C
 			anx->is_otg = 0;
-#endif
 		break;
 
 	default:
@@ -320,28 +314,20 @@ int anx7418_set_dr(struct anx7418 *anx, int dr)
 	switch (dr) {
 	case DUAL_ROLE_PROP_DR_HOST:
 		anx7418_set_dr(anx, DUAL_ROLE_PROP_DR_NONE);
-
-#ifdef CONFIG_LGE_USB_TYPE_C
 		anx->is_otg = 1;
-#endif
 		break;
 
 	case DUAL_ROLE_PROP_DR_DEVICE:
 		anx7418_set_dr(anx, DUAL_ROLE_PROP_DR_NONE);
-
-/* #ifdef CONFIG_LGE_USB_TYPE_C
-		power_supply_set_present(anx->usb_psy, 1);
-#endif */
+		/* power_supply_set_present(anx->usb_psy, 1); */
 		break;
 
 	case DUAL_ROLE_PROP_DR_NONE:
-#ifdef CONFIG_LGE_USB_TYPE_C
 		if (anx->dr == DUAL_ROLE_PROP_DR_HOST)
 			anx->is_otg = 0;
 
 		/* if (anx->dr == DUAL_ROLE_PROP_DR_DEVICE)
 			power_supply_set_present(anx->usb_psy, 0); */
-#endif
 		break;
 
 	default:
@@ -483,9 +469,6 @@ int anx7418_pwr_on(struct anx7418 *anx, int is_on)
 	struct i2c_client *client = anx->client;
 	struct device *cdev = &client->dev;
 	int rc = 0;
-#if 0 /* CONFIG_LGE_USB_TYPE_C START */
-	union power_supply_propval prop;
-#endif /* CONFIG_LGE_USB_TYPE_C END */
 
 	dev_info_ratelimited(cdev, "%s(%d)\n", __func__, is_on);
 
@@ -560,17 +543,6 @@ set_as_ufp:
 					 * is connected with a register for distinguish
 					 * factory cables by switch SBU_SEL pin.
 					 */
-#if 0 /* CONFIG_LGE_USB_TYPE_C START */
-					/* Check vbus on? */
-					power_supply_get_property(anx->usb_psy,
-							POWER_SUPPLY_PROP_DP_DM, &prop);
-					if (prop.intval != POWER_SUPPLY_DP_DM_DPF_DMF) {
-						/* vbus not detected */
-						dev_err(cdev, "vbus is not detected. ignore it\n");
-						__anx7418_pwr_down(anx);
-						goto out;
-					}
-#endif /* CONFIG_LGE_USB_TYPE_C END */
 					gpio_set_value(anx->sbu_sel_gpio, 1);
 
 					anx->is_dbg_acc = true;
@@ -1310,20 +1282,6 @@ static int anx7418_probe(struct i2c_client *client,
 		dev_err(cdev, "failed to enable avdd33\n");
 		return rc;
 	}
-
-#if 0 /* CONFIG_LGE_USB_TYPE_C START */
-	anx->usb_psy = power_supply_get_by_name("usb");
-	if (!anx->usb_psy) {
-		dev_err(cdev, "usb power_supply_get failed\n");
-		return -EPROBE_DEFER;
-	}
-
-	anx->batt_psy = power_supply_get_by_name("battery");
-	if (!anx->batt_psy) {
-		dev_err(cdev, "battery power_supply_get failed\n");
-		return -EPROBE_DEFER;
-	}
-#endif /* CONFIG_LGE_USB_TYPE_C END */
 
 	anx->wq = alloc_workqueue("anx_wq",
 			WQ_MEM_RECLAIM | WQ_HIGHPRI | WQ_CPU_INTENSIVE,

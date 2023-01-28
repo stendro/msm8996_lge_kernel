@@ -739,20 +739,12 @@ static enum pwr_path_type smbchg_get_pwr_path(struct smbchg_chip *chip)
 #define USBIN_SRC_DET_BIT		BIT(2)
 #define FMB_STS_MASK			SMB_MASK(3, 0)
 #define USBID_GND_THRESHOLD		0x495
-#ifdef CONFIG_LGE_USB_TYPE_C
-static void get_property_from_typec(struct smbchg_chip *chip,
-				enum power_supply_property property,
-				union power_supply_propval *prop);
-#endif
 static bool is_otg_present_schg(struct smbchg_chip *chip)
 {
 	int rc;
 	u8 reg;
 	u8 usbid_reg[2];
 	u16 usbid_val;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	union power_supply_propval prop = {0,};
-#endif
 	/*
 	 * After the falling edge of the usbid change interrupt occurs,
 	 * there may still be some time before the ADC conversion for USB RID
@@ -765,11 +757,6 @@ static bool is_otg_present_schg(struct smbchg_chip *chip)
 	 */
 
 	msleep(20);
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-	get_property_from_typec(chip, POWER_SUPPLY_PROP_USB_OTG, &prop);
-	return prop.intval ? true : false;
-#endif
 
 	/*
 	 * There is a problem with USBID conversions on PMI8994 revisions
@@ -5133,15 +5120,6 @@ static void handle_usb_removal(struct smbchg_chip *chip)
 	cancel_delayed_work_sync(&chip->hvdcp_det_work);
 	smbchg_relax(chip, PM_DETECT_HVDCP);
 	smbchg_change_usb_supply_type(chip, POWER_SUPPLY_TYPE_USB);
-#ifdef CONFIG_LGE_USB_TYPE_C
-	if (chip->typec_psy) {
-		pval.intval = chip->usb_present;
-/*		power_supply_set_property(chip->typec_psy, // already set in 'smbchg_change_usb_supply_type' above
-			POWER_SUPPLY_PROP_TYPE, POWER_SUPPLY_TYPE_UNKNOWN); */ // also, changing supply type rapidly causes panic
-		power_supply_set_property(chip->typec_psy,
-			POWER_SUPPLY_PROP_PRESENT, &pval);
-	}
-#endif
 	extcon_set_cable_state_(chip->extcon, EXTCON_USB, chip->usb_present);
 	smbchg_request_dpdm(chip, false);
 	schedule_work(&chip->usb_set_online_work);
@@ -5202,9 +5180,6 @@ static bool is_usbin_uv_high(struct smbchg_chip *chip)
 static void handle_usb_insertion(struct smbchg_chip *chip)
 {
 	enum power_supply_type usb_supply_type;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	union power_supply_propval pval = {0, };
-#endif
 	int rc;
 	char *usb_type_name = "null";
 
@@ -5218,14 +5193,6 @@ static void handle_usb_insertion(struct smbchg_chip *chip)
 	if (chip->typec_psy)
 		update_typec_status(chip);
 	smbchg_change_usb_supply_type(chip, usb_supply_type);
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-	if (chip->typec_psy) {
-		pval.intval = chip->usb_present;
-		power_supply_set_property(chip->typec_psy,
-			POWER_SUPPLY_PROP_PRESENT, &pval);
-	}
-#endif
 
 	/* Only notify USB if it's not a charger */
 	if (usb_supply_type == POWER_SUPPLY_TYPE_USB ||

@@ -51,11 +51,7 @@ void usb_pd_pal_sink_vbus(unsigned int port, bool usb_pd, uint16_t mv, uint16_t 
 {
 	struct pd_dpm_vbus_state vbus_state;
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-	DEBUG("%s: %u mV, %u mA %s\n", __func__, mv, ma, (usb_pd) ? "USB_PD" : "TYPE-C");
-#else
 	PRINT("%s: %u mV, %u mA %s\n", __func__, mv, ma, (usb_pd) ? "USB_PD" : "TYPE-C");
-#endif
 
 	vbus_state.vbus_type = (usb_pd) ? TCP_VBUS_CTRL_PD_DETECT : 0;
 

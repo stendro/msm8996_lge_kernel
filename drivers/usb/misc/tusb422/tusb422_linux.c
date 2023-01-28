@@ -50,11 +50,6 @@
 	#include <linux/usb/class-dual-role.h>
 #endif
 
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-#include <linux/reboot.h>
-#endif
-
 #define TUSB422_I2C_NAME "tusb422"
 
 //#define TUSB422_USE_POLLING
@@ -86,9 +81,6 @@ struct tusb422_pwr_delivery {
 	tcpc_config_t *configuration;
 	usb_pd_port_config_t *port_config;
 	int alert_irq;
-#ifdef CONFIG_LGE_USB_TYPE_C
-	struct workqueue_struct *wq;
-#endif
 };
 
 static struct tusb422_pwr_delivery *tusb422_pd;
@@ -434,14 +426,7 @@ void tusb422_msleep(int msecs)
 
 static inline void tusb422_schedule_work(struct work_struct *work)
 {
-#ifdef CONFIG_LGE_USB_TYPE_C
-	struct tusb422_pwr_delivery *tusb422_pwr = container_of(work,
-		struct tusb422_pwr_delivery, work);
-
-	queue_work_on(0, tusb422_pwr->wq, work);
-#else
 	queue_work(system_highpri_wq, work);
-#endif
 }
 
 #ifdef CONFIG_WAKELOCK
@@ -449,10 +434,8 @@ void tusb422_wake_lock_attach(void)
 {
 	wake_unlock(&tusb422_pd->detach_wakelock);
 
-#ifndef CONFIG_LGE_USB_TYPE_C
 	if (!wake_lock_active(&tusb422_pd->attach_wakelock))
 		wake_lock(&tusb422_pd->attach_wakelock);
-#endif
 
 	return;
 }
@@ -464,9 +447,7 @@ void tusb422_wake_lock_detach(void)
 	wake_lock_timeout(&tusb422_pd->detach_wakelock,
 					  msecs_to_jiffies(WAKE_LOCK_TIMEOUT_MS));
 
-#ifndef CONFIG_LGE_USB_TYPE_C
 	wake_unlock(&tusb422_pd->attach_wakelock);
-#endif
 
 	return;
 }
@@ -518,19 +499,11 @@ int tusb422_clr_vbus(int vbus_sel)
 	return 0;
 }
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-int tusb422_set_vconn_enable(int enable)
-{
-	gpiod_direction_output(tusb422_pd->vconn_gpio, enable);
-	return 0;
-}
-#endif
-
 static irqreturn_t tusb422_event_handler(int irq, void *data)
 {
 	struct tusb422_pwr_delivery *tusb422_pwr = data;
 
-#if defined(CONFIG_WAKELOCK) && defined(CONFIG_LGE_USB_TYPE_C)
+#if defined(CONFIG_WAKELOCK)
 	wake_lock_timeout(&tusb422_pd->attach_wakelock,
 			  msecs_to_jiffies(WAKE_LOCK_TIMEOUT_MS));
 #endif
@@ -560,14 +533,9 @@ static int tusb422_of_get_gpios(struct tusb422_pwr_delivery *tusb422_pd)
 	if (IS_ERR(tusb422_pd->vbus_src_gpio))
 		tusb422_pd->vbus_src_gpio = NULL;
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-	tusb422_pd->vconn_gpio = devm_gpiod_get(tusb422_pd->dev,
-						"ti,vconn-en",
-						GPIOD_OUT_LOW);
-#else
 	tusb422_pd->vconn_gpio = devm_gpiod_get(tusb422_pd->dev, "ti,vconn-en",
 											GPIOD_OUT_HIGH);
-#endif
+
 	if (IS_ERR(tusb422_pd->vconn_gpio))
 		tusb422_pd->vconn_gpio = NULL;
 
@@ -649,11 +617,6 @@ static int tusb422_pd_init(struct tusb422_pwr_delivery *tusb422_pd)
 			   __func__, tusb422_pd->port_config->src_settling_time_ms);
 		tusb422_pd->port_config->src_settling_time_ms = 50;
 	}
-
-#if defined(CONFIG_LGE_USB_TYPE_C) && (PD_SPEC_REV == PD_REV30)
-	if (of_property_read_u32(of_node, "ti,fast-role-swap-support", &temp) == 0)
-		tusb422_pd->port_config->fast_role_swap_support	= (fr_swap_current_t) temp;
-#endif
 
 	if (of_property_read_u32(of_node, "ti,pdo-priority", &temp))
 		pr_err("%s: Missing pdo-priority\n", __func__);
@@ -922,7 +885,7 @@ static enum hrtimer_restart tusb422_timer_tasklet(struct hrtimer *hrtimer)
 {
 	struct tusb422_pwr_delivery *tusb422_pwr = container_of(hrtimer, struct tusb422_pwr_delivery, timer);
 
-#if defined(CONFIG_WAKELOCK) && defined(CONFIG_LGE_USB_TYPE_C)
+#if defined(CONFIG_WAKELOCK)
 	wake_lock_timeout(&tusb422_pwr->attach_wakelock,
 			  msecs_to_jiffies(WAKE_LOCK_TIMEOUT_MS));
 #endif
@@ -1027,24 +990,6 @@ static int tusb422_tcpm_init(struct tusb422_pwr_delivery *tusb422_pd)
 	return ret;
 }
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-static int tusb422_shutdown(struct notifier_block *nb, unsigned long cmd, void *p)
-{
-	PRINT("%s\n", __func__);
-
-	disable_irq(tusb422_pd->alert_irq);
-	hrtimer_cancel(&tusb422_pd->timer);
-	cancel_work_sync(&tusb422_pd->work);
-
-	tcpm_execute_shutdown(0);
-	return 0;
-}
-
-static struct notifier_block tusb422_reboot_notifier = {
-	.notifier_call  = tusb422_shutdown,
-};
-#endif
-
 static int tusb422_i2c_probe(struct i2c_client *client,
 							 const struct i2c_device_id *id)
 {
@@ -1059,12 +1004,6 @@ static int tusb422_i2c_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, tusb422_pd);
 	tusb422_pd->dev = dev;
 
-#if defined(CONFIG_LGE_USB_TYPE_C) && defined(CONFIG_TUSB422_PAL)
-	ret = hw_pd_dev_init(tusb422_pd->dev);
-	if (ret)
-		goto err_hw_pd_dev_init;
-#endif
-
 #ifdef CONFIG_REGMAP
 	tusb422_pd->regmap = devm_regmap_init_i2c(client, &tusb422_regmap_config);
 	if (IS_ERR(tusb422_pd->regmap)) {
@@ -1072,10 +1011,6 @@ static int tusb422_i2c_probe(struct i2c_client *client,
 		dev_err(dev, "failed to allocate register map: %d\n", ret);
 		goto err_regmap;
 	}
-#endif
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-	tusb422_sw_reset(0);
 #endif
 
 	if (!tusb422_is_present(0)) {
@@ -1090,17 +1025,10 @@ static int tusb422_i2c_probe(struct i2c_client *client,
 
 #ifndef TUSB422_USE_POLLING
 	if (tusb422_pd->alert_irq > 0) {
-#ifdef CONFIG_LGE_USB_TYPE_C
-		irq_set_status_flags(tusb422_pd->alert_irq, IRQ_NOAUTOEN);
-#endif
 		ret = devm_request_irq(dev,
 							   tusb422_pd->alert_irq,
 							   tusb422_event_handler,
-#ifdef CONFIG_LGE_USB_TYPE_C
-							   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-#else
 							   IRQF_TRIGGER_FALLING | IRQF_NO_THREAD | IRQF_NO_SUSPEND,
-#endif
 							   "tusb422_event",
 							   tusb422_pd);
 
@@ -1115,12 +1043,6 @@ static int tusb422_i2c_probe(struct i2c_client *client,
 		ret = tusb422_pd->alert_irq;
 		goto err_irq;
 	}
-#endif
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-	tusb422_pd->wq = alloc_workqueue("tusb422_wq",
-				 WQ_MEM_RECLAIM | WQ_HIGHPRI | WQ_CPU_INTENSIVE,
-				 1);
 #endif
 
 	hrtimer_init(&tusb422_pd->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
@@ -1159,34 +1081,10 @@ static int tusb422_i2c_probe(struct i2c_client *client,
 	}
 #endif
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-	ret = register_reboot_notifier(&tusb422_reboot_notifier);
-	if (ret) {
-		dev_err(dev, "cannot register reboot notifier: %d\n", ret);
-		goto err_reboot_notifier;
-	}
-
-#ifdef CONFIG_LGE_USB_MOISTURE_DETECT
-#ifdef CONFIG_LGE_USB_FACTORY
-	if (!IS_FACTORY_MODE)
-#endif
-	if (tusb422_pd->configuration->moisture_detect_use_sbu)
-		usb_pd_pal_set_moisture_detect_use_sbu();
-#endif
-
-	enable_irq(tusb422_pd->alert_irq);
-
-	/* Run USB Type-C init state machine */
-	tcpm_connection_state_machine(0);
-#endif
-
 	tusb422_schedule_work(&tusb422_pd->work);
 
 	return 0;
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-err_reboot_notifier:
-#endif
 err_sysfs:
 #ifdef CONFIG_DUAL_ROLE_USB_INTF
 	devm_dual_role_instance_unregister(dev, tusb422_dual_role_phy);
@@ -1206,9 +1104,6 @@ err_regmap:
 err_of:
 err_irq:
 err_nodev:
-#if defined(CONFIG_LGE_USB_TYPE_C) && defined(CONFIG_TUSB422_PAL)
-err_hw_pd_dev_init:
-#endif
 	i2c_set_clientdata(client, NULL);
 
 	return ret;
@@ -1228,9 +1123,6 @@ static int tusb422_remove(struct i2c_client *client)
 #endif
 #ifdef CONFIG_DUAL_ROLE_USB_INTF
 	devm_dual_role_instance_unregister(&client->dev, tusb422_dual_role_phy);
-#endif
-#ifdef CONFIG_LGE_USB_TYPE_C
-	unregister_reboot_notifier(&tusb422_reboot_notifier);
 #endif
 	i2c_set_clientdata(client, NULL);
 

@@ -924,9 +924,6 @@ static void usb_pd_pe_data_msg_rx_handler(usb_pd_port_t *dev)
 
 		case DATA_MSG_TYPE_VENDOR:
 #ifdef ENABLE_VDM_SUPPORT
-#ifdef CONFIG_LGE_USB_TYPE_C
-			if (dev->vdm_in_progress)
-#endif
 			usb_pd_pe_vdm_handler(dev);
 #elif (PD_SPEC_REV == PD_REV30) && !defined(CABLE_PLUG)
 			// For PD r3.0, DFP or UFP should return Not_Supported msg if not supported.
@@ -1823,25 +1820,11 @@ static void vdm_handle_discover_identity(usb_pd_port_t *dev, vdm_command_type_t 
 			// If product type is alt mode adapter.
 			if (ID_HDR_GET_UFP_PROD_TYPE(id_hdr) & UFP_PROD_TYPE_ALT_MODE_ADAPTER)
 			{
-#ifdef CONFIG_LGE_USB_TYPE_C
-				PRINT("Alternate Mode Adapter detected!\n");
-#ifdef CONFIG_LGE_DP_UNSUPPORT_NOTIFY
-				tusb422_set_dp_notify_node(1);
-#endif
-#else
 				// Get AMA VDO.
 				prod_type_vdo = get_data_object(dev->rx_msg_buf + 16);
 
 				// Check AMA SuperSpeed signaling support. - BQ
-#endif
 			}
-
-#ifndef CONFIG_LGE_USB_TYPE_C
-			if (id_hdr & MODAL_OPERATION_SUPPORTED)
-			{
-				pe_set_state(dev, PE_INIT_VDM_SVIDS_REQUEST);
-			}
-#endif
 		}
 		else if (cmd_type == VDM_RESP_BUSY)
 		{
@@ -2898,11 +2881,8 @@ static void pe_src_negotiate_capability_entry(usb_pd_port_t *dev)
 
 	// BQ - Battery RDO not supported.
 
-#ifdef CONFIG_LGE_USB_TYPE_C
-	dev->offered_rdo = rdo;
 #ifdef CONFIG_DUAL_ROLE_USB_INTF
 	dual_role_instance_changed(tusb422_dual_role_phy);
-#endif
 #endif
 	dev->object_position = (rdo >> 28) & 0x07;
 	operating_current = (rdo >> 10) & 0x3FF;
@@ -3085,9 +3065,6 @@ static void pe_src_capability_response_entry(usb_pd_port_t *dev)
 {
 	// Send Reject.
 	usb_pd_prl_tx_ctrl_msg(dev->port, buf, CTRL_MSG_TYPE_REJECT, TCPC_TX_SOP);
-#ifdef CONFIG_LGE_USB_TYPE_C
-	pe_set_state(dev, PE_SNK_HARD_RESET);
-#endif
 
 	// BQ - Send Wait not supported.
 }
@@ -3113,12 +3090,6 @@ static void usb_pd_pe_handle_snk_src_ready_state(usb_pd_port_t *dev)
 			// timer_start(&dev->timer, T_DISCOVER_IDENTITY_MS, timeout_func);
 		}
 #ifdef ENABLE_VDM_SUPPORT
-#ifdef CONFIG_LGE_USB_TYPE_C
-		else if (!dev->port_partner_id_req_complete)
-		{
-			timer_start(&dev->timer, T_VDM_BUSY_MS, timeout_port_vdm_disc_identity_busy);
-		}
-#else
 		else if (USB_PD_VDM_MODAL_OPERATION(config->id_header_vdo) &&
 				 !dev->port_partner_id_req_complete)
 		{
@@ -3138,7 +3109,6 @@ static void usb_pd_pe_handle_snk_src_ready_state(usb_pd_port_t *dev)
 			// Send Status Update VDM to port partner.
 			pe_set_state(dev, PE_INIT_VDM_DP_STATUS_UPDATE);
 		}
-#endif
 #endif
 #endif
 	}
@@ -3339,9 +3309,6 @@ static void pe_prs_evaluate_swap_entry(usb_pd_port_t *dev)
 
 		if (*dev->current_state == PE_PRS_ACCEPT_SWAP)
 		{
-#ifdef CONFIG_LGE_USB_TYPE_C
-			dev->power_role_swap_in_progress = true;
-#endif
 			tcpm_snk_swap_standby(dev->port);
 		}
 	}
@@ -3788,13 +3755,8 @@ static void pe_snk_ready_entry(usb_pd_port_t *dev)
 
 	if (min_voltage == DEFAULT_5V)
 	{
-#ifdef CONFIG_LGE_USB_TYPE_C
-		// Set Sink Disconnect Threshold to VDISCON_MAX.
-		threshold = VDISCON_MAX;
-#else
 		// Set Sink Disconnect Threshold to zero.
 		threshold = 0;
-#endif
 	}
 	else
 	{
@@ -3956,9 +3918,6 @@ static void pe_dr_snk_give_source_caps_entry(usb_pd_port_t *dev)
 
 static void pe_unattached_entry(usb_pd_port_t *dev)
 {
-#ifdef CONFIG_LGE_USB_TYPE_C
-	uint8_t offered_pdo_idx;
-#endif
 
 	dev->swap_source_start = false;
 	dev->pd_connected_since_attach = false;
@@ -3996,13 +3955,6 @@ static void pe_unattached_entry(usb_pd_port_t *dev)
 	// Deassert HPD for all ports.
 	tcpm_hpd_out_control(0, 0);
 #endif
-#endif
-
-#ifdef CONFIG_LGE_USB_TYPE_C
-	for (offered_pdo_idx = 0; offered_pdo_idx < PD_MAX_PDO_NUM; offered_pdo_idx++)
-		dev->offered_pdo[offered_pdo_idx] = 0;
-	dev->offered_rdo = 0;
-	dev->rdo = 0;
 #endif
 
 #ifdef CONFIG_DUAL_ROLE_USB_INTF

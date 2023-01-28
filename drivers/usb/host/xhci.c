@@ -648,6 +648,12 @@ int xhci_run(struct usb_hcd *hcd)
 		return xhci_run_finished(xhci);
 
 	xhci_dbg_trace(xhci, trace_xhci_dbg_init, "xhci_run");
+	xhci_dbg(xhci, "Calling HCD init\n");
+	/* Initialize HCD and host controller data structures. */
+	ret = xhci_init(hcd);
+	if (ret)
+		return ret;
+	xhci_dbg(xhci, "Called HCD init\n");
 
 	ret = xhci_try_enable_msi(hcd);
 	if (ret)
@@ -5057,13 +5063,6 @@ int xhci_gen_setup(struct usb_hcd *hcd, xhci_get_quirks_t get_quirks)
 		xhci_dbg(xhci, "Enabling 32-bit DMA addresses.\n");
 		dma_set_coherent_mask(dev, DMA_BIT_MASK(32));
 	}
-
-	xhci_dbg(xhci, "Calling HCD init\n");
-	/* Initialize HCD and host controller data structures. */
-	retval = xhci_init(hcd);
-	if (retval)
-		return retval;
-	xhci_dbg(xhci, "Called HCD init\n");
 
 	xhci_info(xhci, "hcc params 0x%08x hci version 0x%x quirks 0x%08x\n",
 		  xhci->hcc_params, xhci->hci_version, xhci->quirks);
