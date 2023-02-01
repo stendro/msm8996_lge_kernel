@@ -982,13 +982,13 @@ void qpnp_wled_dimming(int dst_lvl, int current_lvl)
     {
         if(current_brightness > dst_lvl)  // dimming down
         {
-            current_brightness -= 20;  // decrease 20
+            current_brightness -= 200;  // decrease 200
             if(current_brightness < 0 || current_brightness < dst_lvl)
                 current_brightness = dst_lvl;
         }
         else  // dimming up
         {
-            current_brightness += 20; // increase 20
+            current_brightness += 200; // increase 200
             if(current_brightness > wled->cdev.max_brightness || current_brightness > dst_lvl)
                 current_brightness = dst_lvl;
         }

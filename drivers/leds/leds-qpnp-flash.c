@@ -261,12 +261,30 @@ struct qpnp_flash_led {
 	bool				strobe_debug;
 	bool				dbg_feature_en;
 	bool				open_fault;
+
+#ifdef CONFIG_MACH_LGE
+	struct device	*dev_fault;
+	u8	last_fault;
+#endif
 };
 
 static u8 qpnp_flash_led_ctrl_dbg_regs[] = {
 	0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48,
 	0x4A, 0x4B, 0x4C, 0x4F, 0x51, 0x52, 0x54, 0x55, 0x5A, 0x5C, 0x5D,
 };
+
+#ifdef CONFIG_MACH_LGE
+extern struct class* get_camera_class(void);
+
+static ssize_t show_flash_fault_status(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct qpnp_flash_led *led = dev_get_drvdata(dev);
+
+	return sprintf(buf, "%x\n", led->last_fault);
+}
+static DEVICE_ATTR(fault_status, S_IRUGO, show_flash_fault_status, NULL);
+#endif
 
 static int flash_led_dbgfs_file_open(struct qpnp_flash_led *led,
 					struct file *file)
@@ -1320,7 +1338,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 	int max_curr_avail_ma = 0;
 	int total_curr_ma = 0;
 	int i;
-	u8 val;
+	u8 val = 0;
 
 	/* Global lock is to synchronize between the flash leds and torch */
 	mutex_lock(&led->flash_led_lock);
@@ -1333,8 +1351,30 @@ static void qpnp_flash_led_work(struct work_struct *work)
 
 #if !defined(CONFIG_MACH_MSM8996_ELSA) && !defined(CONFIG_MACH_MSM8996_ANNA)
 	if (led->open_fault) {
-		dev_err(&led->spmi_dev->dev, "Open fault detected\n");
-		goto unlock_mutex;
+		if (flash_node->type == FLASH) {
+			dev_dbg(&led->spmi_dev->dev, "Open fault detected\n");
+			goto unlock_mutex;
+		}
+		/*
+		 * Checking LED fault status again if open_fault has been
+		 * detected previously. Update open_fault status then the
+		 * flash leds could be controlled again if the hardware
+		 * status is recovered.
+		 */
+		rc = spmi_ext_register_readl(led->spmi_dev->ctrl,
+			led->spmi_dev->sid,
+			FLASH_LED_FAULT_STATUS(led->base), &val, 1);
+		if (rc) {
+			dev_err(&led->spmi_dev->dev,
+				"Failed to read out fault status register\n");
+			goto unlock_mutex;
+		}
+
+		led->open_fault = (val & FLASH_LED_OPEN_FAULT_DETECTED);
+		if (led->open_fault) {
+			dev_err(&led->spmi_dev->dev, "Open fault detected\n");
+			goto unlock_mutex;
+		}
 	}
 #else
 	if (led->open_fault) {
@@ -1812,6 +1852,10 @@ static void qpnp_flash_led_work(struct work_struct *work)
 			goto exit_flash_led_work;
 		}
 		led->fault_reg = val;
+#ifdef CONFIG_MACH_LGE
+		led->last_fault = val;
+#endif
+		pr_err("flash led_status 0x%x\n", val);
 
 		if(val & 0xFF) {
 			pr_err("FLASH1_LED_FAULT_STATUS 0x%x\n", val);
@@ -1859,9 +1903,12 @@ turn_off:
 			goto exit_flash_led_work;
 		}
 
-		led->open_fault |= (val & FLASH_LED_OPEN_FAULT_DETECTED);
+		led->open_fault = (val & FLASH_LED_OPEN_FAULT_DETECTED);
 
 #ifdef CONFIG_MACH_LGE
+		dev_err(&led->spmi_dev->dev, "flash led status (0x%x)\n", val);
+		led->last_fault = val;
+
 		if(val)
 			dev_err(&led->spmi_dev->dev, "Fault detected (0x%x)\n", val);
 #endif
@@ -2769,6 +2816,16 @@ static int qpnp_flash_led_probe(struct spmi_device *spmi)
 	}
 
 	dev_set_drvdata(&spmi->dev, led);
+
+#ifdef CONFIG_MACH_LGE
+	led->last_fault = 0;
+	led->dev_fault = device_create(get_camera_class(), &led->spmi_dev->dev,
+		0, led, "flash_fault_status");
+	rc = sysfs_create_file(&led->dev_fault->kobj,
+			&dev_attr_fault_status.attr);
+	if (rc)
+		pr_err("error creating flash_fault_status\n");
+#endif
 
 	return 0;
 
