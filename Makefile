@@ -380,8 +380,8 @@ CFLAGS_KCOV	= -fsanitize-coverage=trace-pc
 
 # enable various optimization flags appropriate for the target device
 MK2K_OPTS := -mcpu=cortex-a57+crc+crypto \
- -g0 -fsplit-paths -floop-block -fipa-pta -ftree-vectorize \
- --param l1-cache-line-size=64 --param l1-cache-size=24 --param l2-cache-size=512
+ -g0 -fsplit-paths -floop-block -fipa-pta -fno-tree-vectorize -fgraphite-identity \
+ -floop-parallelize-all --param l1-cache-line-size=64 --param l1-cache-size=24 --param l2-cache-size=512
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
