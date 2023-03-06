@@ -5345,10 +5345,7 @@ static struct bpf_prog *generate_filter(int which, int *err)
 		fp->type = BPF_PROG_TYPE_SOCKET_FILTER;
 		memcpy(fp->insnsi, fptr, fp->len * sizeof(struct bpf_insn));
 
-		/* We cannot error here as we don't need type compatibility
-		 * checks.
-		 */
-		fp = bpf_prog_select_runtime(fp, err);
+		*err = bpf_prog_select_runtime(fp);
 		if (*err) {
 			pr_cont("FAIL to select_runtime err=%d\n", *err);
 			return NULL;

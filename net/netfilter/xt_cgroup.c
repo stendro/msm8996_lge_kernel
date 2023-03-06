@@ -42,8 +42,7 @@ cgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	if (skb->sk == NULL || !sk_fullsock(skb->sk))
 		return false;
 
-	return (info->id == sock_cgroup_classid(&skb->sk->sk_cgrp_data)) ^
-		info->invert;
+	return (info->id == skb->sk->sk_classid) ^ info->invert;
 }
 
 static struct xt_match cgroup_mt_reg __read_mostly = {

@@ -348,10 +348,7 @@ SECTIONS
 
 	/* Sections to be discarded */
 	DISCARDS
-	/DISCARD/ : {
-		*(.eh_frame)
-		*(__func_stack_frame_non_standard)
-	}
+	/DISCARD/ : { *(.eh_frame) }
 }
 
 

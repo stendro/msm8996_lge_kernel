@@ -261,43 +261,42 @@ void perf_trace_del(struct perf_event *p_event, int flags)
 	tp_event->class->reg(tp_event, TRACE_REG_PERF_DEL, p_event);
 }
 
-void *perf_trace_buf_alloc(int size, struct pt_regs **regs, int *rctxp)
+void *perf_trace_buf_prepare(int size, unsigned short type,
+			     struct pt_regs **regs, int *rctxp)
 {
+	struct trace_entry *entry;
+	unsigned long flags;
 	char *raw_data;
-	int rctx;
+	int pc;
 
 	BUILD_BUG_ON(PERF_MAX_TRACE_SIZE % sizeof(unsigned long));
 
 	if (WARN_ONCE(size > PERF_MAX_TRACE_SIZE,
-		      "perf buffer not large enough"))
+			"perf buffer not large enough"))
 		return NULL;
 
-	*rctxp = rctx = perf_swevent_get_recursion_context();
-	if (rctx < 0)
+	pc = preempt_count();
+
+	*rctxp = perf_swevent_get_recursion_context();
+	if (*rctxp < 0)
 		return NULL;
 
 	if (regs)
-		*regs = this_cpu_ptr(&__perf_regs[rctx]);
-	raw_data = this_cpu_ptr(perf_trace_buf[rctx]);
+		*regs = this_cpu_ptr(&__perf_regs[*rctxp]);
+	raw_data = this_cpu_ptr(perf_trace_buf[*rctxp]);
 
 	/* zero the dead bytes from align to not leak stack to user */
 	memset(&raw_data[size - sizeof(u64)], 0, sizeof(u64));
-	return raw_data;
-}
-EXPORT_SYMBOL_GPL(perf_trace_buf_alloc);
-NOKPROBE_SYMBOL(perf_trace_buf_alloc);
 
-void perf_trace_buf_update(void *record, u16 type)
-{
-	struct trace_entry *entry = record;
-	int pc = preempt_count();
-	unsigned long flags;
-
+	entry = (struct trace_entry *)raw_data;
 	local_save_flags(flags);
 	tracing_generic_entry_update(entry, flags, pc);
 	entry->type = type;
+
+	return raw_data;
 }
-NOKPROBE_SYMBOL(perf_trace_buf_update);
+EXPORT_SYMBOL_GPL(perf_trace_buf_prepare);
+NOKPROBE_SYMBOL(perf_trace_buf_prepare);
 
 #ifdef CONFIG_FUNCTION_TRACER
 static void
@@ -320,13 +319,13 @@ perf_ftrace_function_call(unsigned long ip, unsigned long parent_ip,
 
 	perf_fetch_caller_regs(&regs);
 
-	entry = perf_trace_buf_alloc(ENTRY_SIZE, NULL, &rctx);
+	entry = perf_trace_buf_prepare(ENTRY_SIZE, TRACE_FN, NULL, &rctx);
 	if (!entry)
 		return;
 
 	entry->ip = ip;
 	entry->parent_ip = parent_ip;
-	perf_trace_buf_submit(entry, ENTRY_SIZE, rctx, TRACE_FN,
+	perf_trace_buf_submit(entry, ENTRY_SIZE, rctx, 0,
 			      1, &regs, head, NULL);
 
 #undef ENTRY_SIZE
