@@ -10,7 +10,6 @@
 #include <linux/smp.h>
 #include <linux/kernel.h>
 #include <linux/mm_types.h>
-#include <linux/elf.h>
 
 #include <asm/processor.h>
 #include <asm/vdso.h>
