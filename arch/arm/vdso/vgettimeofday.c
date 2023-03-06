@@ -22,15 +22,20 @@
  * Reworked and rebased over arm version by: Mark Salyzyn <salyzyn@android.com>
  */
 
-#include <asm/barrier.h>
-#include <linux/compiler.h>	/* for notrace				*/
+#include <linux/compiler.h>
+#include <linux/hrtimer.h>
 #include <linux/time.h>
+#include <asm/arch_timer.h>
+#include <asm/barrier.h>
+#include <asm/bug.h>
+#include <asm/page.h>
+#include <asm/unistd.h>
 
-#include "compiler.h"
+#ifndef CONFIG_AEABI
+#error This code depends on AEABI system call conventions
+#endif
+
 #include "datapage.h"
-
-DEFINE_FALLBACK(gettimeofday, struct timeval *, tv, struct timezone *, tz)
-DEFINE_FALLBACK(clock_gettime, clockid_t, clock, struct timespec *, ts)
 
 static notrace u32 vdso_read_begin(const struct vdso_data *vd)
 {
@@ -56,6 +61,23 @@ static notrace int vdso_read_retry(const struct vdso_data *vd, u32 start)
 	smp_rmb(); /* Pairs with first smp_wmb in update_vsyscall */
 	seq = READ_ONCE(vd->tb_seq_count);
 	return seq != start;
+}
+
+static notrace long clock_gettime_fallback(clockid_t _clkid,
+					   struct timespec *_ts)
+{
+	register struct timespec *ts asm("r1") = _ts;
+	register clockid_t clkid asm("r0") = _clkid;
+	register long ret asm ("r0");
+	register long nr asm("r7") = __NR_clock_gettime;
+
+	asm volatile(
+	"	swi #0\n"
+	: "=r" (ret)
+	: "r" (clkid), "r" (ts), "r" (nr)
+	: "memory");
+
+	return ret;
 }
 
 static notrace int do_realtime_coarse(const struct vdso_data *vd,
@@ -105,7 +127,7 @@ static notrace u64 get_ns(const struct vdso_data *vd)
 	u64 cycle_now;
 	u64 nsec;
 
-	cycle_now = arch_vdso_read_counter();
+	cycle_now = arch_counter_get_cntvct();
 
 	cycle_delta = (cycle_now - vd->cs_cycle_last) & vd->cs_mask;
 
@@ -178,52 +200,85 @@ static notrace int do_monotonic(const struct vdso_data *vd, struct timespec *ts)
 
 #endif /* CONFIG_ARM_ARCH_TIMER */
 
-notrace int __vdso_clock_gettime(clockid_t clock, struct timespec *ts)
+notrace int __vdso_clock_gettime(clockid_t clkid, struct timespec *ts)
 {
+	int ret = -1;
+
 	const struct vdso_data *vd = __get_datapage();
 
-	switch (clock) {
+	switch (clkid) {
 	case CLOCK_REALTIME_COARSE:
-		do_realtime_coarse(vd, ts);
+		ret = do_realtime_coarse(vd, ts);
 		break;
 	case CLOCK_MONOTONIC_COARSE:
-		do_monotonic_coarse(vd, ts);
+		ret = do_monotonic_coarse(vd, ts);
 		break;
 	case CLOCK_REALTIME:
-		if (do_realtime(vd, ts))
-			goto fallback;
+		ret = do_realtime(vd, ts);
 		break;
 	case CLOCK_MONOTONIC:
-		if (do_monotonic(vd, ts))
-			goto fallback;
+		ret = do_monotonic(vd, ts);
 		break;
 	default:
-		goto fallback;
+		break;
 	}
 
-	return 0;
-fallback:
-	return clock_gettime_fallback(clock, ts);
+	if (ret)
+		ret = clock_gettime_fallback(clkid, ts);
+
+	return ret;
+}
+
+static notrace long gettimeofday_fallback(struct timeval *_tv,
+					  struct timezone *_tz)
+{
+	register struct timezone *tz asm("r1") = _tz;
+	register struct timeval *tv asm("r0") = _tv;
+	register long ret asm ("r0");
+	register long nr asm("r7") = __NR_gettimeofday;
+
+	asm volatile(
+	"	swi #0\n"
+	: "=r" (ret)
+	: "r" (tv), "r" (tz), "r" (nr)
+	: "memory");
+
+	return ret;
 }
 
 notrace int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
+	struct timespec ts;
+	int ret;
+
 	const struct vdso_data *vd = __get_datapage();
 
-	if (likely(tv != NULL)) {
-		struct timespec ts;
+	ret = do_realtime(vd, &ts);
+	if (ret)
+		return gettimeofday_fallback(tv, tz);
 
-		if (do_realtime(vd, &ts))
-			return gettimeofday_fallback(tv, tz);
-
+	if (tv) {
 		tv->tv_sec = ts.tv_sec;
 		tv->tv_usec = ts.tv_nsec / 1000;
 	}
-
-	if (unlikely(tz != NULL)) {
+	if (tz) {
 		tz->tz_minuteswest = vd->tz_minuteswest;
 		tz->tz_dsttime = vd->tz_dsttime;
 	}
 
-	return 0;
+	return ret;
+}
+
+/* Avoid unresolved references emitted by GCC */
+
+void __aeabi_unwind_cpp_pr0(void)
+{
+}
+
+void __aeabi_unwind_cpp_pr1(void)
+{
+}
+
+void __aeabi_unwind_cpp_pr2(void)
+{
 }
