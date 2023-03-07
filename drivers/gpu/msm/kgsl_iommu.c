@@ -1,4 +1,5 @@
 /* Copyright (c) 2011-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -10,6 +11,11 @@
  * GNU General Public License for more details.
  *
  */
+
+#ifdef CONFIG_MACH_LGE
+#define SUPPRESS_PAGE_FAULTS
+#endif
+
 #include <linux/types.h>
 #include <linux/delay.h>
 #include <linux/device.h>
@@ -609,6 +615,7 @@ struct _mem_entry {
 	char name[32];
 };
 
+#ifndef SUPPRESS_PAGE_FAULTS
 static void _get_global_entries(uint64_t faultaddr,
 		struct _mem_entry *prev,
 		struct _mem_entry *next)
@@ -656,12 +663,14 @@ static void _get_global_entries(uint64_t faultaddr,
 		strlcpy(next->name, n->name, sizeof(next->name));
 	}
 }
+#endif
 
 void __kgsl_get_memory_usage(struct _mem_entry *entry)
 {
 	kgsl_get_memory_usage(entry->name, sizeof(entry->name), entry->flags);
 }
 
+#ifndef SUPPRESS_PAGE_FAULTS
 static void _get_entries(struct kgsl_process_private *private,
 		uint64_t faultaddr, struct _mem_entry *prev,
 		struct _mem_entry *next)
@@ -762,6 +771,7 @@ static void _check_if_freed(struct kgsl_iommu_context *ctx,
 			gpuaddr, gpuaddr + size, name, pid);
 	}
 }
+#endif
 
 static bool
 kgsl_iommu_uche_overfetch(struct kgsl_process_private *private,
@@ -817,7 +827,9 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	u32 contextidr;
 	pid_t tid = 0;
 	pid_t ptname;
+#ifndef SUPPRESS_PAGE_FAULTS
 	struct _mem_entry prev, next;
+#endif
 	int write;
 	struct kgsl_device *device;
 	struct adreno_device *adreno_dev;
@@ -913,6 +925,11 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 		} else
 			api_str = "UNKNOWN";
 
+#ifdef SUPPRESS_PAGE_FAULTS
+		KGSL_MEM_CRIT(ctx->kgsldev,
+			"GPU PAGE FAULT: addr = %lX pid= %d | context=%s ctx_type=%s | type = %s %s fault\n", addr, 
+			ptname, ctx->name, api_str, write ? "write" : "read", fault_type);
+#else
 		KGSL_MEM_CRIT(ctx->kgsldev,
 			"GPU PAGE FAULT: addr = %lX pid= %d\n", addr, ptname);
 		KGSL_MEM_CRIT(ctx->kgsldev,
@@ -941,8 +958,8 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 			else
 				KGSL_LOG_DUMP(ctx->kgsldev, "*EMPTY*\n");
 		}
+#endif
 	}
-
 
 	/*
 	 * We do not want the h/w to resume fetching data from an iommu
@@ -2242,8 +2259,12 @@ static int _insert_gpuaddr(struct kgsl_pagetable *pagetable,
 			node = &parent->rb_left;
 		else if (new->base > this->base)
 			node = &parent->rb_right;
-		else
-			BUG();
+		else {
+			/* Duplicate entry */
+			WARN(1, "duplicate gpuaddr: 0x%llx\n", gpuaddr);
+			kmem_cache_free(addr_entry_cache, new);
+			return -EEXIST;
+		}
 	}
 
 	rb_link_node(&new->node, parent, node);
@@ -2525,20 +2546,21 @@ static int kgsl_iommu_svm_range(struct kgsl_pagetable *pagetable,
 }
 
 static bool kgsl_iommu_addr_in_range(struct kgsl_pagetable *pagetable,
-		uint64_t gpuaddr)
+		uint64_t gpuaddr, uint64_t size)
 {
 	struct kgsl_iommu_pt *pt = pagetable->priv;
 
 	if (gpuaddr == 0)
 		return false;
 
-	if (gpuaddr >= pt->va_start && gpuaddr < pt->va_end)
+	if (gpuaddr >= pt->va_start && (gpuaddr + size) < pt->va_end)
 		return true;
 
-	if (gpuaddr >= pt->compat_va_start && gpuaddr < pt->compat_va_end)
+	if (gpuaddr >= pt->compat_va_start &&
+			(gpuaddr + size) < pt->compat_va_end)
 		return true;
 
-	if (gpuaddr >= pt->svm_start && gpuaddr < pt->svm_end)
+	if (gpuaddr >= pt->svm_start && (gpuaddr + size) < pt->svm_end)
 		return true;
 
 	return false;

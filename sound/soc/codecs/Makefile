@@ -135,7 +135,7 @@ snd-soc-wcd9330-objs := wcd9330.o wcd9330-tables.o
 snd-soc-wcd9335-objs := wcd9335.o
 snd-soc-wcd934x-objs := wcd934x.o
 snd-soc-wcd9xxx-objs := wcd9xxx-resmgr.o wcd9xxx-mbhc.o wcd9xxx-common.o wcdcal-hwdep.o
-snd-soc-wcd9xxx-v2-objs := wcd9xxx-common-v2.o wcd9xxx-resmgr-v2.o
+snd-soc-wcd9xxx-v2-objs := wcd9xxx-common-v2.o wcd9xxx-resmgr-v2.o wcdcal-hwdep.o
 ifeq ($(CONFIG_COMMON_CLK_MSM), y)
 	audio-ext-clock-objs := audio-ext-clk.o
 endif
@@ -214,6 +214,10 @@ obj-$(CONFIG_SND_SOC_MSM_HDMI_CODEC_RX) := msm_hdmi_codec_rx.o
 snd-soc-max9877-objs := max9877.o
 snd-soc-tpa6130a2-objs := tpa6130a2.o
 snd-soc-tas2552-objs := tas2552.o
+snd-soc-es9018-objs := es9218.o
+obj-$(CONFIG_SND_SOC_ES9018)	+= snd-soc-es9018.o
+snd-soc-es9218p-objs := es9218p.o
+obj-$(CONFIG_SND_SOC_ES9218P)	+= snd-soc-es9218p.o
 
 obj-$(CONFIG_SND_SOC_88PM860X)	+= snd-soc-88pm860x.o
 obj-$(CONFIG_SND_SOC_AB8500_CODEC)	+= snd-soc-ab8500-codec.o

@@ -165,9 +165,6 @@ Optional properties:
 - qcom,mdss-dsi-border-color:		Defines the border color value if border is present.
 					0 = default value.
 - qcom,mdss-dsi-pan-enable-dynamic-fps:	Boolean used to enable change in frame rate dynamically.
-- qcom,mdss-dsi-pan-enable-dynamic-bitclk: Boolean used to enable change in DSI clock dynamically.
-- qcom,mdss-dsi-dynamic-bitclk_freq:	An array of integers that specifies the DSI bit clock
-					frequencies supported as part of dynamic bit clock feature.
 - qcom,mdss-dsi-pan-fps-update:		A string that specifies when to change the frame rate.
 					"dfps_suspend_resume_mode"= FPS change request is
 					implemented during suspend/resume.
@@ -589,15 +586,6 @@ Additional properties added to the second level nodes that represent timings pro
 					commands.
 					"dsi_lp_mode" = DSI low power mode (default)
 					"dsi_hs_mode" = DSI high speed mode
-- qcom,sublinks-count:			An integer value indicates the number of sublinks in the panel.
-					Default value is 1. This property is used only if qcom,split-link-enabled
-					is defined.
-- qcom,lanes-per-sublink:		An integer value indicates the number of data lanes per sublink in the panel.
-					Default value is 1. This property is used only if qcom,split-link-enabled
-					is defined.
-- qcom,split-link-enabled:		A boolean value to enable/disable the split link feature. If qcom,sublinks-count
-					or qcom,lanes-per-sublink are not defined, default values are used.
-
 
 Note, if a given optional qcom,* binding is not present, then the driver will configure
 the default values specified.
@@ -699,9 +687,6 @@ Example:
 		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
 		qcom,mdss-dsi-pan-enable-dynamic-fps;
 		qcom,mdss-dsi-pan-fps-update = "dfps_suspend_resume_mode";
-		qcom,mdss-dsi-pan-enable-dynamic-bitclk;
-		qcom,mdss-dsi-dynamic-bitclk_freq = <711037824 724453632 737869440
-			751285248 764701056 778116864 791532672 804948480>;
 		qcom,min-refresh-rate = <30>;
 		qcom,max-refresh-rate = <60>;
 		qcom,mdss-dsi-bl-pmic-bank-select = <0>;
@@ -827,10 +812,6 @@ Example:
 		qcom,bridge-name = "adv7533";
 		qcom,mdss-dsc-version = <0x11>;
 		qcom,mdss-dsc-scr-version = <0x1>;
-
-		qcom,split-link-enabled;
-		qcom,sublinks-count = <2>;
-		qcom,lanes-per-sublink = <2>;
 
 		dsi_sim_vid_config0: config0 {
 			qcom,lm-split = <360 360>;

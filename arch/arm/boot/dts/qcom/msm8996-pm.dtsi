@@ -67,7 +67,7 @@
 				qcom,reset-level = <LPM_RESET_LVL_RET>;
 			};
 			qcom,pm-cluster-level@2{ /* E4-M3 */
-				reg = <1>;
+				reg = <2>;
 				label = "system-fpc";
 				qcom,spm-cbf-mode = "fpc";
 				qcom,spm-l3-mode = "fpc";
@@ -133,9 +133,11 @@
 					#size-cells = <0>;
 					qcom,psci-mode-shift = <0>;
 					qcom,psci-mode-mask = <0xf>;
+					qcom,cpu = <&CPU0 &CPU1>;
 
 					qcom,pm-cpu-level@0 { /* C1 */
 						reg = <0>;
+						label = "wfi";
 						qcom,psci-cpu-mode = <1>;
 						qcom,spm-cpu-mode = "wfi";
 						qcom,latency-us = <20>;
@@ -146,6 +148,7 @@
 
 					qcom,pm-cpu-level@1 {  /* C4 */
 						reg = <1>;
+						label = "fpc-def";
 						qcom,spm-cpu-mode = "fpc-def";
 						qcom,psci-cpu-mode = <4>;
 						qcom,latency-us = <40>;
@@ -157,6 +160,7 @@
 
 					qcom,pm-cpu-level@2 {  /* C4 */
 						reg = <2>;
+						label = "fpc";
 						qcom,spm-cpu-mode = "fpc";
 						qcom,psci-cpu-mode = <4>;
 						qcom,latency-us = <80>;
@@ -222,9 +226,11 @@
 					#size-cells = <0>;
 					qcom,psci-mode-shift = <0>;
 					qcom,psci-mode-mask = <0xf>;
+					qcom,cpu = <&CPU2 &CPU3>;
 
 					qcom,pm-cpu-level@0 { /* C1 */
 						reg = <0>;
+						label = "wfi";
 						qcom,psci-cpu-mode = <1>;
 						qcom,spm-cpu-mode = "wfi";
 						qcom,latency-us = <25>;
@@ -235,6 +241,7 @@
 
 					qcom,pm-cpu-level@1 {  /* C4 */
 						reg = <1>;
+						label = "fpc-def";
 						qcom,spm-cpu-mode = "fpc-def";
 						qcom,psci-cpu-mode = <4>;
 						qcom,latency-us = <40>;
@@ -246,6 +253,7 @@
 
 					qcom,pm-cpu-level@2 {  /* C4 */
 						reg = <2>;
+						label = "fpc";
 						qcom,spm-cpu-mode = "fpc";
 						qcom,psci-cpu-mode = <4>;
 						qcom,latency-us = <80>;
@@ -327,12 +335,16 @@
 			<0xff 115>, /* mdss_irq */
 			<0xff 126>, /* bam_irq[0] */
 			<0xff 127>, /* blsp1_qup_irq(0) */
-			<0xff 132>, /* blsp1_qup_irq(5) */
+			<0xff 131>, /* blsp1_qup_irq(4) - LGE : CAM_I2C  */
+			<0xff 132>, /* blsp1_qup_irq(5) - LGE : COMMON_I2C */
 			<0xff 133>, /* blsp2_qup_irq(0) */
 			<0xff 134>, /* blsp2_qup_irq(1) */
-			<0xff 135>, /* blsp2_qup_irq(2) */
+			/* <0xff 135>, *//* blsp2_qup_irq(2) */
+			<0xff 135>, /* blsp2_spi_irq(2) - LGE : FINGER_SPI */
+			<0xff 137>, /* blsp2_spi_irq(4) - LGE : TDMB_SPI */
 			<0xff 138>, /* blsp2_qup_irq(5) */
 			<0xff 140>, /* blsp1_uart_irq(1) */
+			<0xff 144>, /* blsp1_uart_irq(5) - LGE : IRRC_UART */
 			<0xff 146>, /* blsp2_uart_irq(1) */
 			<0xff 155>, /* sdcc_irq[0] */
 			<0xff 157>, /* sdc2_irq[0] */
@@ -385,6 +397,7 @@
 			<0xff 270>, /* bam_irq[0] */
 			<0xff 271>, /* bam_irq[0] */
 			<0xff 276>, /* wlan_pci */
+			<0xff 280>, /* LGE mobicore */
 			<0xff 283>, /* pcie20_0_int_pls_err */
 			<0xff 284>, /* pcie20_0_int_aer_legacy */
 			<0xff 286>, /* pcie20_0_int_pls_link_down */
@@ -522,7 +535,9 @@
 			<66  131>,
 			<67  132>, /* PCIe1 */
 			<68  133>,
-			<69  145>;
+			<69  145>,
+			<0xff 21>, /* LGE : TDMB_INT */
+			<0xff 90>; /* LGE :  anx7816(slimport) INT */
 	};
 
 	rpm_msg_ram: memory@200000 {

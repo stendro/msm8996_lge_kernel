@@ -481,7 +481,7 @@ static void tick_nohz_stop_idle(struct tick_sched *ts, ktime_t now)
 	update_ts_time_stats(smp_processor_id(), ts, now, NULL);
 	ts->idle_active = 0;
 
-	sched_clock_idle_wakeup_event(0);
+	sched_clock_idle_wakeup_event();
 }
 
 static ktime_t tick_nohz_start_idle(struct tick_sched *ts)
@@ -909,6 +909,19 @@ ktime_t tick_nohz_get_sleep_length(void)
 	struct tick_sched *ts = this_cpu_ptr(&tick_cpu_sched);
 
 	return ts->sleep_length;
+}
+
+/**
+ * tick_nohz_get_idle_calls_cpu - return the current idle calls counter value
+ * for a particular CPU.
+ *
+ * Called from the schedutil frequency scaling governor in scheduler context.
+ */
+unsigned long tick_nohz_get_idle_calls_cpu(int cpu)
+{
+	struct tick_sched *ts = tick_get_tick_sched(cpu);
+
+	return ts->idle_calls;
 }
 
 /**

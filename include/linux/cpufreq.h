@@ -566,6 +566,15 @@ struct governor_attr {
 			 size_t count);
 };
 
+static inline bool cpufreq_this_cpu_can_update(struct cpufreq_policy *policy)
+{
+	/* Allow remote callbacks only on the CPUs sharing cpufreq policy */
+	if (cpumask_test_cpu(smp_processor_id(), policy->cpus))
+		return true;
+
+	return false;
+}
+
 /*********************************************************************
  *                     FREQUENCY TABLE HELPERS                       *
  *********************************************************************/
@@ -682,6 +691,9 @@ static inline bool policy_has_boost_freq(struct cpufreq_policy *policy)
 /* the following funtion is for cpufreq core use only */
 struct cpufreq_frequency_table *cpufreq_frequency_get_table(unsigned int cpu);
 
+extern void arch_set_freq_scale(struct cpumask *cpus, unsigned long cur_freq,
+				unsigned long max_freq);
+
 /* the following are really really optional */
 extern struct freq_attr cpufreq_freq_attr_scaling_available_freqs;
 extern struct freq_attr cpufreq_freq_attr_scaling_boost_freqs;
@@ -696,5 +708,6 @@ int cpufreq_generic_init(struct cpufreq_policy *policy,
 
 struct sched_domain;
 unsigned long cpufreq_scale_freq_capacity(struct sched_domain *sd, int cpu);
-unsigned long cpufreq_scale_max_freq_capacity(int cpu);
+unsigned long cpufreq_scale_max_freq_capacity(struct sched_domain *sd, int cpu);
+unsigned long cpufreq_scale_min_freq_capacity(struct sched_domain *sd, int cpu);
 #endif /* _LINUX_CPUFREQ_H */

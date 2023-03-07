@@ -1492,8 +1492,13 @@ static int smb1351_parallel_set_chg_suspend(struct smb1351_charger *chip,
 		}
 		chip->usb_psy_ma = SUSPEND_CURRENT_MA;
 
+#ifdef CONFIG_LGE_PM
+		/* set charging enable by I2C */
+		reg = EN_BY_I2C_0_ENABLE | USBCS_CTRL_BY_I2C;
+#else
 		/* set chg en by pin active low  */
 		reg = chip->parallel_pin_polarity_setting | USBCS_CTRL_BY_I2C;
+#endif
 		rc = smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG,
 					EN_PIN_CTRL_MASK | USBCS_CTRL_BIT, reg);
 		if (rc) {
@@ -1515,12 +1520,38 @@ static int smb1351_parallel_set_chg_suspend(struct smb1351_charger *chip,
 			return rc;
 		}
 
+		/* set fast charging current limit */
+		chip->target_fastchg_current_max_ma = SMB1351_CHG_FAST_MIN_MA;
 		rc = smb1351_fastchg_current_set(chip,
 					chip->target_fastchg_current_max_ma);
 		if (rc) {
 			pr_err("Couldn't set fastchg current rc=%d\n", rc);
 			return rc;
 		}
+
+#ifdef CONFIG_LGE_PM
+		/* adapter allowance to 5~9V */
+		rc = smb1351_masked_write(chip, FLEXCHARGER_REG,
+					CHG_CONFIG_MASK, 0);
+		if (rc) {
+			pr_err("Couldn't set charger config adapter rc = %d\n", rc);
+			return rc;
+		}
+
+		/* jeita disable */
+		rc = smb1351_masked_write(chip, THERM_A_CTRL_REG,
+					SOFT_COLD_TEMP_LIMIT_MASK, 0);
+		if (rc) {
+			pr_err("Couldn't set soft cold limit rc = %d\n", rc);
+			return rc;
+		}
+		rc = smb1351_masked_write(chip, THERM_A_CTRL_REG,
+					SOFT_HOT_TEMP_LIMIT_MASK, 0);
+		if (rc) {
+			pr_err("Couldn't set soft hot limit rc = %d\n", rc);
+			return rc;
+		}
+#endif
 		chip->parallel_charger_suspended = false;
 	} else {
 		rc = smb1351_usb_suspend(chip, CURRENT, true);
@@ -1609,6 +1640,10 @@ static int smb1351_parallel_set_property(struct power_supply *psy,
 		 */
 		if (!chip->parallel_charger_suspended)
 			rc = smb1351_usb_suspend(chip, USER, !val->intval);
+#ifdef CONFIG_LGE_PM
+		else
+			chip->usb_suspended_status &= ~USER;
+#endif
 		break;
 	case POWER_SUPPLY_PROP_INPUT_SUSPEND:
 		rc = smb1351_parallel_set_chg_suspend(chip, val->intval);
@@ -2222,7 +2257,7 @@ static int smb1351_usbin_uv_handler(struct smb1351_charger *chip, u8 status)
 static int smb1351_usbin_ov_handler(struct smb1351_charger *chip, u8 status)
 {
 	int rc;
-	u8 reg;
+	u8 reg = 0;
 	union power_supply_propval pval = {0, };
 
 	rc = smb1351_read_reg(chip, IRQ_E_REG, &reg);
@@ -2956,44 +2991,44 @@ static int create_debugfs_entries(struct smb1351_charger *chip)
 	if (!chip->debug_root) {
 		pr_err("Couldn't create debug dir\n");
 	} else {
-		ent = debugfs_create_file("config_registers", S_IFREG | S_IRUGO,
+		ent = debugfs_create_file("config_registers", S_IFREG | 0444,
 					  chip->debug_root, chip,
 					  &cnfg_debugfs_ops);
 		if (!ent)
 			pr_err("Couldn't create cnfg debug file\n");
 
-		ent = debugfs_create_file("status_registers", S_IFREG | S_IRUGO,
+		ent = debugfs_create_file("status_registers", S_IFREG | 0444,
 					  chip->debug_root, chip,
 					  &status_debugfs_ops);
 		if (!ent)
 			pr_err("Couldn't create status debug file\n");
 
-		ent = debugfs_create_file("cmd_registers", S_IFREG | S_IRUGO,
+		ent = debugfs_create_file("cmd_registers", S_IFREG | 0444,
 					  chip->debug_root, chip,
 					  &cmd_debugfs_ops);
 		if (!ent)
 			pr_err("Couldn't create cmd debug file\n");
 
-		ent = debugfs_create_x32("address", S_IFREG | S_IWUSR | S_IRUGO,
+		ent = debugfs_create_x32("address", S_IFREG | 0644,
 					  chip->debug_root,
 					  &(chip->peek_poke_address));
 		if (!ent)
 			pr_err("Couldn't create address debug file\n");
 
-		ent = debugfs_create_file("data", S_IFREG | S_IWUSR | S_IRUGO,
+		ent = debugfs_create_file("data", S_IFREG | 0644,
 					  chip->debug_root, chip,
 					  &poke_poke_debug_ops);
 		if (!ent)
 			pr_err("Couldn't create data debug file\n");
 
 		ent = debugfs_create_file("force_irq",
-					  S_IFREG | S_IWUSR | S_IRUGO,
+					  S_IFREG | 0644,
 					  chip->debug_root, chip,
 					  &force_irq_ops);
 		if (!ent)
 			pr_err("Couldn't create data debug file\n");
 
-		ent = debugfs_create_file("irq_count", S_IFREG | S_IRUGO,
+		ent = debugfs_create_file("irq_count", S_IFREG | 0444,
 					  chip->debug_root, chip,
 					  &irq_count_debugfs_ops);
 		if (!ent)
@@ -3213,7 +3248,12 @@ static int smb1351_parallel_charger_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, chip);
 
+/* qpnp-smbcharger looks for "usb-parallel" */
+#ifdef CONFIG_LGE_PM
+	chip->parallel_psy_d.name = "usb-parallel";
+#else
 	chip->parallel_psy_d.name = "parallel";
+#endif
 	chip->parallel_psy_d.type = POWER_SUPPLY_TYPE_PARALLEL;
 	chip->parallel_psy_d.get_property = smb1351_parallel_get_property;
 	chip->parallel_psy_d.set_property = smb1351_parallel_set_property;
@@ -3331,7 +3371,7 @@ static const struct dev_pm_ops smb1351_pm_ops = {
 	.resume		= smb1351_resume,
 };
 
-static struct of_device_id smb1351_match_table[] = {
+static const struct of_device_id smb1351_match_table[] = {
 	{ .compatible = "qcom,smb1351-charger",},
 	{ },
 };

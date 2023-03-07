@@ -1260,7 +1260,7 @@ struct qpnp_adc_amux_properties {
 	uint32_t				fast_avg_setup;
 	enum qpnp_vadc_trigger			trigger_channel;
 	enum qpnp_adc_calib_type		calib_type;
-	enum qpnp_adc_cal_val			cal_val;
+	uint32_t				cal_val;
 	struct qpnp_vadc_chan_properties	chan_prop[0];
 };
 
@@ -2285,6 +2285,10 @@ static inline int32_t qpnp_adc_tm_disable_chan_meas(
 static inline struct qpnp_adc_tm_chip *qpnp_get_adc_tm(struct device *dev,
 							const char *name)
 { return ERR_PTR(-ENXIO); }
+#endif
+
+#ifdef CONFIG_MACH_MSM8996_LUCYE
+extern int32_t set_pm_gpio_value (struct qpnp_vadc_chip *vadc, int16_t reg, u8 *buf, int len);
 #endif
 
 #endif

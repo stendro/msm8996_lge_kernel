@@ -1,4 +1,5 @@
 /* Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -233,6 +234,31 @@ static unsigned int _lm_show(struct adreno_device *adreno_dev)
 	return test_bit(ADRENO_LM_CTRL, &adreno_dev->pwrctrl_flag);
 }
 
+static unsigned int _perfcounter_show(struct adreno_device *adreno_dev)
+{
+	return adreno_dev->perfcounter;
+}
+
+static int _perfcounter_store(struct adreno_device *adreno_dev,
+		unsigned int val)
+{
+	struct kgsl_device *device = KGSL_DEVICE(adreno_dev);
+
+	if (adreno_dev->perfcounter == val)
+		return 0;
+
+	mutex_lock(&device->mutex);
+
+	/* Power down the GPU before changing the state */
+	kgsl_pwrctrl_change_state(device, KGSL_STATE_SUSPEND);
+	adreno_dev->perfcounter = val;
+	kgsl_pwrctrl_change_state(device, KGSL_STATE_SLUMBER);
+
+	mutex_unlock(&device->mutex);
+
+	return 0;
+}
+
 static ssize_t _sysfs_store_u32(struct device *dev,
 		struct device_attribute *attr,
 		const char *buf, size_t count)
@@ -320,13 +346,13 @@ static ADRENO_SYSFS_BOOL(ft_long_ib_detect);
 static ADRENO_SYSFS_BOOL(ft_hang_intr_status);
 
 static DEVICE_INT_ATTR(wake_nice, 0644, adreno_wake_nice);
-static DEVICE_INT_ATTR(wake_timeout, 0644, adreno_wake_timeout);
 
 static ADRENO_SYSFS_BOOL(sptp_pc);
 static ADRENO_SYSFS_BOOL(lm);
 static ADRENO_SYSFS_BOOL(preemption);
 static ADRENO_SYSFS_BOOL(hwcg);
 static ADRENO_SYSFS_BOOL(throttling);
+static ADRENO_SYSFS_BOOL(perfcounter);
 
 
 
@@ -337,12 +363,12 @@ static const struct device_attribute *_attr_list[] = {
 	&adreno_attr_ft_long_ib_detect.attr,
 	&adreno_attr_ft_hang_intr_status.attr,
 	&dev_attr_wake_nice.attr,
-	&dev_attr_wake_timeout.attr,
 	&adreno_attr_sptp_pc.attr,
 	&adreno_attr_lm.attr,
 	&adreno_attr_preemption.attr,
 	&adreno_attr_hwcg.attr,
 	&adreno_attr_throttling.attr,
+	&adreno_attr_perfcounter.attr,
 	NULL,
 };
 
@@ -499,8 +525,11 @@ int adreno_sysfs_init(struct adreno_device *adreno_dev)
 	ret = kgsl_create_device_sysfs_files(device->dev, _attr_list);
 
 	/* Add the PPD directory and files */
-	if (ret == 0)
+	if (ret == 0) {
+		/* Notify userspace */
+		kobject_uevent(&device->dev->kobj, KOBJ_ADD);
 		ppd_sysfs_init(adreno_dev);
+	}
 
 	return 0;
 }

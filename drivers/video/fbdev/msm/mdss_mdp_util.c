@@ -302,8 +302,13 @@ void rect_copy_mdp_to_mdss(struct mdp_rect *mdp, struct mdss_rect *mdss)
  */
 int mdss_rect_cmp(struct mdss_rect *rect1, struct mdss_rect *rect2)
 {
+#ifdef CONFIG_LGE_DISABLE_SECOND_SCREEN
+	/* Skip the vertical checking due to the 160px offset */
+	return rect1->x == rect2->x && rect1->w == rect2->w;
+#else
 	return rect1->x == rect2->x && rect1->y == rect2->y &&
 	       rect1->w == rect2->w && rect1->h == rect2->h;
+#endif
 }
 
 /*
@@ -943,6 +948,7 @@ static int mdss_mdp_put_img(struct mdss_mdp_img_data *data, bool rotator,
 	} else if (!IS_ERR_OR_NULL(data->srcp_dma_buf)) {
 		pr_debug("ion hdl=%pK buf=0x%pa\n", data->srcp_dma_buf,
 							&data->addr);
+		MDSS_XLOG(data->srcp_dma_buf, &data->addr, data->mapped); //QCT debug patch for SMMU fault issue
 		if (!iclient) {
 			pr_err("invalid ion client\n");
 			return -ENOMEM;
