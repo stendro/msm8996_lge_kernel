@@ -1236,7 +1236,7 @@ static int mdss_mdp_video_wait4comp(struct mdss_mdp_ctl *ctl, void *arg)
 		if (rc == 0) {
 			pr_warn("vsync wait timeout %d, fallback to poll mode\n",
 					ctl->num);
-			ctx->polling_en++;
+			ctx->polling_en = true;
 			rc = mdss_mdp_video_pollwait(ctl);
 		} else {
 			rc = 0;
@@ -1782,16 +1782,6 @@ static int mdss_mdp_video_display(struct mdss_mdp_ctl *ctl, void *arg)
 				sctl->intf_num);
 
 		mdss_bus_bandwidth_ctrl(true);
-
-		/* configure the split link to both sublinks */
-		if (is_panel_split_link(ctl->mfd)) {
-			mdp_video_write(ctx, MDSS_MDP_REG_SPLIT_LINK, 0x3);
-			/*
-			 * ensure split link register is written before
-			 * enabling timegen
-			 */
-			wmb();
-		}
 
 		mdp_video_write(ctx, MDSS_MDP_REG_INTF_TIMING_ENGINE_EN, 1);
 		wmb();

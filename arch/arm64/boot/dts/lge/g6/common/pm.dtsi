@@ -1,0 +1,646 @@
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&soc {
+	tlmm: pinctrl@1010000 {
+		wlc_alive: wlc_alive {
+			mux {
+				pins = "gpio91";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio91";
+				bias-bus-hold;
+		    };
+		};
+
+		wlc_interrupt: wlc_interrupt {
+			mux {
+				pins = "gpio123";
+				function = "gpio";
+			};
+			config {
+				pins = "gpio123";
+				bias-pull-up;
+			};
+		};
+	};
+};
+
+&i2c_6 {
+	idtp9223-charger@61 {                   // Slave driver and slave Address
+		compatible ="idt,p9223-charger";    // Manufacture, model
+		reg = <0x61>;                       // Slave Address
+		interrupt-parent = <&tlmm>; 	    // GPIO handler
+		interrupts = <123 0x0>;             // GPIO # will be converted to gpio_activated #
+
+		pinctrl-names = "wlc_pinctrl_default";
+		pinctrl-0 = <&wlc_alive &wlc_interrupt>;
+
+		idt,gpio-alive = <&tlmm 91 0>;
+		idt,gpio-interrupt = <&tlmm 123 0>;
+		idt,gpio-disabling = <&pmi8994_gpios 4 0>;
+		idt,configure-overheat = <600>;
+		idt,configure-sysfs = <1>;
+
+		status = "ok";
+	};
+};
+
+/ {
+	vendor {
+		mtp_batterydata: qcom,battery-data {
+			qcom,batt-id-range-pct = <30>;
+			#include "../battery/LGE_BLT32_QDM_2260mAh.dtsi"
+			#include "../battery/LGE_BLT32_Tocad_3300mAh.dtsi"
+			#include "../battery/LGE_BLT32_LGC_3300mAh.dtsi"
+		};
+	};
+};
+
+&pmi8994_fg {
+	status = "ok";
+	qcom,fg-cutoff-voltage-mv = <3200>;
+	qcom,thermal-coefficients = [D2 85 0E 4A A5 35];
+	qcom,capacity-learning-feedback;
+	qcom,resume-soc = <97>;
+	qcom,resume-soc-raw = <247>;
+	qcom,fg-iterm-ma = <200>;
+	qcom,fg-chg-iterm-ma = <100>;
+	qcom,vbat-estimate-diff-mv = <300>;
+	qcom,fg-cc-cv-threshold-mv = <4340>;
+	qcom,esr-pulse-tuning-en;
+	qcom,fg-use-vbat-low-empty-soc;
+	qcom,fg-cc-soc-limit-pct = <120>;
+	qcom,fg-control-slope-limiter;
+	qcom,fg-slope-limit-high-temp-chg = <6>;
+	qcom,fg-slope-limit-high-temp-dischg = <6>;
+	qcom,fg-slope-limit-low-temp-chg = <14>;
+	qcom,fg-slope-limit-low-temp-dischg =<14>;
+	qcom,fg-dischg-voltage-gain-ctrl;
+	qcom,fg-dischg-voltage-gain-soc = <7 15 20>;
+	qcom,fg-dischg-med-voltage-gain = <5 4 4>;
+	qcom,fg-dischg-high-voltage-gain = <4 4 3>;
+	qcom,fg-rconn-mohm = <0>;
+	qcom,cl-max-limit-deciperc= <50>;
+};
+
+&pmi8994_haptics {
+	status = "okay";
+	qcom,actuator-type = <1>;
+	qcom,wave-shape = "square";
+	qcom,vmax-mv = <3596>;
+	qcom,ilim-ma = <150>;
+	qcom,brake-pattern = <0x3 0x3 0x3 0x3>;
+};
+
+&pmi8994_mpps {
+/* Must not define the mpp(mpp 3) on here */
+	mpp@a000 {	/* MPP 1 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+	};
+
+	mpp@a100 { /* MPP 2 - FLASH_STROBE_TRIG */
+		qcom,mode = <0>;			/* Digital input */
+		qcom,invert = <1>;			/* Enable invert */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,master-en = <1>;		/* Enable MPP */
+		status = "okay";
+	};
+
+	mpp@a300 { /* MPP 4 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+	};
+};
+
+&pmi8994_gpios {
+	gpio@c000 { /* GPIO 1 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c100 { /* GPIO 2 - HIFI_RESET_N */
+		qcom,mode = <1>;			/* Digital output*/
+		qcom,pull = <0>;			/* Pull down 30uA */
+		qcom,vin-sel = <2>;			/* VIN2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <1>;			/* Enable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c200 {	/* GPIO 3 SPKR_AMP_EN2 */
+		qcom,mode = <1>;			/* Digital output*/
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* VIN2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c300 { /* GPIO 4 - WLC_OFF */
+		qcom,mode = <1>;			/* Digital output*/
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* VIN2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c400 { /* GPIO 5 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c500 { /* GPIO 6 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c600 { /* GPIO 7 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c700 { /* GPIO 8 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c800 { /* GPIO 9 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c900 { /* GPIO 10 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+};
+
+&pm8994_mpps {
+/* Must not define the mpps(mpp 1 and 3) on here */
+	mpp@a100 { /* MPP 2 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+	};
+
+	mpp@a300 { /* MPP 4 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+	};
+
+	mpp@a400 { /* MPP 5 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+	};
+
+	mpp@a500 { /* MPP 6 - STAT_SMB1350 */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,invert = <0>;			/* Enable invert */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable MPP */
+		status = "okay";
+	};
+
+	mpp@a600 { /* MPP 7 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+
+	};
+
+	mpp@a700 { /* MPP 8 - NC */
+		qcom,master-en = <0>;		/* Disable MPP */
+		status = "okay";
+	};
+};
+
+&pm8994_gpios {
+/* Must not define the gpios(gpio 20 and 21) on here */
+	gpio@c100 { /* GPIO 2 - VOL_UP_EN */
+		qcom,mode = <0>;			/* Digital input */
+		qcom,pull = <0>;			/* Pull up 30uA */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <1>;			/* Enable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c300 { /* GPIO 4 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c400 { /* GPIO 5 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c500 { /* GPIO 6 - CAM0_AVDD_EN */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c600 { /* GPIO 7 - CAM1_AVDD_EN */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c700 { /* GPIO 8 - WLAN_POWER_EN */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <4>;			/* Pull down */
+		qcom,output-type = <0>;		/* CMOS logic */
+		qcom,vin-sel = <2>;			/* Vin2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@c800 { /* GPIO 9 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@c900 { /* GPIO 10 - HIFI_MODE2 */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* Vin2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@ca00 { /* GPIO 11 - HIFI_LDO_SW */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@cb00 { /* GPIO 12 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@cc00 { /* GPIO 13 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@cd00 { /* GPIO 14 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+
+	gpio@ce00 { /* GPIO 15 - CODEC_MCLK */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <5>;			/* No pull */
+		qcom,output-type = <0>;		/* CMOS logic */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <2>;			/* Function 2 */
+		qcom,out-strength = <2>;	/* Middle */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@cf00 { /* GPIO 16 - PMI_CLK_IN */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <5>;			/* No pull */
+		qcom,output-type = <0>;		/* CMOS logic */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <2>;			/* Function 2 */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <3>;	/* High */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@d000 { /* GPIO 17 - AOD_RTC */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <5>;			/* No pull */
+		qcom,output-type = <0>;		/* CMOS logic */
+		qcom,vin-sel = <2>;			/* Vin 2 */
+		qcom,src-sel = <3>;			/* Function 2 */
+		qcom,out-strength = <2>;	/* Middle */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@d100 { /* GPIO 18 - WIFI_SLEEP_CLK */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,output-type = <0>;		/* CMOS logic */
+		qcom,invert = <0>;			/* Output low initially */
+		qcom,vin-sel = <2>;			/* VIN 2 */
+		qcom,src-sel = <3>;			/* Function 2 */
+		qcom,out-strength = <2>;	/* Medium */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@d200 { /* GPIO 19 - BT_POWER_ON */
+		qcom,mode = <1>;			/* Digital output */
+		qcom,pull = <4>;			/* Pull down */
+		qcom,vin-sel = <2>;			/* Vin2 */
+		qcom,src-sel = <0>;			/* Constant */
+		qcom,invert = <0>;			/* Disable Invert */
+		qcom,out-strength = <1>;	/* Low */
+		qcom,master-en = <1>;		/* Enable GPIO */
+		status = "okay";
+	};
+
+	gpio@d500 { /* GPIO 22 - NC */
+		qcom,master-en = <0>;		/* Disable GPIO */
+		status = "okay";
+	};
+};
+
+&spmi_bus {
+	qcom,pm8994@0 {
+		 qcom,power-on@800 {
+			 qcom,s3-debounce = <128>;
+			 qcom,s3-src = "kpdpwr-and-resin";
+			 qcom,pon_1 {  /* KPD_PWR_N */
+				  status = "ok";
+				  qcom,support-reset = <0>;
+			 };
+			 qcom,pon_2 {  /* RESIN_N */
+				  status = "ok";
+				  qcom,support-reset = <0>;
+			 };
+			 qcom,pon_3 {  /* KPD_PWR_N AND RESIN_N */
+				  status = "ok";
+				  qcom,support-reset = <1>;
+				  qcom,s1-timer = <6720>;
+				  qcom,s2-timer = <2000>;
+				  qcom,s2-type = <7>;
+			 };
+		 };
+	};
+
+	qcom,pmi8994@2 {
+		qcom,power-on@800 {
+			qcom,s3-debounce = <128>;
+			qcom,s3-src = "kpdpwr-and-resin";
+		};
+	};
+};
+
+&soc {
+	qcom,sensor-information {
+		compatible = "qcom,sensor-information";
+
+		sensor_information17: qcom,sensor-information-17 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "bd_therm_1";
+		};
+
+		sensor_information18: qcom,sensor-information-18 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "bd_therm_2";
+		};
+
+		sensor_information21: qcom,sensor-information-21 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "xo_therm";
+		};
+		sensor_information20: qcom,sensor-information-20 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "vts";
+			qcom,scaling-factor = <10>;
+		};
+		sensor_information36: qcom,sensor-information-36 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "battery";
+			qcom,scaling-factor = <1000>;
+		};
+		sensor_information37: qcom,sensor-information-37 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "led_sensor";
+			qcom,scaling-factor = <1>;
+		};
+
+		sensor_information38: qcom,sensor-information-38 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "led_c_sensor";
+			qcom,scaling-factor = <1>;
+		};
+	};
+
+	mitigation_profile2: qcom,limit_info-2 {
+		qcom,temperature-sensor = <&sensor_information9>;
+		qcom,boot-frequency-mitigate;
+		qcom,hotplug-mitigation-enable;
+	};
+
+	mitigation_profile3: qcom,limit_info-3 {
+		qcom,temperature-sensor = <&sensor_information11>;
+		qcom,boot-frequency-mitigate;
+		qcom,hotplug-mitigation-enable;
+	};
+
+	qcom,msm-thermal {
+		qcom,poll-ms = <50>;
+		qcom,limit-temp = <80>;
+		qcom,core-limit-temp = <90>;
+		qcom,disable-gfx-phase-ctrl;
+		qcom,disable-psm;
+		qcom,disable-ocr;
+		qcom,disable-cx-phase-ctrl;
+		qcom,freq-mitigation-temp = <103>;
+		qcom,freq-mitigation-temp-hysteresis = <15>;
+		qcom,freq-mitigation-value = <1209600>;
+		qcom,big-hotplug-temp = <105>;
+		qcom,big-hotplug-temp-hysteresis = <40>;
+	};
+
+	qcom,bcl {
+		/delete-property/ qcom,bcl-soc-hotplug-list;
+		qcom,bcl-freq-control-list = <&CPU0 &CPU1 &CPU2 &CPU3>;
+		qcom,ibat-monitor {
+			qcom,vph-high-threshold-uv = <3200000>;
+			qcom,vph-low-threshold-uv = <3100000>;
+			qcom,soc-low-threshold = <15>;
+			qcom,mitigation-freq-khz = <1209600>;
+		};
+	};
+};
+
+&clock_cpu {
+	qcom,pwrcl-speedbin0-v0-f =
+		<          0  0 >,
+		<  307200000  1 >,
+		<  384000000  2 >,
+		<  460800000  3 >,
+		<  537600000  4 >,
+		<  614400000  5 >,
+		<  691200000  6 >,
+		<  768000000  7 >,
+		<  844800000  8 >,
+		<  902400000  9 >,
+		<  979200000 10 >,
+		< 1056000000 11 >,
+		< 1132800000 12 >,
+		< 1209600000 13 >,
+		< 1286400000 14 >,
+		< 1363200000 15 >,
+		< 1440000000 16 >,
+		< 1516800000 17 >,
+		< 1593600000 18 >;
+	qcom,pwrcl-speedbin1-v0-f =
+		<          0  0 >,
+		<  307200000  1 >,
+		<  384000000  2 >,
+		<  460800000  3 >,
+		<  537600000  4 >,
+		<  614400000  5 >,
+		<  691200000  6 >,
+		<  768000000  7 >,
+		<  844800000  8 >,
+		<  902400000  9 >,
+		<  979200000 10 >,
+		< 1056000000 11 >,
+		< 1132800000 12 >,
+		< 1209600000 13 >,
+		< 1286400000 14 >,
+		< 1363200000 15 >,
+		< 1440000000 16 >,
+		< 1516800000 17 >,
+		< 1593600000 18 >;
+	qcom,perfcl-speedbin0-v0-f =
+		<          0  0 >,
+		<  307200000  1 >,
+		<  384000000  2 >,
+		<  460800000  3 >,
+		<  537600000  4 >,
+		<  614400000  5 >,
+		<  691200000  6 >,
+		<  748800000  7 >,
+		<  825600000  8 >,
+		<  902400000  9 >,
+		<  979200000 10 >,
+		< 1056000000 11 >,
+		< 1132800000 12 >,
+		< 1209600000 13 >,
+		< 1286400000 14 >,
+		< 1363200000 15 >,
+		< 1440000000 16 >,
+		< 1516800000 17 >,
+		< 1593600000 18 >,
+		< 1670400000 19 >,
+		< 1747200000 20 >,
+		< 1824000000 21 >,
+		< 1900800000 22 >,
+		< 1977600000 23 >,
+		< 2054400000 24 >,
+		< 2150400000 25 >;
+	qcom,perfcl-speedbin1-v0-f =
+		<          0  0 >,
+		<  307200000  1 >,
+		<  384000000  2 >,
+		<  460800000  3 >,
+		<  537600000  4 >,
+		<  614400000  5 >,
+		<  691200000  6 >,
+		<  748800000  7 >,
+		<  825600000  8 >,
+		<  902400000  9 >,
+		<  979200000 10 >,
+		< 1056000000 11 >,
+		< 1132800000 12 >,
+		< 1209600000 13 >,
+		< 1286400000 14 >,
+		< 1363200000 15 >,
+		< 1440000000 16 >,
+		< 1516800000 17 >,
+		< 1593600000 18 >,
+		< 1670400000 19 >,
+		< 1747200000 20 >,
+		< 1824000000 21 >,
+		< 1900800000 22 >,
+		< 1977600000 23 >,
+		< 2054400000 24 >,
+		< 2150400000 25 >;
+	qcom,cbf-speedbin0-v0-f =
+		<	   0  0 >,
+		<  192000000  1 >,
+		<  307200000  2 >,
+		<  384000000  3 >,
+		<  441600000  4 >,
+		<  537600000  5 >,
+		<  614400000  6 >,
+		<  691200000  7 >,
+		<  768000000  8 >,
+		<  844800000  9 >,
+		<  902400000 10 >,
+		<  979200000 11 >,
+		< 1056000000 12 >,
+		< 1132800000 13 >,
+		< 1190400000 14 >,
+		< 1286400000 15 >,
+		< 1363200000 16 >,
+		< 1440000000 17 >,
+		< 1516800000 18 >,
+		< 1593600000 19 >;
+	qcom,cbf-speedbin1-v0-f =
+		<	   0  0 >,
+		<  192000000  1 >,
+		<  307200000  2 >,
+		<  384000000  3 >,
+		<  441600000  4 >,
+		<  537600000  5 >,
+		<  614400000  6 >,
+		<  691200000  7 >,
+		<  768000000  8 >,
+		<  844800000  9 >,
+		<  902400000 10 >,
+		<  979200000 11 >,
+		< 1056000000 12 >,
+		< 1132800000 13 >,
+		< 1190400000 14 >,
+		< 1286400000 15 >,
+		< 1363200000 16 >,
+		< 1440000000 17 >,
+		< 1516800000 18 >,
+		< 1593600000 19 >;
+};

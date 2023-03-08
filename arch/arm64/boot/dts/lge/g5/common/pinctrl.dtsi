@@ -1,0 +1,797 @@
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&soc {
+	tlmm: pinctrl@1010000 {
+		uart_console_active: uart_console_active {
+			config {
+				drive-strength = <2>; /* Same as qcom, keep to show original */
+				bias-bus-hold;
+				/delete-property/ bias-disable;
+			};
+		};
+
+#ifdef CONFIG_MACH_MSM8996_H1_GLOBAL_ESA
+		pmx_spi_tdmb {
+			spi_tdmb_active: spi_tdmb_active {
+				mux {
+					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+					function = "blsp_spi11";
+				};
+				config {
+					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+					drive-strength = <8>; /* 8MA */
+					bias-disable;
+				};
+			};
+
+			spi_tdmb_suspend: spi_tdmb_suspend {
+				mux {
+					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+					function = "gpio";
+				};
+				config {
+					pins =  "gpio58", "gpio59", "gpio60", "gpio61";
+					drive-strength = <2>; /* 8MA */
+					bias-pull-down;
+				};
+			};
+		};
+
+		pmx_gpio_tdmb_suspend {
+			tdmb_ctrl: tdmb_ctrl {
+				mux {
+					pins = "gpio39";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio39";
+					drive-strength = <8>; /* 8MA */
+					bias-disable;
+				};
+			};
+
+			tdmb_int: tdmb_int {
+				mux {
+					pins = "gpio21";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio21";
+					drive-strength = <8>; /* 8MA */
+					bias-pull-up;
+				};
+			};
+		};
+#endif
+
+#ifdef CONFIG_MACH_MSM8996_H1_KDDI_JP
+		/* LGE_BROADCAST_ISDBT_JAPAN Start */
+		pmx_i2c_3 {
+			i2c_3_default: i2c_3_default {
+				mux {
+					pins = "gpio47", "gpio48"; // SDA, SCL
+					function = "blsp_i2c3";
+				};
+				config {
+					pins = "gpio47", "gpio48";
+					drive-strength = <2>;	// 2MA
+					bias-disable;
+				};
+			};
+
+			i2c_3_active: i2c_3_active {
+				mux {
+					pins = "gpio47", "gpio48"; // SDA, SCL
+					function = "blsp_i2c3";
+				};
+				config {
+					pins = "gpio47", "gpio48";
+					drive-strength = <2>;	// 2MA
+					bias-disable;
+				};
+			};
+
+			i2c_3_sleep: i2c_3_sleep {
+				mux {
+					pins = "gpio47", "gpio48";
+					function = "blsp_i2c3";
+				};
+				config {
+					pins = "gpio47", "gpio48";
+					drive-strength = <2>;	// 2MA
+					bias-pull-up;
+				};
+			};
+		};
+
+		pmx_isdbt_ctrl_pin {
+			isdbt_ctrl_pin: isdbt_ctrl_pin {
+				mux {
+					pins = "gpio21", "gpio39";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio21", "gpio39";
+					drive-strength = <8>;	// 8MA
+					bias-disable;
+				};
+			};
+		};
+		/* LGE_BROADCAST_ISDBT_JAPAN End */
+#endif
+
+		pmx_mdss: pmx_mdss {
+			mdss_dsi_active: mdss_dsi_active {
+				pmx_mdss {
+					output-high;
+				};
+			};
+
+			mdss_dsi_active3: mdss_dsi_active3 {
+				mux {
+					pins = "gpio121";
+					function = "gpio";
+				};
+				pmx_mdss {
+					pins = "gpio121";
+					drive-strength = <2>; /* 2 mA */
+					bias-pull-down;  /* pull down */
+				};
+			};
+
+			mdss_dsi_suspend3: mdss_dsi_suspend3 {
+				mux {
+					pins = "gpio121";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio121";
+					drive-strength = <2>; /* 2 mA */
+					bias-bus-hold;
+				};
+			};
+		};
+
+		mdss_hdmi_hpd_suspend: mdss_hdmi_hpd_suspend {
+			config {
+				/delete-property/ bias-pull-down;
+				bias-bus-hold;
+			};
+		};
+
+		mdss_hdmi_ddc_suspend: mdss_hdmi_ddc_suspend {
+			config {
+				/delete-property/ bias-pull-up;
+				bias-disable;
+			};
+		};
+
+		mdss_hdmi_cec_suspend: mdss_hdmi_cec_suspend {
+			config {
+				/delete-property/ bias-pull-up;
+				bias-disable;
+			};
+		};
+
+		sdc2_cd_on: sdc2_cd_on {
+			mux {
+#ifdef CONFIG_MACH_MSM8996_H1_KDDI_JP
+				pins = "gpio60";
+#endif
+			};
+			config {
+#ifdef CONFIG_MACH_MSM8996_H1_KDDI_JP
+				pins = "gpio60";
+#endif
+			};
+		};
+
+		sdc2_cd_off: sdc2_cd_off {
+			mux {
+#ifdef CONFIG_MACH_MSM8996_H1_KDDI_JP
+				pins = "gpio60";
+#endif
+			};
+			config {
+#ifdef CONFIG_MACH_MSM8996_H1_KDDI_JP
+				pins = "gpio60";
+#endif
+			};
+		};
+
+        sdc2_cd_rev_0_1_on: sdc2_cd_rev_0_1_on {
+            mux {
+                pins = "gpio112";
+                function = "gpio";
+            };
+            config {
+                pins = "gpio112";
+                bias-pull-up;
+                drive_strength = <16>;
+            };
+        };
+
+        sdc2_cd_rev_0_1_off: sdc2_cd_rev_0_1_off {
+            mux {
+                pins = "gpio112";
+                function = "gpio";
+            };
+            config {
+                pins = "gpio112";
+                bias-pull-up;
+                drive_strength = <2>;
+            };
+        };
+
+		pmx_reset_ts {
+			reset_active_ts: reset_active_ts {
+				mux {
+					pins = "gpio89";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio89";
+					drive-strength = <6>;
+					bias-pull-up;
+				};
+			};
+
+			reset_suspend_ts: reset_suspend_ts {
+				mux {
+					pins = "gpio89";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio89";
+					drive-strength = <6>;
+					bias-pull-down;
+				};
+			};
+		};
+
+		pmx_int_ts {
+			int_active_ts: int_active_ts {
+				mux {
+					pins = "gpio125";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio125";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+
+			int_suspend_ts: int_suspend_ts {
+				mux {
+					pins = "gpio125";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio125";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+		};
+
+		pmx_ts_reset {
+			ts_reset_active: ts_reset_active {
+				mux {
+					pins = "gpio89";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio89";
+					drive-strength = <6>;
+					bias-pull-up;
+				};
+			};
+
+			ts_reset_suspend: ts_reset_suspend {
+				mux {
+					pins = "gpio89";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio89";
+					drive-strength = <6>;
+					bias-pull-down;
+				};
+			};
+		};
+
+		pmx_ts_int {
+			ts_int_active: ts_int_active {
+				mux {
+					pins = "gpio125";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio125";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+
+			ts_int_suspend: ts_int_suspend {
+				mux {
+					pins = "gpio125";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio125";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+		};
+
+		pmx_spi_ts: pmx_spi_ts {
+			spi_ts_active: spi_ts_active {
+			/* TOUCH MOSI, MISO */
+				mux {
+					pins = "gpio85", "gpio86";
+					function = "blsp_spi12";
+				};
+				config {
+					pins = "gpio85", "gpio86";
+					drive-strength = <8>; /* 8MA */
+					bias-pull-up;
+				};
+			};
+
+			spi_ts_suspend: spi_ts_suspend {
+			/* TOUCH MOSI, MISO */
+				mux {
+					pins = "gpio85", "gpio86";
+					function = "blsp_spi12";
+				};
+				config {
+					pins = "gpio85", "gpio86";
+					drive-strength = <2>; /* 2MA */
+					bias-bus-hold; /* IN/KP */
+				};
+			};
+
+			spi_ts_cs_active: spi_ts_cs_active {
+				mux {
+					pins = "gpio87", "gpio88";
+					function = "blsp_spi12";
+				};
+				config {
+					pins = "gpio87", "gpio88";
+					drive-strength = <8>;
+					bias-pull-up;
+				};
+			};
+
+			spi_ts_cs_suspend: spi_ts_cs_suspend {
+				mux {
+					pins = "gpio87", "gpio88";
+					function = "blsp_spi12";
+				};
+				config {
+					pins = "gpio87", "gpio88";
+					drive-strength = <2>;
+					bias-bus-hold; /* IN/KP */
+				};
+			};
+		};
+
+		spi_0 {
+			spi_0_active: spi_0_active {
+				mux {
+/*
+ * Change if not: CONFIG_MACH_MSM8996_H1_ATT_US,
+ * CONFIG_MACH_MSM8996_H1_US or CONFIG_MACH_MSM8996_H1_GLOBAL_COM
+ * Currently JP/KR variants not supported anyway.
+ */
+/*
+					pins = "gpio0", "gpio1",
+						"gpio2", "gpio3";
+*/
+					pins = "gpio0", "gpio1", "gpio3";
+					function = "blsp_spi1";
+				};
+				config {
+/*
+ * Change if not: CONFIG_MACH_MSM8996_H1_ATT_US,
+ * CONFIG_MACH_MSM8996_H1_US or CONFIG_MACH_MSM8996_H1_GLOBAL_COM
+ * Currently JP/KR variants not supported anyway.
+ */
+/*
+					pins = "gpio0", "gpio1",
+						"gpio2", "gpio3";
+*/
+					pins = "gpio0", "gpio1", "gpio3";
+					drive-strength = <6>;
+					bias-disable;
+				};
+			};
+
+			spi_0_sleep: spi_0_sleep {
+				mux {
+/*
+ * Change if not: CONFIG_MACH_MSM8996_H1_ATT_US,
+ * CONFIG_MACH_MSM8996_H1_US or CONFIG_MACH_MSM8996_H1_GLOBAL_COM
+ * Currently JP/KR variants not supported anyway.
+ */
+/*
+					pins = "gpio0", "gpio1",
+						"gpio2", "gpio3";
+*/
+					pins = "gpio0", "gpio1", "gpio3";
+					function = "blsp_spi1";
+				};
+/*
+ * Change if not: CONFIG_MACH_MSM8996_H1_ATT_US,
+ * CONFIG_MACH_MSM8996_H1_US or CONFIG_MACH_MSM8996_H1_GLOBAL_COM
+ * Currently JP/KR variants not supported anyway.
+ */
+/*
+				config {
+					pins = "gpio0", "gpio1",
+						"gpio2", "gpio3";
+					drive-strength = <6>;
+					bias-disable;
+				};
+			};
+		};
+
+		spi_8 {
+			spi_8_active: spi_8_active {
+				mux {
+					pins = "gpio49", "gpio50",
+					        "gpio51", "gpio52";
+					function = "blsp_spi9";
+				};
+				config {
+					pins = "gpio49", "gpio50",
+					        "gpio51", "gpio52";
+					drive-strength = <6>;
+					bias-disable;
+				};
+			};
+
+			spi_8_sleep: spi_8_sleep {
+				mux {
+					pins = "gpio49", "gpio50",
+						"gpio51", "gpio52";
+					function = "blsp_spi9";
+				};
+				config {
+					pins = "gpio49", "gpio50",
+						"gpio51", "gpio52";
+					drive-strength = <6>;
+					bias-disable;
+*/
+				config {
+					pins = "gpio0", "gpio1", "gpio3";
+					drive-strength = <6>;
+					bias-disable;
+				};
+			};
+		};
+
+		anx7418 {
+			anx7418_cable_det_active: anx7418_cable_det_active {
+				mux {
+					pins = "gpio131";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio131";
+					driver-strength = <8>;
+					bias-bus-hold;
+				};
+			};
+
+			anx7418_cable_det_sleep: anx7418_cable_det_sleep {
+				mux {
+					pins = "gpio131";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio131";
+					driver-strength = <2>;
+					bias-bus-hold;
+				};
+			};
+
+			anx7418_interrupt_active: anx7418_interrupt_active {
+				mux {
+					pins = "gpio132";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio132";
+					driver-strength = <8>;
+					bias-disable;
+				};
+			};
+
+			anx7418_interrupt_sleep: anx7418_interrupt_sleep {
+				mux {
+					pins = "gpio132";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio132";
+					driver-strength = <2>;
+					bias-disable;
+				};
+			};
+		};
+
+		pcie0 {
+			pcie0_wake_default: pcie0_wake_default {
+				config {
+/*
+ * Change if: CONFIG_MACH_MSM8996_H1_ATT_US
+ * or CONFIG_MACH_MSM8996_H1_US
+ * Currently JP/KR variants not supported anyway.
+ */
+#ifndef CONFIG_MACH_MSM8996_H1_GLOBAL_COM
+					bias-pull-down;
+					/delete-property/ bias-pull-up;
+#endif
+				};
+			};
+		};
+
+		pcie1 {
+			pcie1_wake_default: pcie1_wake_default {
+				config {
+					bias-pull-up;
+					/delete-property/ bias-pull-down;
+				};
+			};
+		};
+
+		wcd9xxx_intr {
+			wcd_intr_default: wcd_intr_default{
+				config {
+					bias-disable;
+					/delete-property/ bias-pull-down; /* pull down */
+				};
+			};
+		};
+
+		pri_aux_pcm {
+			pri_aux_pcm_sleep: pri_aux_pcm_sleep {
+				mux {
+					pins = "gpio65", "gpio66", "gpio67";
+				};
+				config {
+					pins = "gpio65", "gpio66", "gpio67";
+				};
+			};
+
+			pri_aux_pcm_active: pri_aux_pcm_active {
+				mux {
+					pins = "gpio65", "gpio66", "gpio67";
+				};
+				config {
+					pins = "gpio65", "gpio66", "gpio67";
+				};
+			};
+		};
+
+		pri_aux_pcm_din {
+			pri_aux_pcm_din_sleep: pri_aux_pcm_din_sleep {
+				mux {
+					pins = "gpio68";
+				};
+				config {
+					pins = "gpio68";
+				};
+			};
+
+			pri_aux_pcm_din_active: pri_aux_pcm_din_active {
+				mux {
+					pins = "gpio68";
+				};
+				config {
+					pins = "gpio68";
+				};
+			};
+		};
+
+		anx7816 {
+			anx7816_isr_active: anx7816_isr_active {
+				mux {
+					pins = "gpio77";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio77";
+					driver-strength = <8>;
+					bias-disable;
+				};
+			};
+
+			anx7816_isr_sleep: anx7816_isr_sleep {
+				mux {
+					pins = "gpio77";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio77";
+					driver-strength = <8>;
+					bias-disable;
+				};
+			};
+		};
+
+/*
+ * Delete if not: CONFIG_MACH_MSM8996_H1_GLOBAL_COM,
+ * CONFIG_MACH_MSM8996_H1_ATT_US or CONFIG_MACH_MSM8996_H1_US
+ * Currently JP/KR variants not supported anyway.
+ */
+/*		quat_mi2s {
+			/delete-node/ quat_mi2s_sleep;
+			/delete-node/ quat_mi2s_active;
+		};
+
+		quat_mi2s_sd0 {
+			/delete-node/ quat_mi2s_sd0_sleep;
+			/delete-node/ quat_mi2s_sd0_active;
+		};
+*/
+
+		cam_sensor_rear_active: cam_sensor_rear_active {
+			config {
+				pins = "gpio30"; //,"gpio29";
+			};
+		};
+
+		cam_sensor_rear_suspend: cam_sensor_rear_suspend{
+			/* RESET, STANDBY */
+			mux {
+				pins = "gpio30"; //,"gpio29";
+			};
+			config {
+				pins = "gpio30"; //,"gpio29";
+			};
+		};
+
+		cam_sensor_rear2_active: cam_sensor_rear2_active {
+			/* RESET, STANDBY */
+			mux {
+				pins = "gpio29"; //"gpio63","gpio62";
+			};
+			config {
+				pins = "gpio29"; //"gpio63","gpio62";
+			};
+		};
+
+		cam_sensor_rear2_sus {
+			cam_sensor_rear2_suspend: cam_sensor_rear2_suspend{
+				/* RESET, STANDBY */
+				mux {
+					pins = "gpio29"; //"gpio63","gpio62";
+				};
+				config {
+					pins = "gpio29"; //"gpio63","gpio62";
+				};
+			};
+		};
+
+		cam_sensor_front_active: cam_sensor_front_active{
+			/* RESET, STANDBY */
+			mux {
+				pins = "gpio23";//,"gpio26";
+			};
+			config {
+				pins = "gpio23";//,"gpio26";
+			};
+		};
+
+		cam_sensor_front_suspend: cam_sensor_front_suspend{
+			/* RESET, STANDBY */
+			mux {
+				pins = "gpio23";//,"gpio26";
+			};
+			config {
+				pins = "gpio23";//,"gpio26";
+			};
+		};
+
+		/* CoreSight */
+
+/*
+ * Delete if: CONFIG_MACH_MSM8996_H1_GLOBAL_COM,
+ * CONFIG_MACH_MSM8996_H1_ATT_US or CONFIG_MACH_MSM8996_H1_US
+ * Currently JP/KR variants not supported anyway.
+ */
+		/delete-node/ setb_14;
+
+		pinctrl_pps: ppsgrp {
+			mux {
+				pins = "gpio128";
+				function = "nav_dr";
+			};
+			config {
+				pins =  "gpio128";
+				drive-strength = <16>;
+				bias-pull-down;
+			};
+		};
+
+		/* pin set for HallIC */
+		hallic_gpio {
+			label = "hallic_gpio";
+			hallic_gpio_active: hallic_gpio_active {
+				hallic_gpio {
+					pins = "gpio124";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+
+			hallic_gpio_suspend: hallic_gpio_suspend {
+				hallic_gpio {
+					pins = "gpio124";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			 };
+		};
+
+		/* pin set for IrRC */
+		irrc_uart {
+			label = "irrc_uart";
+
+			irrc_uart_active: irrc_uart_active {
+				mux {
+					pins = "gpio25", "gpio26";
+					function = "blsp_uart6";
+				};
+				config {
+					pins = "gpio25", "gpio26";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+
+			irrc_uart_sleep: irrc_uart_sleep {
+				mux {
+					pins = "gpio25", "gpio26";
+					function = "gpio";
+				};
+				config {
+					pins = "gpio25", "gpio26";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+		};
+
+		irrc_rst {
+			label = "irrc_rst";
+
+			irrc_rst_active: irrc_rst_active {
+				pins = "gpio73";
+				drive-strength = <2>;
+				bias-disable;
+			};
+
+			irrc_rst_sleep: irrc_rst_sleep {
+				pins = "gpio73";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+};

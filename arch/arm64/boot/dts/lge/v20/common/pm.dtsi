@@ -1,0 +1,169 @@
+/* Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/ {
+	vendor {
+		mtp_batterydata: qcom,battery-data {
+#if defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP)
+			#include "../battery/LGE_BLT19_Tocad_2700mAh.dtsi"
+			#include "../battery/LGE_BLT28_Tocad_3000mAh.dtsi"
+#else
+			#include "../battery/LGE_BL44E1F_LGC_3200mAh.dtsi"
+			#include "../battery/LGE_BL44E1F_Tocad_3200mAh.dtsi"
+#endif
+        };
+	};
+};
+
+&pmi8994_fg {
+	status = "ok";
+	qcom,fg-cutoff-voltage-mv = <3200>;
+	qcom,thermal-coefficients = [D2 85 0E 4A A5 35];
+	qcom,capacity-learning-feedback;
+	qcom,resume-soc = <97>;
+	qcom,resume-soc-raw = <247>;
+	qcom,fg-iterm-ma = <200>;
+	qcom,fg-chg-iterm-ma = <100>;
+	qcom,vbat-estimate-diff-mv = <250>;
+	qcom,fg-cc-cv-threshold-mv = <4340>; //float-voltage set as 4350 in common-various
+	qcom,esr-pulse-tuning-en;
+	qcom,fg-use-vbat-low-empty-soc;
+	qcom,fg-cc-soc-limit-pct = <120>;
+	qcom,fg-control-slope-limiter;
+	qcom,fg-slope-limit-high-temp-chg = <6>;
+	qcom,fg-slope-limit-high-temp-dischg = <6>;
+	qcom,fg-slope-limit-low-temp-chg = <14>;
+	qcom,fg-slope-limit-low-temp-dischg =<14>;
+	qcom,fg-dischg-voltage-gain-ctrl;
+	qcom,fg-dischg-voltage-gain-soc = <7 15 20>;
+	qcom,fg-dischg-med-voltage-gain = <5 4 4>;
+	qcom,fg-dischg-high-voltage-gain = <4 4 3>;
+	qcom,fg-rconn-mohm = <30>;
+	qcom,cl-max-limit-deciperc = <50>;
+};
+
+&pmi8994_haptics {
+	status = "okay";
+	qcom,actuator-type = <1>;
+	qcom,wave-shape = "square";
+	qcom,vmax-mv = <2400>;
+	qcom,ilim-ma = <150>;
+	qcom,brake-pattern = <0x3 0x3 0x3 0x3>;
+};
+
+&spmi_bus {
+	qcom,pm8994@0 {
+		 qcom,power-on@800 {
+			 qcom,s3-debounce = <128>;
+			 qcom,s3-src = "kpdpwr-and-resin";
+			 qcom,pon_1 {  /* KPD_PWR_N */
+				  status = "ok";
+				  qcom,support-reset = <0>;
+			 };
+			 qcom,pon_2 {  /* RESIN_N */
+				  status = "ok";
+				  qcom,support-reset = <0>;
+			 };
+			 qcom,pon_3 {  /* KPD_PWR_N AND RESIN_N */
+				  status = "ok";
+#if defined(CONFIG_MACH_MSM8996_ELSA_DCM_JP) || defined(CONFIG_MACH_MSM8996_ELSA_KDDI_JP)
+				  qcom,support-reset = <1>;
+				  qcom,s1-timer = <6720>;
+				  qcom,s2-timer = <2000>;
+				  qcom,s2-type = <7>;
+#elif defined(CONFIG_MACH_MSM8996_ELSA_VZW) || defined(CONFIG_MACH_MSM8996_ELSA_GLOBAL_CA) || \
+		defined(CONFIG_MACH_MSM8996_ELSA_GLOBAL_COM) || defined(CONFIG_MACH_MSM8996_ELSA_CNO_CN) || \
+			defined(CONFIG_MACH_MSM8996_ELSA_GLOBAL_LIVE_DUMMY)
+				  qcom,support-reset = <1>;
+#else
+				  qcom,support-reset = <0>;
+#endif
+			 };
+		 };
+	};
+
+	qcom,pmi8994@2 {
+		qcom,power-on@800 {
+			qcom,s3-debounce = <128>;
+			qcom,s3-src = "kpdpwr-and-resin";
+		};
+	};
+};
+
+&soc {
+	qcom,sensor-information {
+		compatible = "qcom,sensor-information";
+
+		sensor_information17: qcom,sensor-information-17 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "bd_therm_1";
+		};
+
+		sensor_information18: qcom,sensor-information-18 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "bd_therm_2";
+		};
+
+		sensor_information21: qcom,sensor-information-21 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "xo_therm";
+		};
+		sensor_information20: qcom,sensor-information-20 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "vts";
+			qcom,scaling-factor = <10>;
+		};
+		sensor_information36: qcom,sensor-information-36 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "battery";
+			qcom,scaling-factor = <1000>;
+		};
+	};
+
+	mitigation_profile2: qcom,limit_info-2 {
+		qcom,temperature-sensor = <&sensor_information9>;
+		qcom,boot-frequency-mitigate;
+		qcom,hotplug-mitigation-enable;
+	};
+
+	mitigation_profile3: qcom,limit_info-3 {
+		qcom,temperature-sensor = <&sensor_information11>;
+		qcom,boot-frequency-mitigate;
+		qcom,hotplug-mitigation-enable;
+	};
+
+	qcom,msm-thermal {
+		qcom,poll-ms = <50>;
+		qcom,limit-temp = <80>;
+		qcom,core-limit-temp = <90>;
+		qcom,disable-gfx-phase-ctrl;
+		qcom,disable-psm;
+		qcom,disable-ocr;
+		qcom,disable-cx-phase-ctrl;
+		qcom,freq-mitigation-temp = <103>;
+		qcom,freq-mitigation-temp-hysteresis = <15>;
+		qcom,freq-mitigation-value = <1190400>;
+		qcom,big-hotplug-temp = <105>;
+		qcom,big-hotplug-temp-hysteresis = <40>;
+	};
+
+	qcom,bcl {
+		/delete-property/ qcom,bcl-soc-hotplug-list;
+		qcom,bcl-freq-control-list = <&CPU0 &CPU1 &CPU2 &CPU3>;
+		qcom,ibat-monitor {
+			qcom,vph-high-threshold-uv = <3200000>;
+			qcom,vph-low-threshold-uv = <3100000>;
+			qcom,soc-low-threshold = <15>;
+			qcom,mitigation-freq-khz = <1190400>;
+		};
+	};
+};

@@ -1022,6 +1022,7 @@ static struct clk_freq_tbl ftbl_blsp2_qup6_spi_apps_clk_src[] = {
 	F(   9600000,         cxo_clk_src,    2,    0,     0),
 	F(  15000000, gpll0_out_main,   10,    1,     4),
 	F(  25000000, gpll0_out_main,   12,    1,     2),
+	F(  40000000, gpll0_out_main,   15,    0,     0),
 	F(  50000000, gpll0_out_main,   12,    0,     0),
 	F_END
 };
@@ -1421,7 +1422,12 @@ static struct clk_freq_tbl ftbl_sdcc2_apps_clk_src[] = {
 	F(  25000000, gpll0_out_main,   12,    1,     2),
 	F(  50000000, gpll0_out_main,   12,    0,     0),
 	F( 100000000, gpll0_out_main,    6,    0,     0),
+#if defined (CONFIG_MACH_MSM8996_ELSA_KR) || defined (CONFIG_MACH_MSM8996_LUCYE_KR)
+/* change clk frequency from 200MHz to 171MHz to meet the RE standard */
+	F( 200000000, gpll0_out_main,    3.5,    0,     0),
+#else
 	F( 200000000, gpll0_out_main,    3,    0,     0),
+#endif
 	F_END
 };
 
@@ -3085,7 +3091,6 @@ static struct branch_clk gcc_mss_q6_bimc_axi_clk = {
 	.base = &virt_base,
 	.c = {
 		.dbg_name = "gcc_mss_q6_bimc_axi_clk",
-		.always_on = true,
 		.ops = &clk_ops_branch,
 		CLK_INIT(gcc_mss_q6_bimc_axi_clk.c),
 	},
@@ -3723,6 +3728,14 @@ static int msm_gcc_8996_probe(struct platform_device *pdev)
 
 	/* Keep an active vote on CXO in case no other driver votes for it */
 	clk_prepare_enable(&cxo_clk_src_ao.c);
+
+	/* Configure blsp2_uart2_apps_clk_src - console */
+	clk_set_rate(&blsp2_uart2_apps_clk_src.c, 3686400);
+	clk_prepare_enable(&blsp2_uart2_apps_clk_src.c);
+
+	/* Configure blsp1_uart6_apps_clk_src - lg ir port */
+	clk_set_rate(&blsp1_uart6_apps_clk_src.c, 3686400);
+	clk_prepare_enable(&blsp1_uart6_apps_clk_src.c);
 
 	/*
 	 * Keep the core memory settings enabled at all times for

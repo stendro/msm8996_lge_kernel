@@ -14,6 +14,12 @@
 # Based on the ia64 boot/Makefile.
 #
 
+ifneq ($(CONFIG_MACH_LGE),y)
+include $(srctree)/arch/arm64/boot/dts/qcom/Makefile
+else
+include $(srctree)/arch/arm64/boot/dts/lge/Makefile
+endif
+
 targets := Image Image.bz2 Image.gz Image.lz4 Image.lzma Image.lzo
 
 DTB_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES))
@@ -46,6 +52,9 @@ $(obj)/Image.lzo: $(obj)/Image FORCE
 	$(call if_changed,lzo)
 
 $(obj)/Image.gz-dtb: $(obj)/Image.gz $(DTB_OBJS) FORCE
+	$(call if_changed,cat)
+
+$(obj)/Image.lz4-dtb: $(obj)/Image.lz4 $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
 
 install: $(obj)/Image

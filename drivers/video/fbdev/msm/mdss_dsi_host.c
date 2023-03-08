@@ -34,6 +34,11 @@
 #define DMA_TX_TIMEOUT 200
 #define DMA_TPG_FIFO_LEN 64
 
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+extern int panel_not_connected;
+extern int skip_lcd_error_check;
+#endif
+
 #define FIFO_STATUS	0x0C
 #define LANE_STATUS	0xA8
 
@@ -1326,31 +1331,6 @@ void mdss_dsi_set_burst_mode(struct mdss_dsi_ctrl_pdata *ctrl)
 
 }
 
-static void mdss_dsi_split_link_setup(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
-{
-	u32 data = 0;
-	struct mdss_panel_info *pinfo;
-
-	if (!ctrl_pdata)
-		return;
-
-	pinfo = &ctrl_pdata->panel_data.panel_info;
-	if (!pinfo->split_link_enabled)
-		return;
-
-	pr_debug("%s: enable split link\n", __func__);
-
-	data = MIPI_INP((ctrl_pdata->ctrl_base) + 0x330);
-	/* DMA_LINK_SEL */
-	data |= 0x3 << 12;
-	/* MDP0_LINK_SEL */
-	data |= 0x5 << 20;
-	/* EN */
-	data |= 0x1;
-	/* DSI_SPLIT_LINK_CTRL */
-	MIPI_OUTP((ctrl_pdata->ctrl_base) + 0x330, data);
-}
-
 static void mdss_dsi_mode_setup(struct mdss_panel_data *pdata)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
@@ -1469,8 +1449,6 @@ static void mdss_dsi_mode_setup(struct mdss_panel_data *pdata)
 	}
 
 	mdss_dsi_dsc_config(ctrl_pdata, dsc);
-
-	mdss_dsi_split_link_setup(ctrl_pdata);
 }
 
 void mdss_dsi_ctrl_setup(struct mdss_dsi_ctrl_pdata *ctrl)
@@ -3158,6 +3136,19 @@ static bool mdss_dsi_fifo_status(struct mdss_dsi_ctrl_pdata *ctrl)
 		MIPI_OUTP(base + 0x000c, status);
 
 		pr_err("%s: status=%x\n", __func__, status);
+
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+		if(skip_lcd_error_check){
+			ctrl->err_cont.fifo_err_cnt++;
+			return false;
+		}
+#endif
+		/*
+		 * if DSI FIFO overflow is masked,
+		 * do not report overflow error
+		 */
+		if (MIPI_INP(base + 0x10c) & 0xf0000)
+			status = status & 0xaaaaffff;
 
 		/*
 		 * if DSI FIFO overflow is masked,

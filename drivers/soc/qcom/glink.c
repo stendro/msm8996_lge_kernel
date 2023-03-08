@@ -4132,10 +4132,12 @@ int glink_core_register_transport(struct glink_transport_if *if_ptr,
 	glink_debugfs_add_xprt(xprt_ptr);
 	snprintf(log_name, sizeof(log_name), "%s_%s",
 			xprt_ptr->edge, xprt_ptr->name);
+#ifdef CONFIG_IPC_LOGGING
 	xprt_ptr->log_ctx = ipc_log_context_create(NUM_LOG_PAGES, log_name, 0);
 	if (!xprt_ptr->log_ctx)
 		GLINK_ERR("%s: unable to create log context for [%s:%s]\n",
 				__func__, xprt_ptr->edge, xprt_ptr->name);
+#endif
 
 	return 0;
 }
@@ -5900,7 +5902,7 @@ void glink_xprt_ctx_iterator_init(struct xprt_ctx_iterator *xprt_i)
 
 	mutex_lock(&transport_list_lock_lha0);
 	xprt_i->xprt_list = &transport_list;
-	xprt_i->i_curr = list_entry(&transport_list,
+	xprt_i->i_curr = list_first_entry_or_null(&transport_list,
 			struct glink_core_xprt_ctx, list_node);
 }
 EXPORT_SYMBOL(glink_xprt_ctx_iterator_init);
@@ -6321,9 +6323,11 @@ EXPORT_SYMBOL(glink_get_xprt_log_ctx);
 
 static int glink_init(void)
 {
+#ifdef CONFIG_IPC_LOGGING
 	log_ctx = ipc_log_context_create(NUM_LOG_PAGES, "glink", 0);
 	if (!log_ctx)
 		GLINK_ERR("%s: unable to create log context\n", __func__);
+#endif
 	glink_debugfs_init();
 
 	return 0;

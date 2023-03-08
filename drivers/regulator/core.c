@@ -3,6 +3,7 @@
  *
  * Copyright 2007, 2008 Wolfson Microelectronics PLC.
  * Copyright 2008 SlimLogic Ltd.
+ * Copyright (C) 2013 Sony Mobile Communications AB.
  *
  * Author: Liam Girdwood <lrg@slimlogic.co.uk>
  *
@@ -326,6 +327,16 @@ static int regulator_mode_constrain(struct regulator_dev *rdev, int *mode)
 	case REGULATOR_MODE_NORMAL:
 	case REGULATOR_MODE_IDLE:
 	case REGULATOR_MODE_STANDBY:
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+	case REGULATOR_MODE_SHUTDOWN:
+	case REGULATOR_MODE_SPARE_ON:
+	case REGULATOR_MODE_TTW_ON:
+	case REGULATOR_MODE_TTW_OFF:
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+	case REGULATOR_MODE_ENABLE_PULLDOWN:
+	case REGULATOR_MODE_DISABLE_PULLDOWN:
+#endif
+#endif
 		break;
 	default:
 		rdev_err(rdev, "invalid mode %x specified\n", *mode);
@@ -3448,6 +3459,33 @@ int regulator_allow_bypass(struct regulator *regulator, bool enable)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(regulator_allow_bypass);
+
+/**
+ * regulator_register_ocp_notification - register ocp notification
+ * @regulator: regulator source
+ * @notification: pointer of client ocp_notification
+ *
+ */
+int regulator_register_ocp_notification(struct regulator *regulator,
+			struct regulator_ocp_notification *notification)
+{
+	struct regulator_dev *rdev = regulator->rdev;
+	int ret;
+
+	mutex_lock(&rdev->mutex);
+
+	/* sanity check */
+	if (!rdev->desc->ops->register_ocp_notification) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = rdev->desc->ops->register_ocp_notification(rdev, notification);
+out:
+	mutex_unlock(&rdev->mutex);
+	return ret;
+}
+EXPORT_SYMBOL_GPL(regulator_register_ocp_notification);
 
 /**
  * regulator_register_notifier - register regulator event notifier

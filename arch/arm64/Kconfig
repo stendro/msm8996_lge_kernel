@@ -5,6 +5,7 @@ config ARM64
 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
 	select ARCH_HAS_ELF_RANDOMIZE
+	select ARCH_HAS_FAST_MULTIPLIER
 	select ARCH_HAS_GCOV_PROFILE_ALL
 	select ARCH_HAS_SG_CHAIN
 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
@@ -17,6 +18,8 @@ config ARM64
 	select ARCH_HAS_UBSAN_SANITIZE_ALL
 	select ARM_AMBA
 	select ARM_ARCH_TIMER
+	select HAVE_KERNEL_GZIP
+	select HAVE_KERNEL_LZ4
 	select ARM_GIC
 	select AUDIT_ARCH_COMPAT_GENERIC
 	select ARM_GIC_V2M if PCI_MSI
@@ -29,7 +32,6 @@ config ARM64
 	select CPU_PM if (SUSPEND || CPU_IDLE)
 	select DCACHE_WORD_ACCESS
 	select EDAC_SUPPORT
-	select FRAME_POINTER
 	select GENERIC_ALLOCATOR
 	select EDAC_SUPPORT
 	select GENERIC_CLOCKEVENTS
@@ -79,6 +81,7 @@ config ARM64
 	select HAVE_HW_BREAKPOINT if PERF_EVENTS
 	select HAVE_IRQ_TIME_ACCOUNTING
 	select HAVE_MEMBLOCK
+	select HAVE_MOVE_PMD
 	select HAVE_PATA_PLATFORM
 	select HAVE_PERF_EVENTS
 	select HAVE_PERF_REGS
@@ -731,6 +734,9 @@ config ARCH_SPARSEMEM_DEFAULT
 config ARCH_SELECT_MEMORY_MODEL
 	def_bool ARCH_SPARSEMEM_ENABLE
 
+config ARCH_FLATMEM_ENABLE
+	def_bool !NUMA
+
 config HAVE_ARCH_PFN_VALID
 	def_bool ARCH_HAS_HOLES_MEMORYMODEL || !SPARSEMEM
 
@@ -1099,6 +1105,149 @@ config CMDLINE_FORCE
 	  command-line options your boot loader passes to the kernel.
 endchoice
 
+config CMDLINE_SEARCHREPLACE
+        bool
+
+config CMDLINE_SAR_ENABLE0
+	bool "Enable search/replace pair 0"
+	select CMDLINE_SEARCHREPLACE
+	help
+	  This enables the first free pair of search-replace strings.  More are
+	  available below, though the documentation strings aren't duplicated.
+
+	  DANGEROUS! For experienced use only!
+
+config CMDLINE_SAR_SEARCH0
+	string "First search string"
+	depends on CMDLINE_SAR_ENABLE0
+	help
+	  Specifies a string to search for.  A space included at begining or
+	  end indicates the string must be the start/end of an argument.  If
+	  spaces are present here, they must also be present in the replacement
+	  if you don't wish to remove the space.
+
+config CMDLINE_SAR_REPLACE0
+	string "First replace string"
+	depends on CMDLINE_SAR_ENABLE0
+	help
+	  Specifies the replacement for first string.  If the search string did
+	  NOT have a space at start/end, spaces at the start/end of this string
+	  will cause the replacement to replace all the way to the end of
+	  argument.  A single space will cause the matched string to be
+	  deleted.
+
+	  The pair " foo=" and " foo=bar " will search for an argument begining
+	  with "foo=" and then replace the whole argument with "foo=bar".  A
+	  single space will cause the removal of the matched argument.
+
+config CMDLINE_SAR_ENABLE1
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH1
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE1
+
+config CMDLINE_SAR_REPLACE1
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE1
+
+config CMDLINE_SAR_ENABLE2
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH2
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE2
+
+config CMDLINE_SAR_REPLACE2
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE2
+
+config CMDLINE_SAR_ENABLE3
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH3
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE3
+
+config CMDLINE_SAR_REPLACE3
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE3
+
+config CMDLINE_SAR_ENABLE4
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH4
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE4
+
+config CMDLINE_SAR_REPLACE4
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE4
+
+config CMDLINE_SAR_ENABLE5
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH5
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE5
+
+config CMDLINE_SAR_REPLACE5
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE5
+
+config CMDLINE_SAR_ENABLE6
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH6
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE6
+
+config CMDLINE_SAR_REPLACE6
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE6
+
+config CMDLINE_SAR_ENABLE7
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH7
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE7
+
+config CMDLINE_SAR_REPLACE7
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE7
+
+config CMDLINE_SAR_ENABLE8
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH8
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE8
+
+config CMDLINE_SAR_REPLACE8
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE8
+
+config CMDLINE_SAR_ENABLE9
+	bool "see above"
+	select CMDLINE_SEARCHREPLACE
+
+config CMDLINE_SAR_SEARCH9
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE9
+
+config CMDLINE_SAR_REPLACE9
+	string "see above"
+	depends on CMDLINE_SAR_ENABLE9
+
 config EFI_STUB
 	bool
 
@@ -1137,26 +1286,6 @@ config BUILD_ARM64_APPENDED_DTB_IMAGE
 	  Enabling this option will cause a concatenated Image.gz and list of
 	  DTBs to be built by default (instead of a standalone Image.gz.)
 	  The image will built in arch/arm64/boot/Image.gz-dtb
-
-choice
-	prompt "Appended DTB Kernel Image name"
-	depends on BUILD_ARM64_APPENDED_DTB_IMAGE
-	help
-	  Enabling this option will cause a specific kernel image Image or
-	  Image.gz to be used for final image creation.
-	  The image will built in arch/arm64/boot/IMAGE-NAME-dtb
-
-	config IMG_GZ_DTB
-		bool "Image.gz-dtb"
-	config IMG_DTB
-		bool "Image-dtb"
-endchoice
-
-config BUILD_ARM64_APPENDED_KERNEL_IMAGE_NAME
-	string
-	depends on BUILD_ARM64_APPENDED_DTB_IMAGE
-	default "Image.gz-dtb" if IMG_GZ_DTB
-	default "Image-dtb" if IMG_DTB
 
 config BUILD_ARM64_APPENDED_DTB_IMAGE_NAMES
 	string "Default dtb names"

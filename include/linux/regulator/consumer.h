@@ -2,6 +2,7 @@
  * consumer.h -- SoC Regulator consumer support.
  *
  * Copyright (C) 2007, 2008 Wolfson Microelectronics PLC.
+ * Copyright (C) 2013 Sony Mobile Communications AB.
  *
  * Author: Liam Girdwood <lrg@slimlogic.co.uk>
  *
@@ -84,6 +85,16 @@ struct regmap;
 #define REGULATOR_MODE_NORMAL			0x2
 #define REGULATOR_MODE_IDLE			0x4
 #define REGULATOR_MODE_STANDBY			0x8
+#if defined(CONFIG_LGE_DISPLAY_COMMON)
+#define REGULATOR_MODE_SHUTDOWN			0x10
+#define REGULATOR_MODE_SPARE_ON			0x20
+#define REGULATOR_MODE_TTW_ON			0x40
+#define REGULATOR_MODE_TTW_OFF			0x80
+#if defined(CONFIG_LGE_DISPLAY_LUCYE_COMMON)
+#define REGULATOR_MODE_ENABLE_PULLDOWN		0xA0
+#define REGULATOR_MODE_DISABLE_PULLDOWN		0xB0
+#endif
+#endif
 
 /*
  * Regulator notifier events.
@@ -161,6 +172,18 @@ struct regulator_bulk_data {
 
 	/* private: Internal use */
 	int ret;
+};
+
+/**
+ * struct regulator_ocp_notification: event notification structure
+ * @notify: pointer to client function to call when ocp event is detected.
+ *          notify function runs in interrupt context.
+ * @ctxt: client-specific context pointer
+ *
+ */
+struct regulator_ocp_notification {
+	void (*notify)(void *);
+	void *ctxt;
 };
 
 #if defined(CONFIG_REGULATOR)
@@ -259,6 +282,10 @@ int regulator_get_hardware_vsel_register(struct regulator *regulator,
 					 unsigned *vsel_mask);
 int regulator_list_hardware_vsel(struct regulator *regulator,
 				 unsigned selector);
+
+/* regulator register ocp notification */
+int regulator_register_ocp_notification(struct regulator *regulator,
+			struct regulator_ocp_notification *ocp_notification);
 
 /* regulator notifier block */
 int regulator_register_notifier(struct regulator *regulator,
@@ -521,6 +548,13 @@ static inline int regulator_list_hardware_vsel(struct regulator *regulator,
 					       unsigned selector)
 {
 	return -EOPNOTSUPP;
+}
+
+static inline int regulator_register_ocp_notification(
+			struct regulator *regulator,
+			struct regulator_ocp_notification *ocp_notification);
+{
+	return 0;
 }
 
 static inline int regulator_register_notifier(struct regulator *regulator,

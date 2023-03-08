@@ -1,0 +1,293 @@
+config MACH_LGE
+	bool "Machine LGE"
+	help
+	  Support for machine LGE.
+
+menu "LGE Board Selection"
+
+config MACH_MSM8996_H1
+	bool "MSM8996 H1 (G5)"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	select LGE_DDR_SECTION_SIZE_CHANGE
+	help
+	  Support for the Qualcomm MSM8996 H1 device.
+
+config MACH_MSM8996_H1_LRA_US
+	bool "MSM8996 H1_LRA_US"
+	depends on MACH_MSM8996_H1
+	select MACH_LGE
+	select MACH_MSM8996_H1_US
+	help
+	  Support for the Qualcomm MSM8996 H1_LRA_US device.
+
+config MACH_MSM8996_H1_TMO_US
+	bool "MSM8996 H1_TMO_US"
+	depends on MACH_MSM8996_H1
+	select MACH_LGE
+	select MACH_MSM8996_H1_US
+	help
+	  Support for the Qualcomm MSM8996 H1_TMO_US device.
+
+config MACH_MSM8996_H1_GLOBAL_COM
+	bool "MSM8996 H1_GLOBAL_COM"
+	depends on MACH_MSM8996_H1
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 H1_GLOBAL device.
+
+config MACH_MSM8996_H1_US
+	bool "MSM8996 US"
+	depends on MACH_MSM8996_H1
+	default n
+	help
+	  Selected if any American model selected (except ATT).
+	  Used for device tree conditionals in common device tree.
+
+config MACH_MSM8996_LUCYE
+	bool "MSM8996 LUCYE (G6)"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	select LGE_DDR_SECTION_SIZE_CHANGE
+	select LGE_MSM8996_ISB_WA
+	select LGE_MSM8996_NOP_WA
+	select LGE_MSM8996_FLUSH_WA
+	select LGE_POWER_ONOFF_LOCKUP_DEBUG
+	select LGE_DM_VERITY_RECOVERY
+	help
+	  Support for the Qualcomm MSM8996 LUCYE device.
+
+config MACH_MSM8996_LUCYE_NAO_US
+	bool "MSM8996 LUCYE_NAO_US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 LUCYE_NAO_US device.
+
+config MACH_MSM8996_LUCYE_TMO_US
+	bool "MSM8996 LUCYE_TMO_US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 LUCYE_TMO_US device.
+
+config MACH_MSM8996_LUCYE_GLOBAL_COM
+	bool "MSM8996 LUCYE_GLOBAL COM"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 LUCYE_GLOBAL_COM device.
+
+config MACH_MSM8996_ELSA
+	bool "MSM8996 ELSA (V20)"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	select LGE_DDR_SECTION_SIZE_CHANGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA device.
+
+config MACH_MSM8996_ELSA_KR
+	bool "MSM8996 ELSA"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA device.
+
+config MACH_MSM8996_ELSA_LGU_KR
+	bool "MSM8996 ELSA_LGU_KR"
+	depends on MACH_MSM8996_ELSA_KR
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_LGU_KR device.
+
+config MACH_MSM8996_ELSA_SKT_KR
+	bool "MSM8996 ELSA_SKT_KR"
+	depends on MACH_MSM8996_ELSA_KR
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_SKT_KR device.
+
+config MACH_MSM8996_ELSA_KT_KR
+	bool "MSM8996 ELSA_KT_KR"
+	depends on MACH_MSM8996_ELSA_KR
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_KT_KR device.
+
+config MACH_MSM8996_ELSA_VZW
+	bool "MSM8996 ELSA_VZW"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_VZW device.
+
+config MACH_MSM8996_ELSA_ATT_US
+	bool "MSM8996 ELSA_ATT US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_ATT_US device.
+
+config MACH_MSM8996_ELSA_SPR_US
+	bool "MSM8996 ELSA_SPR US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_SPR_US device.
+
+config MACH_MSM8996_ELSA_TMO_US
+	bool "MSM8996 ELSA_TMO US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_TMO_US device.
+
+config MACH_MSM8996_ELSA_CLR_PR
+	bool "MSM8996 ELSA_CLR PR"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_CLR_PR device.
+
+config MACH_MSM8996_ELSA_USC_US
+	bool "MSM8996 ELSA_USC US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_USC_US device.
+
+config MACH_MSM8996_ELSA_NAO_US
+	bool "MSM8996 ELSA_NAO US"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_NAO_US device.
+
+config MACH_MSM8996_ELSA_GLOBAL_COM
+	bool "MSM8996 ELSA_GLOBAL COM"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_GLOBAL_COM device.
+
+config MACH_MSM8996_ELSA_GLOBAL_LIVE_DUMMY
+	bool "MSM8996 ELSA_GLOBAL COM"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_GLOBAL_COM device.
+
+config MACH_MSM8996_ELSA_GLOBAL_CA
+	bool "MSM8996 ELSA_GLOBAL CA"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_GLOBAL_CA device.
+
+config MACH_MSM8996_ELSA_CNO_CN
+	bool "MSM8996 ELSA_CNO_CN"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_CNO_CN device.
+
+config MACH_MSM8996_ELSA_KDDI_JP
+	bool "MSM8996 ELSA_KDDI_JP"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_KDDI_JP device.
+
+config MACH_MSM8996_ELSA_DCM_JP
+	bool "MSM8996 ELSA_DCM_JP"
+	depends on ARCH_MSM8996
+	select MACH_LGE
+	help
+	  Support for the Qualcomm MSM8996 ELSA_DCM_JP device.
+
+endmenu
+
+menu "LGE Specific Patches"
+
+config LGE_PM
+	tristate "MSM8996 LGE POWER Feature"
+	depends on MACH_LGE && SPMI
+	help
+	  Say Y here to enable support for pm8994/pmi8994 chip lge feature.
+	  Power Management, Battery charging, Battery Monitoring System
+	  with battery FET and fuel gauge.
+
+config LGE_PM_EMBEDDED_BATTERY
+	bool "Embedded battery"
+	depends on LGE_PM
+	default n
+	help
+	  Enable adjustments for embedded battery.
+
+config LGE_PM_THERMAL_VTS
+	tristate "LGE Virtual Temp Sensor Driver"
+	depends on THERMAL
+	help
+	  This enables virtual temp sensor driver.
+
+config LGE_PM_UNIFIED_NODE
+	bool "enable LGE PM Unified sysfs node"
+	depends on MACH_LGE
+	default n
+	help
+	  Support LGE PM Unified sysfs node.
+
+config LGE_PANEL_MAKER_ID_SUPPORT
+	tristate "Support panel ID feature"
+	depends on MACH_LGE
+	default n
+	help
+	  Say Y here to enable Panel Maker ID feature.
+
+config LGE_HALL_IC
+	bool "Support LGE Smartcover"
+	depends on MACH_LGE
+	default y
+	help
+	  Support sending a device-tree defined gpio code when hall IC
+	  is triggered.
+
+config LGE_IRRC
+	tristate "LGE_IRRC"
+	depends on MACH_LGE
+	default n
+	help
+	  If you say yes here you get support for IrRC.
+
+config LGE_BOOTLOADER_LOG
+	tristate "Support LGE bootloader log"
+	depends on MACH_LGE
+	default n
+	help
+	  LGE bootloader log.
+
+config LGE_DISABLE_SECOND_SCREEN
+	bool "Disable the secondary screen on elsa devices"
+	depends on MACH_MSM8996_ELSA
+	help
+	  Disables the second screen for devices with userspace which lacks
+	  support.  Notably this includes all non-stock versions of Android
+	  for LGE devices at the time of this writing (progress is being
+	  made for other Android versions though).
+
+config LGE_DIRTY_ABOOT_FIXUP
+	bool "Fix eng-aboot discrepancy"
+	depends on MACH_MSM8996_ELSA
+	depends on !MACH_MSM8996_ELSA_TMO_US
+	default y
+	help
+	  Fixes screen tearing/static on V20 devices rooted with engineering
+	  bootloader. H918 and officially unlocked US996 doesn't need this.
+
+config LGE_MSM8996_ENABLE_VENDOR
+	bool "Enables using the vendor partition"
+	depends on MACH_LGE
+	help
+	  Enables the /vendor partition in device-tree fstab
+
+endmenu
