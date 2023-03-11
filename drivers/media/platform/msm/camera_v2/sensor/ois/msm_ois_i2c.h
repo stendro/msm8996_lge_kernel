@@ -3,7 +3,11 @@
 
 #include <linux/i2c.h>
 
-#ifdef CONFIG_LGE_STOCK
+/*
+ * The G6 rom builds based on the isolated work of those devs
+ * uses the stock path for firmware.
+ */
+#if defined(CONFIG_LGE_STOCK) || defined(CONFIG_MACH_MSM8996_LUCYE)
 #define OIS_FIRMWARE_LOCATION "/system/vendor/etc/camera"
 #else
 #define OIS_FIRMWARE_LOCATION "/vendor/firmware"
