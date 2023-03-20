@@ -95,9 +95,9 @@ THREADS=$(grep -c "processor" /proc/cpuinfo)
 # directory containing cross-compiler
 # a newer toolchain (gcc8+) is recommended due to changes made
 # to the kernel.
-GCC_COMP=$HOME/mk2000/toolchain/stendro/aarch64-elf/bin/aarch64-elf-
+GCC_COMP=$HOME/mk2000/toolchain/arm12/aarch64-elf/bin/aarch64-elf-
 # directory containing 32bit cross-compiler for CONFIG_COMPAT_VDSO
-GCC_COMP_32=$HOME/mk2000/toolchain/stendro/arm-eabi/bin/arm-eabi-
+GCC_COMP_32=$HOME/mk2000/toolchain/arm12/arm-eabi/bin/arm-eabi-
 
 # -------------------------------- END -----------------------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
