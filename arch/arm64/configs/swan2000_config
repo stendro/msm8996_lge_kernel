@@ -148,7 +148,7 @@ CONFIG_CRYPTO_ANSI_CPRNG=y
 CONFIG_ARCH_MMAP_RND_BITS=24
 CONFIG_SYSTEM_TRUSTED_KEYRING=y
 CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
-#CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
 CONFIG_QCOM_EARLY_RANDOM=y
 CONFIG_SERIAL_MSM=y
 CONFIG_COMPAT_BRK=y
@@ -175,8 +175,9 @@ CONFIG_USB_OTG_WAKELOCK=y
 CONFIG_FB_MSM_MDSS_KCAL_CTRL=y
 
 # LTO (Link Time Optimization)
-# should use recent GCC version
-# CONFIG_LTO=y
+# must use GCC version 10+
+CONFIG_LTO=y
+CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
 
 # Enable kernel debugging, shouldn't be used in a stable/use-ready build.
 CONFIG_CMDLINE="ignore_loglevel print_fatal_signals=1 bootmem_debug sched_debug debug"
