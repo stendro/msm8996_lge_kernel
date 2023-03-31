@@ -3260,10 +3260,7 @@ static int dwc3_msm_power_get_property_usb(struct power_supply *psy,
 		else
 			val->intval = psy->type;
 		break;
-	case POWER_SUPPLY_PROP_REAL_TYPE:
 #endif
-		val->intval = psy->type;
-		break;
 	case POWER_SUPPLY_PROP_HEALTH:
 		val->intval = mdwc->health_status;
 		break;
