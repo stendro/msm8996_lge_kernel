@@ -2133,6 +2133,7 @@ static void __exit msm_serial_hsl_exit(void)
 	uart_unregister_driver(&msm_hsl_uart_driver);
 }
 
+#ifdef CONFIG_SERIAL_EARLYCON
 #define MSM_HSL_UART_SR			0xa4
 #define MSM_HSL_UART_ISR		0xb4
 #define MSM_HSL_UART_TF			0x100
@@ -2174,6 +2175,7 @@ static int __init msm_hsl_earlycon_setup(struct earlycon_device *device,
 }
 EARLYCON_DECLARE(msm_hsl_uart, msm_hsl_earlycon_setup);
 OF_EARLYCON_DECLARE(msm_hsl_uart, "qcom,msm-hsl-uart", msm_hsl_earlycon_setup);
+#endif
 #endif
 
 module_init(msm_serial_hsl_init);
